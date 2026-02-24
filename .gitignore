@@ -26,3 +26,11 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Diagnostic images
+diag_*.png
+debug_*.png
+img*.png
+
+# Claude Code internals
+.claude/
