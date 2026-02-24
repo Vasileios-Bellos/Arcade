@@ -1,0 +1,28 @@
+# MATLAB autosave and temporary files
+*.asv
+*.autosave
+*.m~
+
+# MEX binaries
+*.mex*
+
+# Simulink / code generation
+slprj/
+codegen/
+
+# MATLAB app packaging
+*.mlappinstall
+*.mltbx
+
+# MATLAB project internals
+resources/_SimulinkProject/
+.SimulinkProject/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor swap files
+*.swp
+*.swo
+*~
