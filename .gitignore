@@ -27,6 +27,9 @@ Thumbs.db
 *.swo
 *~
 
+# Calibration cache (user-specific)
+GestureMouse_calibration.mat
+
 # Diagnostic images
 diag_*.png
 debug_*.png
