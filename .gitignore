@@ -33,6 +33,13 @@ GestureMouse_calibration.mat
 # Character template cache (machine-generated)
 GestureMouse_chartemplates.mat
 
+# Trained CNN model (large binary, user-trained)
+GestureMouse_letternet.mat
+
+# EMNIST dataset (downloaded for training)
+emnist-letters.mat
+emnist-matlab.zip
+
 # Diagnostic images
 diag_*.png
 debug_*.png
