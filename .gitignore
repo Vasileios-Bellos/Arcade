@@ -30,6 +30,9 @@ Thumbs.db
 # Calibration cache (user-specific)
 GestureMouse_calibration.mat
 
+# Character template cache (machine-generated)
+GestureMouse_chartemplates.mat
+
 # Diagnostic images
 diag_*.png
 debug_*.png
