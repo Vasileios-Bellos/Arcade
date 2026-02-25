@@ -38,6 +38,8 @@ GestureMouse_letternet.mat
 
 # EMNIST dataset (downloaded for training)
 emnist-letters.mat
+emnist-digits.mat
+emnist-byclass.mat
 emnist-matlab.zip
 
 # Diagnostic images
