@@ -1,18 +1,19 @@
 classdef (Sealed) ArcadeGameLauncher < handle
     %ArcadeGameLauncher  Standalone arcade-style game launcher with mouse input.
-    %   Full-featured arcade experience: game menu, 3-2-1 countdown, HUD with
-    %   score roll-up and combo display, pause/reset/results screens. Hosts the
-    %   same GameBase games used by GestureMouse's GameHost, but driven by mouse
-    %   input in a standalone figure — no webcam or GestureMouse required.
+    %   Full-featured arcade experience: visual game menu with hover selection,
+    %   3-2-1 countdown, HUD with score roll-up and combo display, pause/reset/
+    %   results screens. Hosts the same GameBase games used by GestureMouse's
+    %   GameHost, but driven by mouse input — no webcam required.
     %
     %   Usage:
-    %       ArcadeGameLauncher.launch()     % opens arcade
+    %       ArcadeGameLauncher.launch()
     %
-    %   Controls:
-    %       Menu:   Game keys to select, Escape to quit
-    %       Active: P = pause, R/0 = restart, Escape = end (results)
-    %       Paused: P = resume, R/0 = restart, Escape = end (results)
-    %       Results: Any key = back to menu
+    %   Menu Controls:
+    %       Click or number key to select a game
+    %       ESC to quit
+    %
+    %   In-Game Controls:
+    %       P = pause/resume, R or 0 = restart, ESC = end (results)
     %
     %   See also GameBase, GameHost, GestureMouse
 
@@ -31,17 +32,32 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
         % Game registry: key -> struct(ctor, name, key)
         Registry        dictionary
+        RegistryOrder   string                  % keys in insertion order
 
         % Display
         DisplayRange    struct = struct("X", [0 640], "Y", [0 480])
     end
 
     % =================================================================
-    % HUD HANDLES
+    % MENU BUTTON HANDLES
     % =================================================================
     properties (SetAccess = private)
         TitleTextH                              % text — arcade title
-        MenuTextH                               % text — game list
+        FooterTextH                             % text — instructions
+        MenuBtnPatches                          % patch array — button backgrounds
+        MenuBtnTexts                            % text array — button labels
+        MenuBtnKeys     string                  % key strings per button
+        MenuBtnYTop     double                  % top Y of each button
+        MenuBtnYBot     double                  % bottom Y of each button
+        MenuBtnXLeft    (1,1) double = 0
+        MenuBtnXRight   (1,1) double = 0
+        HoveredBtn      (1,1) double = 0        % 0 = none
+    end
+
+    % =================================================================
+    % HUD HANDLES
+    % =================================================================
+    properties (SetAccess = private)
         ScoreTextH                              % text — top-left score
         ComboTextH                              % text — combo display
         StatusTextH                             % text — center (countdown/pause/results)
@@ -117,20 +133,19 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.createFigure();
             obj.buildRegistry();
             obj.createHUD();
+            obj.createMenuButtons();
             obj.enterMenu();
             obj.startTimer();
         end
 
         function close(obj)
             %close  Shut down arcade: stop timer, clean up game, delete figure.
-            % Stop timer
             if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer)
                 stop(obj.RenderTimer);
                 delete(obj.RenderTimer);
             end
             obj.RenderTimer = [];
 
-            % Clean up active game
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                 try
                     obj.ActiveGame.onCleanup();
@@ -140,7 +155,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.ActiveGame = [];
             end
 
-            % Delete figure
             if ~isempty(obj.Fig) && isvalid(obj.Fig)
                 delete(obj.Fig);
             end
@@ -164,13 +178,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "YDir", "reverse", "Visible", "off", "XTick", [], "YTick", []);
             hold(obj.Ax, "on");
 
-            % Mouse tracking
             obj.Fig.WindowButtonMotionFcn = @(~, ~) obj.onMouseMove();
-
-            % Key handling
+            obj.Fig.WindowButtonDownFcn = @(~, ~) obj.onMouseClick();
             obj.Fig.KeyPressFcn = @(~, e) obj.onKeyPress(e);
-
-            % Close handler
             obj.Fig.CloseRequestFcn = @(~, ~) obj.close();
         end
 
@@ -188,6 +198,16 @@ classdef (Sealed) ArcadeGameLauncher < handle
             cp = get(obj.Ax, "CurrentPoint");
             obj.MousePos = cp(1, 1:2);
         end
+
+        function onMouseClick(obj)
+            %onMouseClick  Handle mouse click (menu button selection).
+            if obj.State ~= "menu"; return; end
+            idx = obj.hitTestButtons(obj.MousePos);
+            if idx > 0
+                obj.PendingGameKey = obj.MenuBtnKeys(idx);
+                obj.enterCountdown();
+            end
+        end
     end
 
     % =================================================================
@@ -201,18 +221,18 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
             switch obj.State
                 case "menu"
-                    % Static menu — nothing to update
+                    obj.updateMenuHover();
                 case "countdown"
                     obj.updateCountdown();
                 case "active"
                     obj.updateActive();
                 case "paused"
-                    % Static pause — nothing to update
+                    % Static — nothing
                 case "results"
-                    % Static results — nothing to update
+                    % Static — nothing
             end
 
-            % Combo fade animation
+            % Combo fade
             obj.updateComboFade();
 
             % Score roll-up
@@ -235,12 +255,11 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
 
-            % Sync score/combo from game
+            % Sync score/combo
             obj.Score = obj.ActiveGame.Score;
             obj.Combo = obj.ActiveGame.Combo;
             obj.MaxCombo = max(obj.MaxCombo, obj.ActiveGame.MaxCombo);
 
-            % Update combo display
             if obj.Combo >= 2
                 obj.showCombo();
             elseif obj.Combo == 0 && ~isempty(obj.ComboShowTic)
@@ -249,7 +268,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.ComboShowTic = [];
             end
 
-            % Update HUD text from game
+            % Game HUD text
             hudStr = obj.ActiveGame.getHudText();
             if ~isempty(obj.HudTextH) && isvalid(obj.HudTextH)
                 if strlength(hudStr) > 0
@@ -271,7 +290,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
             %onKeyPress  Route key events based on current state.
             key = string(evnt.Key);
 
-            % Build modifier+key string (matches GameHost/GestureMouse pattern)
             if ~isempty(evnt.Modifier)
                 mods = string(evnt.Modifier);
                 if any(mods == "shift")
@@ -303,7 +321,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     elseif key == "escape"
                         obj.enterResults();
                     else
-                        % Forward to game
                         if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                             obj.ActiveGame.onKeyPress(key);
                         end
@@ -330,10 +347,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
     methods (Access = private)
 
         function enterMenu(obj)
-            %enterMenu  Show game selection menu.
+            %enterMenu  Show game selection menu with visual buttons.
             obj.State = "menu";
 
-            % Clean up any active game
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                 try
                     obj.ActiveGame.onCleanup();
@@ -342,31 +358,18 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 end
                 obj.ActiveGame = [];
             end
-
-            % Orphan cleanup (preserve HUD)
             obj.cleanupOrphans();
 
-            dx = obj.DisplayRange.X;
-            dy = obj.DisplayRange.Y;
-            cx = mean(dx);
-            cy = mean(dy);
-
-            % Title
+            % Show menu elements
             if ~isempty(obj.TitleTextH) && isvalid(obj.TitleTextH)
-                obj.TitleTextH.Position = [cx, cy - diff(dy) * 0.15, 0];
-                obj.TitleTextH.String = "ARCADE";
                 obj.TitleTextH.Visible = "on";
             end
-
-            % Game list
-            if ~isempty(obj.MenuTextH) && isvalid(obj.MenuTextH)
-                obj.MenuTextH.Position = [cx, cy + diff(dy) * 0.02, 0];
-                obj.MenuTextH.String = obj.buildMenuText();
-                obj.MenuTextH.Visible = "on";
+            if ~isempty(obj.FooterTextH) && isvalid(obj.FooterTextH)
+                obj.FooterTextH.Visible = "on";
             end
-
-            % Hide gameplay HUD
+            obj.showMenuButtons();
             obj.hideGameplayHUD();
+            obj.HoveredBtn = 0;
         end
 
         function enterCountdown(obj)
@@ -375,7 +378,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.CountdownValue = 3;
             obj.CountdownFrames = 25;
 
-            % Reset session
             obj.Score = 0;
             obj.ScoreDisplayed = 0;
             obj.Combo = 0;
@@ -385,12 +387,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.ComboFadeTic = [];
 
             % Hide menu
-            if ~isempty(obj.TitleTextH) && isvalid(obj.TitleTextH)
-                obj.TitleTextH.Visible = "off";
-            end
-            if ~isempty(obj.MenuTextH) && isvalid(obj.MenuTextH)
-                obj.MenuTextH.Visible = "off";
-            end
+            obj.hideMenuAll();
 
             % Show score
             if ~isempty(obj.ScoreTextH) && isvalid(obj.ScoreTextH)
@@ -433,7 +430,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     if obj.CountdownValue > 0
                         obj.CountdownFrames = totalPerNum;
                     else
-                        obj.CountdownFrames = 12;  % "GO!" duration
+                        obj.CountdownFrames = 12;
                     end
                 else
                     obj.launchGame();
@@ -473,7 +470,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
             %enterResults  Show results screen.
             obj.State = "results";
 
-            % Get results before cleanup
             results = struct("Title", "GAME OVER", "Lines", {{}});
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                 try
@@ -487,8 +483,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 end
                 obj.ActiveGame = [];
             end
-
-            % Orphan cleanup
             obj.cleanupOrphans();
 
             dx = obj.DisplayRange.X;
@@ -496,7 +490,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
             cx = mean(dx);
             cy = mean(dy);
 
-            % Title
             if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
                 obj.StatusTextH.Position = [cx, cy - diff(dy) * 0.08, 0];
                 titleStr = "GAME OVER";
@@ -509,7 +502,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.StatusTextH.Visible = "on";
             end
 
-            % Details
             if ~isempty(obj.ComboTextH) && isvalid(obj.ComboTextH)
                 obj.ComboTextH.Position = [cx, cy + diff(dy) * 0.02, 0];
                 obj.ComboTextH.HorizontalAlignment = "center";
@@ -544,14 +536,11 @@ classdef (Sealed) ArcadeGameLauncher < handle
             key = obj.PendingGameKey;
             if ~obj.Registry.isKey(key); return; end
             entry = obj.Registry(key);
-            ctor = entry.ctor;
             obj.ActiveGameName = entry.name;
 
-            % Instantiate game (no caps — standalone, no GestureMouse)
-            game = ctor();
+            game = entry.ctor();
             game.onInit(obj.Ax, obj.DisplayRange, struct());
-            game.StartTic = tic;
-            game.IsRunning = true;
+            game.beginGame();
             obj.ActiveGame = game;
             obj.SessionStartTic = tic;
         end
@@ -572,6 +561,149 @@ classdef (Sealed) ArcadeGameLauncher < handle
     end
 
     % =================================================================
+    % PRIVATE — Menu Buttons
+    % =================================================================
+    methods (Access = private)
+
+        function createMenuButtons(obj)
+            %createMenuButtons  Build visual button rows from registry.
+            ax = obj.Ax;
+            dx = obj.DisplayRange.X;
+            dy = obj.DisplayRange.Y;
+            cx = mean(dx);
+
+            nGames = numel(obj.RegistryOrder);
+            if nGames == 0; return; end
+
+            btnW = min(300, diff(dx) * 0.5);
+            btnH = 36;
+            btnGap = 8;
+            totalH = nGames * btnH + (nGames - 1) * btnGap;
+            startY = mean(dy) - totalH * 0.3;
+
+            obj.MenuBtnPatches = gobjects(nGames, 1);
+            obj.MenuBtnTexts = gobjects(nGames, 1);
+            obj.MenuBtnKeys = strings(nGames, 1);
+            obj.MenuBtnYTop = zeros(nGames, 1);
+            obj.MenuBtnYBot = zeros(nGames, 1);
+            obj.MenuBtnXLeft = cx - btnW / 2;
+            obj.MenuBtnXRight = cx + btnW / 2;
+
+            for k = 1:nGames
+                gameKey = obj.RegistryOrder(k);
+                entry = obj.Registry(gameKey);
+                yTop = startY + (k - 1) * (btnH + btnGap);
+                yBot = yTop + btnH;
+
+                xL = obj.MenuBtnXLeft;
+                xR = obj.MenuBtnXRight;
+
+                % Button background
+                obj.MenuBtnPatches(k) = patch(ax, ...
+                    [xL xR xR xL], [yTop yTop yBot yBot], ...
+                    [0.12 0.12 0.15], "FaceAlpha", 0.8, ...
+                    "EdgeColor", [0.25 0.25 0.3], "LineWidth", 1.5, ...
+                    "Visible", "off", "Tag", "GT_arcBtn");
+
+                % Button label: "[key]  Game Name"
+                label = upper(entry.key) + "     " + entry.name;
+                obj.MenuBtnTexts(k) = text(ax, ...
+                    xL + 16, (yTop + yBot) / 2, label, ...
+                    "Color", obj.ColorWhite * 0.65, "FontSize", 14, ...
+                    "FontWeight", "bold", "HorizontalAlignment", "left", ...
+                    "VerticalAlignment", "middle", "Visible", "off", ...
+                    "Tag", "GT_arcBtn");
+
+                obj.MenuBtnKeys(k) = gameKey;
+                obj.MenuBtnYTop(k) = yTop;
+                obj.MenuBtnYBot(k) = yBot;
+            end
+        end
+
+        function showMenuButtons(obj)
+            %showMenuButtons  Make all menu buttons visible.
+            for k = 1:numel(obj.MenuBtnPatches)
+                if ~isempty(obj.MenuBtnPatches(k)) && isvalid(obj.MenuBtnPatches(k))
+                    obj.MenuBtnPatches(k).Visible = "on";
+                end
+            end
+            for k = 1:numel(obj.MenuBtnTexts)
+                if ~isempty(obj.MenuBtnTexts(k)) && isvalid(obj.MenuBtnTexts(k))
+                    obj.MenuBtnTexts(k).Visible = "on";
+                end
+            end
+        end
+
+        function hideMenuAll(obj)
+            %hideMenuAll  Hide title, footer, and all menu buttons.
+            if ~isempty(obj.TitleTextH) && isvalid(obj.TitleTextH)
+                obj.TitleTextH.Visible = "off";
+            end
+            if ~isempty(obj.FooterTextH) && isvalid(obj.FooterTextH)
+                obj.FooterTextH.Visible = "off";
+            end
+            for k = 1:numel(obj.MenuBtnPatches)
+                if ~isempty(obj.MenuBtnPatches(k)) && isvalid(obj.MenuBtnPatches(k))
+                    obj.MenuBtnPatches(k).Visible = "off";
+                end
+            end
+            for k = 1:numel(obj.MenuBtnTexts)
+                if ~isempty(obj.MenuBtnTexts(k)) && isvalid(obj.MenuBtnTexts(k))
+                    obj.MenuBtnTexts(k).Visible = "off";
+                end
+            end
+        end
+
+        function updateMenuHover(obj)
+            %updateMenuHover  Highlight button under mouse cursor.
+            newHover = obj.hitTestButtons(obj.MousePos);
+
+            if newHover == obj.HoveredBtn; return; end
+
+            % Un-hover previous
+            if obj.HoveredBtn > 0 && obj.HoveredBtn <= numel(obj.MenuBtnPatches)
+                k = obj.HoveredBtn;
+                if isvalid(obj.MenuBtnPatches(k))
+                    obj.MenuBtnPatches(k).FaceColor = [0.12 0.12 0.15];
+                    obj.MenuBtnPatches(k).EdgeColor = [0.25 0.25 0.3];
+                end
+                if isvalid(obj.MenuBtnTexts(k))
+                    obj.MenuBtnTexts(k).Color = obj.ColorWhite * 0.65;
+                end
+            end
+
+            % Hover new
+            if newHover > 0 && newHover <= numel(obj.MenuBtnPatches)
+                k = newHover;
+                if isvalid(obj.MenuBtnPatches(k))
+                    obj.MenuBtnPatches(k).FaceColor = [0.18 0.22 0.28];
+                    obj.MenuBtnPatches(k).EdgeColor = obj.ColorCyan * 0.5;
+                end
+                if isvalid(obj.MenuBtnTexts(k))
+                    obj.MenuBtnTexts(k).Color = obj.ColorCyan;
+                end
+            end
+
+            obj.HoveredBtn = newHover;
+        end
+
+        function idx = hitTestButtons(obj, pos)
+            %hitTestButtons  Return index of button under pos, or 0.
+            idx = 0;
+            mx = pos(1); my = pos(2);
+            if mx < obj.MenuBtnXLeft || mx > obj.MenuBtnXRight
+                return;
+            end
+            for k = 1:numel(obj.MenuBtnYTop)
+                if my >= obj.MenuBtnYTop(k) && my <= obj.MenuBtnYBot(k)
+                    idx = k;
+                    return;
+                end
+            end
+        end
+    end
+
+    % =================================================================
     % PRIVATE — HUD Management
     % =================================================================
     methods (Access = private)
@@ -582,20 +714,22 @@ classdef (Sealed) ArcadeGameLauncher < handle
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             cx = mean(dx);
+            cy = mean(dy);
 
-            % Arcade title (menu only)
-            obj.TitleTextH = text(ax, cx, mean(dy), "ARCADE", ...
+            % Arcade title
+            obj.TitleTextH = text(ax, cx, cy - diff(dy) * 0.18, "ARCADE", ...
                 "Color", obj.ColorCyan * 0.95, "FontSize", 42, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Visible", "off", ...
                 "Tag", "GT_arcTitle");
 
-            % Menu text (game list)
-            obj.MenuTextH = text(ax, cx, mean(dy), "", ...
-                "Color", obj.ColorWhite * 0.7, "FontSize", 14, ...
-                "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                "VerticalAlignment", "top", "Visible", "off", ...
-                "Tag", "GT_arcMenu");
+            % Footer instructions
+            obj.FooterTextH = text(ax, cx, dy(2) - 20, ...
+                "Click or press number to play  |  ESC: Quit", ...
+                "Color", obj.ColorWhite * 0.4, "FontSize", 11, ...
+                "FontWeight", "normal", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "bottom", "Visible", "off", ...
+                "Tag", "GT_arcFooter");
 
             % Score text (top left)
             obj.ScoreTextH = text(ax, dx(1) + 4, dy(1) + 2, "Score: 0", ...
@@ -604,21 +738,21 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "VerticalAlignment", "top", "Visible", "off", ...
                 "Tag", "GT_arcScore");
 
-            % Combo text (below score / center for results)
+            % Combo text
             obj.ComboTextH = text(ax, cx, dy(1) + 34, "", ...
                 "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
                 "Tag", "GT_arcCombo");
 
-            % Status text (center — countdown/pause/results)
-            obj.StatusTextH = text(ax, cx, mean(dy), "", ...
+            % Status text (center)
+            obj.StatusTextH = text(ax, cx, cy, "", ...
                 "Color", obj.ColorCyan * 0.95, "FontSize", 28, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Visible", "off", ...
                 "Tag", "GT_arcStatus");
 
-            % HUD text (bottom center — game-specific)
+            % Game HUD text (bottom)
             obj.HudTextH = text(ax, cx, dy(2) - 8, "", ...
                 "Color", obj.ColorWhite * 0.7, "FontSize", 11, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
@@ -670,7 +804,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 return;
             end
 
-            % Auto-trigger fade after 1s display
             if ~isempty(obj.ComboShowTic) && isempty(obj.ComboFadeTic)
                 if toc(obj.ComboShowTic) >= 1.0
                     obj.ComboFadeTic = tic;
@@ -679,7 +812,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 end
             end
 
-            % Animate fade-out
             if isempty(obj.ComboFadeTic); return; end
             elapsed = toc(obj.ComboFadeTic);
             fadeDur = 0.6;
@@ -693,7 +825,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         end
 
         function cleanupOrphans(obj)
-            %cleanupOrphans  Delete game graphics, preserving HUD.
+            %cleanupOrphans  Delete game graphics, preserving arcade HUD.
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
             orphans = findall(obj.Ax, "-regexp", "Tag", "^GT_(?!arc)");
             if ~isempty(orphans)
@@ -710,6 +842,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function buildRegistry(obj)
             %buildRegistry  Register all available games with key bindings.
             obj.Registry = dictionary;
+            obj.RegistryOrder = strings(0);
 
             % === Games registered here as they are extracted ===
             obj.registerGame("1", @games.Pointing, "Pointing");
@@ -721,22 +854,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             entry.name = name;
             entry.key = key;
             obj.Registry(key) = entry;
-        end
-
-        function lines = buildMenuText(obj)
-            %buildMenuText  Build multi-line menu from registry.
-            if obj.Registry.numEntries == 0
-                lines = "No games available";
-                return;
-            end
-            keys = obj.Registry.keys;
-            parts = strings(1, numel(keys));
-            for k = 1:numel(keys)
-                entry = obj.Registry(keys(k));
-                parts(k) = upper(entry.key) + "  —  " + entry.name;
-            end
-            lines = strjoin(parts, newline) + newline + newline ...
-                + "ESC  —  Quit";
+            obj.RegistryOrder(end + 1) = key;
         end
     end
 

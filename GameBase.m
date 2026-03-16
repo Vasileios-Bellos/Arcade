@@ -19,7 +19,7 @@ classdef (Abstract) GameBase < handle
     % =================================================================
     % PUBLIC READABLE PROPERTIES
     % =================================================================
-    properties (SetAccess = {?GameBase, ?GameHost})
+    properties (SetAccess = protected)
         Ax                              % axes handle (set by onInit)
         DisplayRange    struct = struct("X", [0 640], "Y", [0 480])
         Score           (1,1) double = 0
@@ -75,6 +75,18 @@ classdef (Abstract) GameBase < handle
 
         handled = onKeyPress(obj, key)
         %onKeyPress  Handle key event. Return true if consumed.
+    end
+
+    % =================================================================
+    % PUBLIC SESSION CONTROL (called by hosts)
+    % =================================================================
+    methods
+        function beginGame(obj)
+            %beginGame  Mark game as running with a fresh timer.
+            %   Called by GameHost, ArcadeGameLauncher, or play() after onInit.
+            obj.StartTic = tic;
+            obj.IsRunning = true;
+        end
     end
 
     % =================================================================
@@ -413,8 +425,7 @@ classdef (Abstract) GameBase < handle
 
             % Initialize game
             obj.onInit(ax, range, struct());
-            obj.IsRunning = true;
-            obj.StartTic = tic;
+            obj.beginGame();
 
             % Mouse tracking state (closure variable)
             mousePos = [320, 240];  % center default
