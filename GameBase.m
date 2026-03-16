@@ -19,7 +19,7 @@ classdef (Abstract) GameBase < handle
     % =================================================================
     % PUBLIC READABLE PROPERTIES
     % =================================================================
-    properties (SetAccess = protected)
+    properties (SetAccess = {?GameBase, ?GameHost})
         Ax                              % axes handle (set by onInit)
         DisplayRange    struct = struct("X", [0 640], "Y", [0 480])
         Score           (1,1) double = 0
@@ -247,6 +247,12 @@ classdef (Abstract) GameBase < handle
             obj.HitEffects(end + 1) = effect;
         end
 
+    end
+
+    % =================================================================
+    % HIT EFFECTS — public animation/cleanup (called by GameHost)
+    % =================================================================
+    methods
         function updateHitEffects(obj)
             %updateHitEffects  Animate and clean up active hit effects.
             toRemove = [];
