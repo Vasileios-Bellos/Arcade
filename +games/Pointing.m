@@ -129,9 +129,9 @@ classdef Pointing < GameBase
             end
             obj.PrevPos = pos;
 
-            % Check hit
+            % Check hit (swept segment: PrevPos -> pos vs target circle)
             if ~any(isnan(pos)) && ~any(isnan(obj.TargetPos))
-                dist = norm(pos - obj.TargetPos);
+                dist = obj.segmentPointDist(obj.PrevPos, pos, obj.TargetPos);
                 if dist <= obj.TargetRadius
                     obj.onTargetHit(dist);
                     return;
@@ -455,6 +455,26 @@ classdef Pointing < GameBase
                 barColor = obj.ColorGold * (1 - t) + obj.ColorRed * t;
             end
             obj.TimeBarFg.FaceColor = barColor;
+        end
+    end
+
+    % =================================================================
+    % STATIC UTILITIES
+    % =================================================================
+    methods (Static, Access = private)
+        function d = segmentPointDist(a, b, p)
+            %segmentPointDist  Minimum distance from point P to segment A-B.
+            %   Handles degenerate case (A==B) and clamps projection to [0,1].
+            ab = b - a;
+            ap = p - a;
+            lenSq = dot(ab, ab);
+            if lenSq < 1e-12
+                d = norm(ap);
+                return;
+            end
+            t = max(0, min(1, dot(ap, ab) / lenSq));
+            closest = a + t * ab;
+            d = norm(p - closest);
         end
     end
 end
