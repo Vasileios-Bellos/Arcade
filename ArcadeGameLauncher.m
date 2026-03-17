@@ -592,7 +592,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.State = "results";
 
             results = struct("Title", "GAME OVER", "Lines", {{}});
+            gameId = "";
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
+                gameId = ScoreManager.classToId(class(obj.ActiveGame));
                 try
                     results = obj.ActiveGame.getResults();
                 catch
@@ -634,6 +636,21 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 detailLines{end + 1} = sprintf( ...
                     "Score: %d  |  Max Combo: %d  |  Time: %.0fs", ...
                     obj.Score, obj.MaxCombo, elapsed);
+                % High score tracking
+                if strlength(gameId) > 0
+                    [isNewHigh, ~] = ScoreManager.submit( ...
+                        gameId, obj.Score, obj.MaxCombo, elapsed);
+                    if isNewHigh
+                        detailLines{end + 1} = sprintf( ...
+                            "★  NEW HIGH SCORE: %d  ★", obj.Score);
+                    else
+                        hsRec = ScoreManager.get(gameId);
+                        if hsRec.highScore > obj.Score
+                            detailLines{end + 1} = sprintf( ...
+                                "High Score: %d", hsRec.highScore);
+                        end
+                    end
+                end
                 detailLines{end + 1} = "";
                 detailLines{end + 1} = "[R] PLAY AGAIN   |   [ESC] MENU";
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);

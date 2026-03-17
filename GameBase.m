@@ -476,6 +476,12 @@ classdef (Abstract) GameBase < handle
 
             function cleanup()
                 obj.IsRunning = false;
+                % Submit score silently (no results screen in standalone)
+                if obj.Score > 0
+                    smGameId = ScoreManager.classToId(class(obj));
+                    smElapsed = toc(obj.StartTic);
+                    ScoreManager.submit(smGameId, obj.Score, obj.MaxCombo, smElapsed);
+                end
                 if isvalid(tmr)
                     stop(tmr);
                     delete(tmr);
