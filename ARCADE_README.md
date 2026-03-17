@@ -46,6 +46,43 @@ ArcadeGameLauncher        GameHost
 
 Games never call `drawnow` and never know where their input comes from. They receive `[x, y]` each frame and draw on the axes they're given.
 
+### Performance
+
+All games use **pre-allocated graphics pools** — every graphics object (`line`, `scatter`, `patch`, `text`) is created once in `onInit` and recycled during gameplay by toggling `Visible` and updating `XData`/`YData`. No graphics are created or deleted inside `onUpdate`.
+
+This matters because MATLAB graphics object creation triggers handle registration, renderer sync, and memory allocation — each taking 0.2–1ms. At 50 FPS with multiple objects per frame, those hitches are visible. Property updates on existing handles (`h.XData = newX`) cost <0.01ms.
+
+The pool pattern for a typical game:
+
+```matlab
+function onInit(obj, ax, displayRange, ~)
+    % Pre-allocate pool (all hidden)
+    obj.BulletPool = cell(1, 10);
+    obj.BulletActive = false(1, 10);
+    for k = 1:10
+        obj.BulletPool{k} = line(ax, NaN, NaN, ...
+            "Visible", "off", "Tag", "GT_mygame");
+    end
+end
+
+function fireBullet(obj, x, y)
+    slot = find(~obj.BulletActive, 1);     % find idle slot
+    if isempty(slot); return; end           % pool full, skip
+    obj.BulletActive(slot) = true;
+    set(obj.BulletPool{slot}, "XData", x, "YData", y, "Visible", "on");
+end
+
+function deactivateBullet(obj, slot)
+    obj.BulletActive(slot) = false;
+    obj.BulletPool{slot}.Visible = "off";  % hide, don't delete
+end
+```
+
+Other performance conventions:
+- **Constant arrays** (`linspace(0, 2*pi, 24)` for circles) are computed once in `onInit` and stored as properties
+- **Expensive queries** (`getpixelposition`, `get(0, "ScreenPixelsPerInch")`) are cached at init time
+- **HUD text** uses dirty flags — `.String` and `.Color` are only set when the displayed value actually changes
+
 **Two hosts** can run any game:
 
 - **ArcadeGameLauncher** — standalone figure, mouse input, click-based menu
@@ -198,23 +235,39 @@ Scores are stored in `ScoreManager_scores.mat` (same directory as `ScoreManager.
 1. Create `+games/MyGame.m` extending `GameBase`
 2. Implement `onInit`, `onUpdate`, `onCleanup`, `onKeyPress`
 3. Set the `Name` constant property
-4. Register in `ArcadeGameLauncher.buildRegistry()` and `GameHost.buildRegistry()`
-5. High scores are tracked automatically on first play
+4. **Pre-allocate all graphics in `onInit`** — see [Performance](#performance) above
+5. Register in `ArcadeGameLauncher.buildRegistry()` and `GameHost.buildRegistry()`
+6. High scores are tracked automatically on first play
 
 ```matlab
 classdef MyGame < GameBase
     properties (Constant)
         Name = "My Game"
     end
+    properties (Access = private)
+        EnemyPool   cell                    % pre-allocated handles
+        EnemyActive (1,20) logical = false  % pool bookkeeping
+    end
     methods
         function onInit(obj, ax, displayRange, caps)
-            % Create graphics on ax
+            % Pre-allocate all graphics here (Visible="off")
+            obj.EnemyPool = cell(1, 20);
+            for k = 1:20
+                obj.EnemyPool{k} = scatter(ax, NaN, NaN, 100, ...
+                    "filled", "Visible", "off", "Tag", "GT_mygame");
+            end
         end
         function onUpdate(obj, pos)
             % pos = [x, y] — physics + rendering each frame
+            % Activate/deactivate pool slots, never create or delete
         end
         function onCleanup(obj)
-            % Delete graphics
+            % Delete all pool handles + orphan guard
+            for k = 1:numel(obj.EnemyPool)
+                h = obj.EnemyPool{k};
+                if ~isempty(h) && isvalid(h); delete(h); end
+            end
+            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_mygame");
         end
         function handled = onKeyPress(obj, key)
             handled = false;
