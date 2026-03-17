@@ -22,6 +22,7 @@ classdef Catching < GameBase
         BaseSpeed       (1,1) double = 1.75     % base speed (idx/frame), tiers multiply 1x-5x
         Fireflies                                % active firefly struct array
         SpawnCooldown   (1,1) double = 0         % frames until next spawn
+        CatchRadiusBonus (1,1) double = 0        % extra catch radius for mouse input
 
         % Timing
         CatchStartTic   uint64                   % tic for difficulty ramp
@@ -55,19 +56,20 @@ classdef Catching < GameBase
     % ABSTRACT METHOD IMPLEMENTATIONS
     % =================================================================
     methods
-        function onInit(obj, ax, displayRange, ~)
+        function onInit(obj, ax, displayRange, caps)
             %onInit  Create initial state and spawn first firefly.
             arguments
                 obj
                 ax
                 displayRange struct
-                ~
+                caps struct = struct()
             end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
             obj.Score = 0;
             obj.Combo = 0;
             obj.MaxCombo = 0;
+            obj.ShowHostCombo = false;
 
             obj.Fireflies = [];
             obj.SpawnCooldown = 40;
@@ -78,6 +80,15 @@ classdef Catching < GameBase
             obj.ComboTextH = [];
             obj.FirefliesCaught = 0;
             obj.FirefliesMissed = 0;
+
+            % Mouse input needs larger catch radius — finger tracking has
+            % a natural ~30px "fat finger" zone from scatter marker + wobble
+            isMouseInput = ~isfield(caps, "smoothedTrace");
+            if isMouseInput
+                obj.CatchRadiusBonus = 8;
+            else
+                obj.CatchRadiusBonus = 0;
+            end
 
             % Spawn first firefly
             obj.spawnFirefly();
@@ -161,10 +172,10 @@ classdef Catching < GameBase
                     ty = ff.pathY(tStart:pidx);
                 end
 
-                % Check catch
+                % Check catch (mouse gets bonus radius for precision parity)
                 if ~any(isnan(pos))
                     dist = norm(pos - ffPos);
-                    if dist <= ff.radius
+                    if dist <= ff.radius + obj.CatchRadiusBonus
                         obj.onCatch(i, ffPos);
                         continue
                     end
@@ -298,7 +309,7 @@ classdef Catching < GameBase
             else
                 % Gold — legendary, small and fast (5%)
                 clr = obj.ColorGold;
-                pts = 500; radius = 10; spd = bs * 5;
+                pts = 500; radius = 10; spd = bs * 4;
             end
 
             isGold = (tierRoll >= 0.95);

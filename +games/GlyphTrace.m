@@ -104,6 +104,7 @@ classdef GlyphTrace < GameBase
             obj.Score = 0;
             obj.Combo = 0;
             obj.MaxCombo = 0;
+            obj.ShowHostCombo = false;
 
             % --- Obtain glyph cache from host or build locally ---
             if isfield(caps, "glyphCache") && ~isempty(caps.glyphCache)

@@ -27,6 +27,7 @@ classdef (Abstract) GameBase < handle
         MaxCombo        (1,1) double = 0
         IsRunning       (1,1) logical = false
         StartTic                        % tic at game start
+        ShowHostCombo   (1,1) logical = true   % false = game shows its own combo
     end
 
     % =================================================================

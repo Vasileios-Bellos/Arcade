@@ -387,14 +387,17 @@ classdef (Sealed) ArcadeGameLauncher < handle
             end
 
             % Update combo display — auto-fade 2s after last score change
-            scoringRecently = ~isempty(obj.LastScoreChangeTic) ...
-                && toc(obj.LastScoreChangeTic) < 2.0;
-            if obj.Combo >= 2 && scoringRecently
-                obj.showCombo();
-            elseif obj.Combo == 0 && ~isempty(obj.ComboShowTic)
-                obj.ComboFadeTic = tic;
-                obj.ComboFadeColor = obj.ColorGreen * 0.9;
-                obj.ComboShowTic = [];
+            % Skip if the game shows its own combo text
+            if obj.ActiveGame.ShowHostCombo
+                scoringRecently = ~isempty(obj.LastScoreChangeTic) ...
+                    && toc(obj.LastScoreChangeTic) < 2.0;
+                if obj.Combo >= 2 && scoringRecently
+                    obj.showCombo();
+                elseif obj.Combo == 0 && ~isempty(obj.ComboShowTic)
+                    obj.ComboFadeTic = tic;
+                    obj.ComboFadeColor = obj.ColorGreen * 0.9;
+                    obj.ComboShowTic = [];
+                end
             end
 
             hudStr = obj.ActiveGame.getHudText();

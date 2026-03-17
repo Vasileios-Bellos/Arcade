@@ -85,6 +85,7 @@ classdef FlickBall < GameBase
             obj.Score = 0;
             obj.Combo = 0;
             obj.MaxCombo = 0;
+            obj.ShowHostCombo = false;
 
             cx = mean(displayRange.X);
             cy = mean(displayRange.Y);

@@ -222,7 +222,8 @@ classdef (Sealed) GameMenu < handle
         end
 
         function show(obj)
-            %show  Make all menu graphics visible.
+            %show  Make all menu graphics visible and refresh scores.
+            obj.updateSlotContent();
             obj.setAllVisible("on");
             obj.AnimStartTic = tic;
             obj.resetDwell();
