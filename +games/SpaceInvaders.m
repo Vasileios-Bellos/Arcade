@@ -598,7 +598,7 @@ classdef SpaceInvaders < GameBase
                     % Alien shape - invader-style polygon (vertices relative to center)
                     aw2 = alienW / 2;
                     ah2 = alienH / 2;
-                    [sx, sy] = SpaceInvaders.alienShapeVertices(aType, aw2, ah2);
+                    [sx, sy] = games.SpaceInvaders.alienShapeVertices(aType, aw2, ah2);
                     px = alienX + sx;
                     py = alienY + sy;
 

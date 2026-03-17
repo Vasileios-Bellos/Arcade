@@ -54,7 +54,7 @@ classdef FourierEpicycle < GameBase
         CloseDist       (1,1) double = 20            % auto-close detection radius
         PauseFrames     (1,1) double = 0
         PauseThresh     (1,1) double = 10            % frames of stillness to trigger
-        PauseDispThresh (1,1) double = 10            % total displacement threshold
+        PauseDispThresh (1,1) double = 18            % total displacement threshold (raised from 10 for finger jitter ~2px/frame)
         HasMoved        (1,1) logical = false
         DrawFrames      (1,1) double = 0             % frames since drawing started
 
@@ -1096,7 +1096,7 @@ classdef FourierEpicycle < GameBase
 
             if obj.SubMode == "presets"
                 shapeName = obj.PresetShapes(obj.PresetIdx);
-                pts = FourierEpicycle.generatePreset(shapeName, 256);
+                pts = games.FourierEpicycle.generatePreset(shapeName, 256);
                 pathX = pts(:,1) * scaleFactor + cx;
                 pathY = pts(:,2) * scaleFactor + cy;
 

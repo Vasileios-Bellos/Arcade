@@ -449,7 +449,7 @@ classdef Keyboard < GameBase
                         ch = lower(ch);
                     end
                 elseif obj.ShiftActive
-                    ch = Keyboard.shiftedChar(ch);
+                    ch = games.Keyboard.shiftedChar(ch);
                 end
                 obj.TypedText = obj.TypedText + ch;
             end
@@ -542,7 +542,7 @@ classdef Keyboard < GameBase
                     end
                 else
                     if obj.ShiftActive
-                        t.String = char(Keyboard.shiftedChar(keyLabel));
+                        t.String = char(games.Keyboard.shiftedChar(keyLabel));
                     else
                         t.String = char(keyLabel);
                     end

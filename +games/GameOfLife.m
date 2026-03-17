@@ -330,7 +330,7 @@ classdef GameOfLife < GameBase
                     obj.Age(obj.Grid) = 1;
                 case "gliders"
                     if Nx >= 40 && Ny >= 20
-                        gun = GameOfLife.gosperGun();
+                        gun = games.GameOfLife.gosperGun();
                         obj.stampPattern(gun, 2, 2);
                         if Nx >= 80 && Ny >= 40
                             gunFlip = flipud(fliplr(gun));

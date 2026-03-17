@@ -263,15 +263,15 @@ classdef DoublePendulum < GameBase
                         Fy2 = fMag2 * ddy2 / sqrt(dist2_2);
                         Q2(k) = sc * L2 * (Fx2 * cos(t2k) - Fy2 * sin(t2k));
                     end
-                    k1 = DoublePendulum.computeDerivatives(curState, L1, L2, m1, m2, grav, Q1, Q2);
-                    k2 = DoublePendulum.computeDerivatives(curState + 0.5 * dt * k1, L1, L2, m1, m2, grav, Q1, Q2);
-                    k3 = DoublePendulum.computeDerivatives(curState + 0.5 * dt * k2, L1, L2, m1, m2, grav, Q1, Q2);
-                    k4 = DoublePendulum.computeDerivatives(curState + dt * k3, L1, L2, m1, m2, grav, Q1, Q2);
+                    k1 = games.DoublePendulum.computeDerivatives(curState, L1, L2, m1, m2, grav, Q1, Q2);
+                    k2 = games.DoublePendulum.computeDerivatives(curState + 0.5 * dt * k1, L1, L2, m1, m2, grav, Q1, Q2);
+                    k3 = games.DoublePendulum.computeDerivatives(curState + 0.5 * dt * k2, L1, L2, m1, m2, grav, Q1, Q2);
+                    k4 = games.DoublePendulum.computeDerivatives(curState + dt * k3, L1, L2, m1, m2, grav, Q1, Q2);
                 else
-                    k1 = DoublePendulum.computeDerivatives(curState, L1, L2, m1, m2, grav);
-                    k2 = DoublePendulum.computeDerivatives(curState + 0.5 * dt * k1, L1, L2, m1, m2, grav);
-                    k3 = DoublePendulum.computeDerivatives(curState + 0.5 * dt * k2, L1, L2, m1, m2, grav);
-                    k4 = DoublePendulum.computeDerivatives(curState + dt * k3, L1, L2, m1, m2, grav);
+                    k1 = games.DoublePendulum.computeDerivatives(curState, L1, L2, m1, m2, grav);
+                    k2 = games.DoublePendulum.computeDerivatives(curState + 0.5 * dt * k1, L1, L2, m1, m2, grav);
+                    k3 = games.DoublePendulum.computeDerivatives(curState + 0.5 * dt * k2, L1, L2, m1, m2, grav);
+                    k4 = games.DoublePendulum.computeDerivatives(curState + dt * k3, L1, L2, m1, m2, grav);
                 end
                 curState = curState + (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
             end

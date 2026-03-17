@@ -70,6 +70,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
         ComboShowTic
         ComboFadeTic
         ComboFadeColor  (1,3) double = [0.2, 1, 0.4]
+        LastScoreChangeTic
+        PrevSyncedScore (1,1) double = 0
     end
 
     % =================================================================
@@ -378,7 +380,16 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.Combo = obj.ActiveGame.Combo;
             obj.MaxCombo = max(obj.MaxCombo, obj.ActiveGame.MaxCombo);
 
-            if obj.Combo >= 2
+            % Track when score last changed (for combo auto-fade)
+            if obj.Score ~= obj.PrevSyncedScore
+                obj.LastScoreChangeTic = tic;
+                obj.PrevSyncedScore = obj.Score;
+            end
+
+            % Update combo display — auto-fade 2s after last score change
+            scoringRecently = ~isempty(obj.LastScoreChangeTic) ...
+                && toc(obj.LastScoreChangeTic) < 2.0;
+            if obj.Combo >= 2 && scoringRecently
                 obj.showCombo();
             elseif obj.Combo == 0 && ~isempty(obj.ComboShowTic)
                 obj.ComboFadeTic = tic;
@@ -504,6 +515,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.Combo = 0;
             obj.MaxCombo = 0;
             obj.SessionStartTic = tic;
+            obj.LastScoreChangeTic = [];
+            obj.PrevSyncedScore = 0;
             obj.ComboShowTic = [];
             obj.ComboFadeTic = [];
 
