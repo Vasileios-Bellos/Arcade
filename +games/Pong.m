@@ -30,6 +30,7 @@ classdef Pong < GameBase
         AIErrorPx       (1,1) double = 20       % base intentional offset error
         Restitution     (1,1) double = 0.95     % wall bounce energy retention
         TrailLen        (1,1) double = 20       % trail buffer capacity
+        SpeedScale      (1,1) double = 1        % visual speed normalization factor
     end
 
     % =================================================================
@@ -115,6 +116,12 @@ classdef Pong < GameBase
             obj.BallBaseSpeed = max(1.5, areaW * 0.02);
             obj.AIBaseSpeed = max(1.0, areaH * 0.02);
             obj.AIErrorPx = max(5, areaH * 0.12);
+
+            % Visual speed scale: flickSpeedColor thresholds (3/7/12) were
+            % calibrated for GestureMouse's ~240px ROI where base speed ~4.8.
+            % Scale factor maps current display speeds back to that range.
+            refBaseSpeed = max(1.5, 240 * 0.02);  % = 4.8
+            obj.SpeedScale = refBaseSpeed / max(obj.BallBaseSpeed, 1);
 
             % Reset state
             obj.BallPos = [cx, cy];
@@ -290,7 +297,8 @@ classdef Pong < GameBase
             end
 
             if bounced
-                obj.spawnBounceEffect(bouncePos, bounceNormal, 0, norm(obj.BallVel));
+                obj.spawnBounceEffect(bouncePos, bounceNormal, 0, ...
+                    norm(obj.BallVel) * obj.SpeedScale);
             end
 
             % --- Paddle collision (front-face only) ---
@@ -672,9 +680,8 @@ classdef Pong < GameBase
             by = obj.BallPos(2);
             ballSpeed = norm(obj.BallVel);
             r = obj.BallRadius;
-            % Normalize speed to standard scale so color ramp works at any display size
-            normalizedSpeed = (ballSpeed / max(obj.BallBaseSpeed, 1)) * 4.5;
-            clr = obj.flickSpeedColor(normalizedSpeed);
+            visSpeed = ballSpeed * obj.SpeedScale;
+            clr = obj.flickSpeedColor(visSpeed);
 
             % Ball core
             if ~isempty(obj.BallCoreH) && isvalid(obj.BallCoreH)
@@ -706,8 +713,8 @@ classdef Pong < GameBase
                     tx = tx(firstValid:end);
                     ty = ty(firstValid:end);
                 end
-                trailAlpha = min(0.5, 0.15 + ballSpeed * 0.03);
-                trailWidth = min(3.5, 1.5 + ballSpeed * 0.1);
+                trailAlpha = min(0.5, 0.15 + visSpeed * 0.03);
+                trailWidth = min(3.5, 1.5 + visSpeed * 0.1);
                 if ~isempty(obj.BallTrailH) && isvalid(obj.BallTrailH)
                     set(obj.BallTrailH, "XData", tx, "YData", ty, ...
                         "Color", [clr, trailAlpha], "LineWidth", trailWidth);
