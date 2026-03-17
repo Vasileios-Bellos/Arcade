@@ -291,13 +291,40 @@ classdef (Sealed) ArcadeGameLauncher < handle
         end
 
         function onFigResize(obj)
-            %onFigResize  Placeholder — proper resize TBD (see ARCADE_LAUNCHER.md).
+            %onFigResize  Recompute display range and rebuild menu on resize.
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
             obj.computeDisplayRange();
             obj.Ax.XLim = obj.DisplayRange.X;
             obj.Ax.YLim = obj.DisplayRange.Y;
+
+            % Only rebuild menu graphics when in menu state
+            if obj.State ~= "menu"; return; end
+
+            % Stop timer during rebuild to prevent re-entrant onFrame
+            if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer) ...
+                    && strcmp(obj.RenderTimer.Running, "on")
+                stop(obj.RenderTimer);
+                restartTimer = true;
+            else
+                restartTimer = false;
+            end
+
+            % Delete and recreate all arcade menu graphics
+            arcObjs = findall(obj.Ax, "-regexp", "Tag", "^GT_arc");
+            if ~isempty(arcObjs); delete(arcObjs); end
+
+            obj.createHUD();
+            obj.createMenu();
+            obj.setMenuVisible("on");
+            obj.hideGameplayHUD();
+
+            drawnow;
+
+            if restartTimer
+                start(obj.RenderTimer);
+            end
         end
     end
 
