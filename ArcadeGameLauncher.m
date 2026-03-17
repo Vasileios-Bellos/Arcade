@@ -57,6 +57,15 @@ classdef (Sealed) ArcadeGameLauncher < handle
     end
 
     % =================================================================
+    % FPS MEASUREMENT (for frame-rate-independent game speeds)
+    % =================================================================
+    properties (SetAccess = private)
+        FpsLastTic      uint64                  % tic of previous frame
+        FpsEma          (1,1) double = 25       % EMA-smoothed FPS (init 25)
+        DtScale         (1,1) double = 1        % 25 / measuredFPS
+    end
+
+    % =================================================================
     % SCORING STATE
     % =================================================================
     properties (SetAccess = private)
@@ -124,6 +133,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
         function run(obj)
             %run  Create figure, registry, menu, HUD, and start game loop.
+            obj.FpsLastTic = tic;
             obj.buildRegistry();
             obj.createFigure();
             obj.createHUD();
@@ -329,6 +339,14 @@ classdef (Sealed) ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
+            % Measure FPS (EMA, alpha=0.1) and compute speed scale
+            dt = toc(obj.FpsLastTic);
+            obj.FpsLastTic = tic;
+            dt = min(dt, 0.1);
+            instantFps = 1 / max(dt, 1e-6);
+            obj.FpsEma = 0.1 * instantFps + 0.9 * obj.FpsEma;
+            obj.DtScale = 25 / max(obj.FpsEma, 1);
+
             try
                 switch obj.State
                     case "menu"
@@ -367,6 +385,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             %updateActive  Per-frame update during active gameplay.
             if isempty(obj.ActiveGame) || ~isvalid(obj.ActiveGame); return; end
 
+            obj.ActiveGame.DtScale = obj.DtScale;
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
 

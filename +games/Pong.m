@@ -58,6 +58,7 @@ classdef Pong < GameBase
         TrailBufY       (1,:) double
         TrailIdx        (1,1) double = 0
 
+
         % Combo fade
         ComboTextH                                   % text — combo display
         ComboFadeTic    = []                         % tic when fade started
@@ -87,13 +88,13 @@ classdef Pong < GameBase
     % ABSTRACT METHOD IMPLEMENTATIONS
     % =================================================================
     methods
-        function onInit(obj, ax, displayRange, ~)
+        function onInit(obj, ax, displayRange, caps)
             %onInit  Create pong graphics and initialize state.
             arguments
                 obj
                 ax
                 displayRange struct
-                ~
+                caps struct = struct()
             end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
@@ -114,15 +115,15 @@ classdef Pong < GameBase
             obj.PaddleWidth = max(3, round(areaW * 0.025));
             obj.PaddleMargin = max(6, round(areaW * 0.06));
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.035));
+            % Speed scales with display so ball crosses screen in same time
             obj.BallBaseSpeed = max(1.5, areaW * 0.02);
             obj.AIBaseSpeed = max(1.0, areaH * 0.02);
             obj.AIErrorPx = max(5, areaH * 0.12);
 
-            % Visual speed scale: flickSpeedColor thresholds (3/7/12) were
-            % calibrated for GestureMouse's ~240px ROI where base speed ~4.8.
-            % Scale factor maps current display speeds back to that range.
-            refBaseSpeed = max(1.5, 240 * 0.02);  % = 4.8
-            obj.SpeedScale = refBaseSpeed / max(obj.BallBaseSpeed, 1);
+            % flickSpeedColor expects speeds in the ~3-12 range (calibrated
+            % for GestureMouse's ~240px ROI). Scale visual speed down so the
+            % full cyan→green→gold→red spectrum maps across the rally.
+            obj.SpeedScale = 4.8 / max(obj.BallBaseSpeed, 1);
 
             % Reset state
             obj.BallPos = [cx, cy];
@@ -229,6 +230,7 @@ classdef Pong < GameBase
         function onUpdate(obj, pos)
             %onUpdate  Per-frame pong game loop.
             if ~obj.IsRunning; return; end
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -264,8 +266,8 @@ classdef Pong < GameBase
 
             % --- Ball physics ---
             prePos = obj.BallPos;
-            stepVel = obj.BallVel;
-            obj.BallPos = obj.BallPos + obj.BallVel;
+            stepVel = obj.BallVel * obj.DtScale;
+            obj.BallPos = obj.BallPos + stepVel;
 
             % Top/bottom wall collision (parametric)
             bounced = false;
@@ -543,10 +545,11 @@ classdef Pong < GameBase
                 obj.AITargetY = obj.AITargetY + (rand - 0.5) * 2 * errorPx;
             end
 
-            % Move toward target
+            % Move toward target (scale by dt for frame-rate independence)
+            scaledSpeed = paddleSpeed * obj.DtScale;
             deltaY = obj.AITargetY - obj.AIPaddleY;
-            if abs(deltaY) > paddleSpeed
-                obj.AIPaddleY = obj.AIPaddleY + sign(deltaY) * paddleSpeed;
+            if abs(deltaY) > scaledSpeed
+                obj.AIPaddleY = obj.AIPaddleY + sign(deltaY) * scaledSpeed;
             else
                 obj.AIPaddleY = obj.AITargetY;
             end

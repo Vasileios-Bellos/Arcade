@@ -31,6 +31,13 @@ classdef (Abstract) GameBase < handle
     end
 
     % =================================================================
+    % FRAME-RATE INDEPENDENCE
+    % =================================================================
+    properties
+        DtScale         (1,1) double = 1   % 25/FPS — set by host each frame
+    end
+
+    % =================================================================
     % HIT EFFECTS POOL
     % =================================================================
     properties (SetAccess = protected)
