@@ -101,9 +101,12 @@ classdef Juggling < GameBase
             cx = mean(dx);
             cy = mean(dy);
 
-            % Scale gravity to display area
+            % Scale to display area (tuned for ~240px height)
             areaH = diff(dy);
+            areaW = diff(dx);
             obj.Gravity = max(0.05, areaH * 0.001);
+            obj.BallRadius = max(5, round(min(areaH, areaW) * 0.042));
+            obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
 
             % Initialize state
             obj.BallPos = [cx, cy * 0.7];

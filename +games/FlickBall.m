@@ -87,8 +87,15 @@ classdef FlickBall < GameBase
             obj.MaxCombo = 0;
             obj.ShowHostCombo = false;
 
-            cx = mean(displayRange.X);
-            cy = mean(displayRange.Y);
+            dx = displayRange.X;
+            dy = displayRange.Y;
+            cx = mean(dx);
+            cy = mean(dy);
+
+            % Scale ball size to display
+            minDim = min(diff(dy), diff(dx));
+            obj.BallRadius = max(5, round(minDim * 0.042));
+            obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
 
             % Ball state
             obj.BallPos = [cx, cy];

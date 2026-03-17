@@ -209,6 +209,10 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.Ax.Visible = "off";
             obj.Ax.XTick = [];
             obj.Ax.YTick = [];
+            obj.Ax.Toolbar = [];
+            obj.Ax.Interactions = [];
+            enableDefaultInteractivity(obj.Ax);
+            obj.Fig.Pointer = "arrow";
             hold(obj.Ax, "on");
         end
 
@@ -395,24 +399,27 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 return;
             end
 
+            prevScore = obj.Score;
+            prevCombo = obj.Combo;
             obj.Score = obj.ActiveGame.Score;
             obj.Combo = obj.ActiveGame.Combo;
             obj.MaxCombo = max(obj.MaxCombo, obj.ActiveGame.MaxCombo);
 
             % Track when score last changed (for combo auto-fade)
-            if obj.Score ~= obj.PrevSyncedScore
+            if obj.Score ~= prevScore
                 obj.LastScoreChangeTic = tic;
                 obj.PrevSyncedScore = obj.Score;
             end
 
-            % Update combo display — auto-fade 2s after last score change
-            % Skip if the game shows its own combo text
+            % Update combo display — only on change
             if obj.ActiveGame.ShowHostCombo
                 scoringRecently = ~isempty(obj.LastScoreChangeTic) ...
                     && toc(obj.LastScoreChangeTic) < 2.0;
                 if obj.Combo >= 2 && scoringRecently
-                    obj.showCombo();
-                elseif obj.Combo == 0 && ~isempty(obj.ComboShowTic)
+                    if obj.Combo ~= prevCombo
+                        obj.showCombo();
+                    end
+                elseif obj.Combo == 0 && prevCombo > 0
                     obj.ComboFadeTic = tic;
                     obj.ComboFadeColor = obj.ColorGreen * 0.9;
                     obj.ComboShowTic = [];
