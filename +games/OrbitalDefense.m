@@ -25,19 +25,63 @@ classdef OrbitalDefense < GameBase
     % GAME STATE
     % =================================================================
     properties (Access = private)
-        Asteroids       struct = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                                        "radius", {}, "tier", {}, "angle", {}, ...
-                                        "spin", {}, "patchH", {})
-        Explosions      struct = struct("x", {}, "y", {}, "radius", {}, ...
-                                        "maxRadius", {}, "phase", {}, ...
-                                        "patchH", {}, "glowH", {})
-        Interceptors    struct = struct("x", {}, "y", {}, "tx", {}, "ty", {}, ...
-                                        "speed", {}, "lineH", {})
         Wave            (1,1) double = 1
         Lives           (1,1) double = 3
         BasePos         (1,2) double = [0, 0]
         BaseRadius      (1,1) double = 12
         FireCD          (1,1) double = 0
+    end
+
+    % =================================================================
+    % PRE-COMPUTED CONSTANTS
+    % =================================================================
+    properties (Access = private)
+        ThetaCircle24   (1,24) double   % linspace(0, 2*pi, 24) — computed once
+    end
+
+    % =================================================================
+    % INTERCEPTOR POOL (10 slots)
+    % =================================================================
+    properties (Access = private)
+        IntPoolLine             % cell array of 10 line handles
+        IntX            (1,10) double = zeros(1,10)
+        IntY            (1,10) double = zeros(1,10)
+        IntTx           (1,10) double = zeros(1,10)
+        IntTy           (1,10) double = zeros(1,10)
+        IntSpeed        (1,10) double = zeros(1,10)
+        IntActive       (1,10) logical = false(1,10)
+    end
+
+    % =================================================================
+    % EXPLOSION POOL (12 slots)
+    % =================================================================
+    properties (Access = private)
+        ExpPoolPatch            % cell array of 12 patch handles (core)
+        ExpPoolGlow             % cell array of 12 patch handles (glow)
+        ExpX            (1,12) double = zeros(1,12)
+        ExpY            (1,12) double = zeros(1,12)
+        ExpRadius       (1,12) double = zeros(1,12)
+        ExpMaxRadius    (1,12) double = zeros(1,12)
+        ExpPhase        (1,12) double = zeros(1,12)   % 1=expanding, 2=contracting
+        ExpActive       (1,12) logical = false(1,12)
+    end
+
+    % =================================================================
+    % ASTEROID POOL (50 slots)
+    % =================================================================
+    properties (Access = private)
+        AstPoolPatch            % cell array of 50 patch handles
+        AstX            (1,50) double = zeros(1,50)
+        AstY            (1,50) double = zeros(1,50)
+        AstVx           (1,50) double = zeros(1,50)
+        AstVy           (1,50) double = zeros(1,50)
+        AstRadius       (1,50) double = zeros(1,50)
+        AstTier         (1,50) double = zeros(1,50)
+        AstAngle        (1,50) double = zeros(1,50)
+        AstSpin         (1,50) double = zeros(1,50)
+        AstShapeX               % cell array of 50 relative vertex X arrays
+        AstShapeY               % cell array of 50 relative vertex Y arrays
+        AstActive       (1,50) logical = false(1,50)
     end
 
     % =================================================================
@@ -79,12 +123,9 @@ classdef OrbitalDefense < GameBase
             obj.Wave = 1;
             obj.Lives = 3;
             obj.FireCD = 0;
-            obj.Asteroids = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                "radius", {}, "tier", {}, "angle", {}, "spin", {}, "patchH", {});
-            obj.Explosions = struct("x", {}, "y", {}, "radius", {}, ...
-                "maxRadius", {}, "phase", {}, "patchH", {}, "glowH", {});
-            obj.Interceptors = struct("x", {}, "y", {}, "tx", {}, "ty", {}, ...
-                "speed", {}, "lineH", {});
+
+            % Pre-compute constant theta array
+            obj.ThetaCircle24 = linspace(0, 2*pi, 24);
 
             % Base station at center (hexagonal shape)
             cx = mean(dx);
@@ -127,6 +168,54 @@ classdef OrbitalDefense < GameBase
                 "Tag", "GT_orbitaldefense");
             obj.WaveFlashTic = [];
 
+            % =============================================================
+            % PRE-ALLOCATE INTERCEPTOR POOL (10 lines, Visible="off")
+            % =============================================================
+            obj.IntPoolLine = cell(1, 10);
+            obj.IntActive = false(1, 10);
+            for k = 1:10
+                obj.IntPoolLine{k} = line(ax, NaN, NaN, ...
+                    "Color", obj.ColorCyan, "LineWidth", 1, ...
+                    "Visible", "off", "Tag", "GT_orbitaldefense");
+            end
+
+            % =============================================================
+            % PRE-ALLOCATE EXPLOSION POOL (12 core + 12 glow patches)
+            % =============================================================
+            cosT = cos(obj.ThetaCircle24);
+            sinT = sin(obj.ThetaCircle24);
+            obj.ExpPoolPatch = cell(1, 12);
+            obj.ExpPoolGlow = cell(1, 12);
+            obj.ExpActive = false(1, 12);
+            for k = 1:12
+                obj.ExpPoolGlow{k} = patch(ax, "XData", cosT * 1.3, ...
+                    "YData", sinT * 1.3, ...
+                    "FaceColor", obj.ColorOrange, "FaceAlpha", 0.1, ...
+                    "EdgeColor", "none", "Visible", "off", ...
+                    "Tag", "GT_orbitaldefense");
+                obj.ExpPoolPatch{k} = patch(ax, "XData", cosT, ...
+                    "YData", sinT, ...
+                    "FaceColor", obj.ColorOrange, "FaceAlpha", 0.4, ...
+                    "EdgeColor", obj.ColorGold, "LineWidth", 1, ...
+                    "Visible", "off", "Tag", "GT_orbitaldefense");
+            end
+
+            % =============================================================
+            % PRE-ALLOCATE ASTEROID POOL (50 patches)
+            % =============================================================
+            obj.AstPoolPatch = cell(1, 50);
+            obj.AstShapeX = cell(1, 50);
+            obj.AstShapeY = cell(1, 50);
+            obj.AstActive = false(1, 50);
+            for k = 1:50
+                obj.AstPoolPatch{k} = patch(ax, "XData", NaN, "YData", NaN, ...
+                    "FaceColor", obj.ColorSilver, "FaceAlpha", 0.20, ...
+                    "EdgeColor", obj.ColorSilver, "LineWidth", 1.5, ...
+                    "Visible", "off", "Tag", "GT_orbitaldefense");
+                obj.AstShapeX{k} = [];
+                obj.AstShapeY{k} = [];
+            end
+
             % Spawn first wave
             obj.spawnWave(obj.Wave);
             obj.showWave(obj.Wave);
@@ -167,135 +256,140 @@ classdef OrbitalDefense < GameBase
                     obj.FireCD = 0;
                     launchX = obj.BasePos(1);
                     launchY = obj.BasePos(2);
-                    lineH = line(ax, [launchX, launchX], [launchY, launchY], ...
-                        "Color", obj.ColorCyan, "LineWidth", 1, ...
-                        "Tag", "GT_orbitaldefense");
                     intSpeed = max(2, diff(dy) * 0.025);
-                    obj.Interceptors(end + 1) = struct("x", launchX, "y", launchY, ...
-                        "tx", pos(1), "ty", pos(2), ...
-                        "speed", intSpeed, "lineH", lineH);
+
+                    % Find inactive interceptor slot
+                    slot = find(~obj.IntActive, 1);
+                    if ~isempty(slot)
+                        obj.IntX(slot) = launchX;
+                        obj.IntY(slot) = launchY;
+                        obj.IntTx(slot) = pos(1);
+                        obj.IntTy(slot) = pos(2);
+                        obj.IntSpeed(slot) = intSpeed;
+                        obj.IntActive(slot) = true;
+                        lnH = obj.IntPoolLine{slot};
+                        lnH.XData = [launchX, launchX];
+                        lnH.YData = [launchY, launchY];
+                        lnH.Visible = "on";
+                    end
                 end
             end
 
             % --- Move interceptors ---
-            k = 1;
-            while k <= numel(obj.Interceptors)
-                ic = obj.Interceptors(k);
-                dirVec = [ic.tx - ic.x, ic.ty - ic.y];
+            activeInts = find(obj.IntActive);
+            for ki = numel(activeInts):-1:1
+                k = activeInts(ki);
+                dirVec = [obj.IntTx(k) - obj.IntX(k), obj.IntTy(k) - obj.IntY(k)];
                 dirDist = norm(dirVec);
-                if dirDist < ic.speed
+                if dirDist < obj.IntSpeed(k)
                     % Reached target -- explode
-                    obj.spawnExplosion(ic.tx, ic.ty);
-                    if ~isempty(ic.lineH) && isvalid(ic.lineH); delete(ic.lineH); end
-                    obj.Interceptors(k) = [];
+                    obj.spawnExplosion(obj.IntTx(k), obj.IntTy(k));
+                    obj.IntActive(k) = false;
+                    obj.IntPoolLine{k}.Visible = "off";
                     continue;
                 end
                 dirVec = dirVec / dirDist;
-                ic.x = ic.x + dirVec(1) * ic.speed;
-                ic.y = ic.y + dirVec(2) * ic.speed;
+                obj.IntX(k) = obj.IntX(k) + dirVec(1) * obj.IntSpeed(k);
+                obj.IntY(k) = obj.IntY(k) + dirVec(2) * obj.IntSpeed(k);
                 % Off-screen -- silently remove (no explosion)
-                if ic.x < dx(1) - 20 || ic.x > dx(2) + 20 || ...
-                        ic.y < dy(1) - 20 || ic.y > dy(2) + 20
-                    if ~isempty(ic.lineH) && isvalid(ic.lineH); delete(ic.lineH); end
-                    obj.Interceptors(k) = [];
+                if obj.IntX(k) < dx(1) - 20 || obj.IntX(k) > dx(2) + 20 || ...
+                        obj.IntY(k) < dy(1) - 20 || obj.IntY(k) > dy(2) + 20
+                    obj.IntActive(k) = false;
+                    obj.IntPoolLine{k}.Visible = "off";
                     continue;
                 end
-                obj.Interceptors(k) = ic;
-                if ~isempty(ic.lineH) && isvalid(ic.lineH)
-                    ic.lineH.XData = [ic.lineH.XData(1), ic.x];
-                    ic.lineH.YData = [ic.lineH.YData(1), ic.y];
-                end
-                k = k + 1;
+                lnH = obj.IntPoolLine{k};
+                lnH.XData = [lnH.XData(1), obj.IntX(k)];
+                lnH.YData = [lnH.YData(1), obj.IntY(k)];
             end
 
             % --- Move asteroids + wrap around edges ---
-            for a = 1:numel(obj.Asteroids)
-                ast = obj.Asteroids(a);
-                ast.x = ast.x + ast.vx;
-                ast.y = ast.y + ast.vy;
-                ast.angle = ast.angle + ast.spin;
+            activeAsts = find(obj.AstActive);
+            for ki = 1:numel(activeAsts)
+                a = activeAsts(ki);
+                obj.AstX(a) = obj.AstX(a) + obj.AstVx(a);
+                obj.AstY(a) = obj.AstY(a) + obj.AstVy(a);
+                obj.AstAngle(a) = obj.AstAngle(a) + obj.AstSpin(a);
 
-                margin = ast.radius;
-                if ast.x < dx(1) - margin; ast.x = dx(2) + margin; end
-                if ast.x > dx(2) + margin; ast.x = dx(1) - margin; end
-                if ast.y < dy(1) - margin; ast.y = dy(2) + margin; end
-                if ast.y > dy(2) + margin; ast.y = dy(1) - margin; end
+                margin = obj.AstRadius(a);
+                if obj.AstX(a) < dx(1) - margin; obj.AstX(a) = dx(2) + margin; end
+                if obj.AstX(a) > dx(2) + margin; obj.AstX(a) = dx(1) - margin; end
+                if obj.AstY(a) < dy(1) - margin; obj.AstY(a) = dy(2) + margin; end
+                if obj.AstY(a) > dy(2) + margin; obj.AstY(a) = dy(1) - margin; end
 
-                obj.Asteroids(a) = ast;
-
-                if ~isempty(ast.patchH) && isvalid(ast.patchH)
-                    origCX = mean(ast.patchH.XData);
-                    origCY = mean(ast.patchH.YData);
-                    ast.patchH.XData = ast.patchH.XData - origCX + ast.x;
-                    ast.patchH.YData = ast.patchH.YData - origCY + ast.y;
-                end
+                pH = obj.AstPoolPatch{a};
+                pH.XData = obj.AstX(a) + obj.AstShapeX{a};
+                pH.YData = obj.AstY(a) + obj.AstShapeY{a};
             end
 
             % --- Update explosions + check explosion-asteroid intersection ---
-            k = 1;
-            while k <= numel(obj.Explosions)
-                ex = obj.Explosions(k);
-                if ex.phase == 1
-                    ex.radius = ex.radius + ex.maxRadius * 0.1;
-                    if ex.radius >= ex.maxRadius; ex.phase = 2; end
+            cosT = cos(obj.ThetaCircle24);
+            sinT = sin(obj.ThetaCircle24);
+            tierRadii = [15, 10, 5];
+            activeExps = find(obj.ExpActive);
+            for ki = numel(activeExps):-1:1
+                k = activeExps(ki);
+                if obj.ExpPhase(k) == 1
+                    obj.ExpRadius(k) = obj.ExpRadius(k) + obj.ExpMaxRadius(k) * 0.1;
+                    if obj.ExpRadius(k) >= obj.ExpMaxRadius(k)
+                        obj.ExpPhase(k) = 2;
+                    end
                 else
-                    ex.radius = ex.radius - ex.maxRadius * 0.08;
+                    obj.ExpRadius(k) = obj.ExpRadius(k) - obj.ExpMaxRadius(k) * 0.08;
                 end
-                obj.Explosions(k) = ex;
 
                 % Chain explosion: destroy asteroids caught in blast
-                tierRadii = [15, 10, 5];
-                for m = numel(obj.Asteroids):-1:1
-                    ast = obj.Asteroids(m);
-                    if norm([ast.x - ex.x, ast.y - ex.y]) < ex.radius + ast.radius
-                        pts = round(300 / ast.radius * 10);
+                astIdxs = find(obj.AstActive);
+                for mi = numel(astIdxs):-1:1
+                    m = astIdxs(mi);
+                    if norm([obj.AstX(m) - obj.ExpX(k), obj.AstY(m) - obj.ExpY(k)]) < ...
+                            obj.ExpRadius(k) + obj.AstRadius(m)
+                        pts = round(300 / obj.AstRadius(m) * 10);
                         obj.addScore(pts);
                         obj.incrementCombo();
 
                         % Split into next tier (15->10->5->destroy)
-                        nextTier = ast.tier + 1;
+                        nextTier = obj.AstTier(m) + 1;
                         if nextTier <= numel(tierRadii)
                             for s = 1:2
                                 sAngle = rand * 2 * pi;
-                                sSpeed = norm([ast.vx, ast.vy]) * (1.2 + rand * 0.5);
+                                sSpeed = norm([obj.AstVx(m), obj.AstVy(m)]) * (1.2 + rand * 0.5);
                                 svx = sSpeed * cos(sAngle);
                                 svy = sSpeed * sin(sAngle);
-                                obj.createAsteroid(ast.x, ast.y, svx, svy, ...
+                                obj.createAsteroid(obj.AstX(m), obj.AstY(m), svx, svy, ...
                                     tierRadii(nextTier), nextTier);
                             end
                         end
-                        if ~isempty(ast.patchH) && isvalid(ast.patchH); delete(ast.patchH); end
-                        obj.Asteroids(m) = [];
                         % Chain explosion at asteroid position
-                        obj.spawnExplosion(ast.x, ast.y);
+                        obj.spawnExplosion(obj.AstX(m), obj.AstY(m));
+                        % Deactivate destroyed asteroid
+                        obj.AstActive(m) = false;
+                        obj.AstPoolPatch{m}.Visible = "off";
                     end
                 end
 
                 % Update explosion graphics
-                circTheta = linspace(0, 2*pi, 24);
-                if ~isempty(ex.patchH) && isvalid(ex.patchH)
-                    ex.patchH.XData = ex.x + ex.radius * cos(circTheta);
-                    ex.patchH.YData = ex.y + ex.radius * sin(circTheta);
-                end
-                if ~isempty(ex.glowH) && isvalid(ex.glowH)
-                    ex.glowH.XData = ex.x + ex.radius * 1.3 * cos(circTheta);
-                    ex.glowH.YData = ex.y + ex.radius * 1.3 * sin(circTheta);
-                end
+                r = obj.ExpRadius(k);
+                ex = obj.ExpX(k);
+                ey = obj.ExpY(k);
+                obj.ExpPoolPatch{k}.XData = ex + r * cosT;
+                obj.ExpPoolPatch{k}.YData = ey + r * sinT;
+                obj.ExpPoolGlow{k}.XData = ex + r * 1.3 * cosT;
+                obj.ExpPoolGlow{k}.YData = ey + r * 1.3 * sinT;
 
-                if ex.radius <= 0
-                    if ~isempty(ex.patchH) && isvalid(ex.patchH); delete(ex.patchH); end
-                    if ~isempty(ex.glowH) && isvalid(ex.glowH); delete(ex.glowH); end
-                    obj.Explosions(k) = [];
-                    continue;
+                if obj.ExpRadius(k) <= 0
+                    obj.ExpActive(k) = false;
+                    obj.ExpPoolPatch{k}.Visible = "off";
+                    obj.ExpPoolGlow{k}.Visible = "off";
                 end
-                k = k + 1;
             end
 
             % --- Asteroid-base collision ---
-            for a = numel(obj.Asteroids):-1:1
-                ast = obj.Asteroids(a);
-                if norm([ast.x - obj.BasePos(1), ast.y - obj.BasePos(2)]) < ...
-                        ast.radius + obj.BaseRadius
+            astIdxs = find(obj.AstActive);
+            for mi = numel(astIdxs):-1:1
+                a = astIdxs(mi);
+                if norm([obj.AstX(a) - obj.BasePos(1), obj.AstY(a) - obj.BasePos(2)]) < ...
+                        obj.AstRadius(a) + obj.BaseRadius
                     obj.Lives = obj.Lives - 1;
                     obj.resetCombo();
 
@@ -306,9 +400,9 @@ classdef OrbitalDefense < GameBase
                         obj.LivesTextH.Visible = "on";
                         obj.LivesFlashTic = tic;
                     end
-                    obj.spawnBounceEffect([ast.x, ast.y], [0, -1], 0, 12);
-                    if ~isempty(ast.patchH) && isvalid(ast.patchH); delete(ast.patchH); end
-                    obj.Asteroids(a) = [];
+                    obj.spawnBounceEffect([obj.AstX(a), obj.AstY(a)], [0, -1], 0, 12);
+                    obj.AstActive(a) = false;
+                    obj.AstPoolPatch{a}.Visible = "off";
                     if obj.Lives <= 0
                         obj.IsRunning = false;
                         return;
@@ -347,7 +441,7 @@ classdef OrbitalDefense < GameBase
             end
 
             % --- Wave cleared? (don't wait for explosions -- they're cosmetic) ---
-            if isempty(obj.Asteroids)
+            if ~any(obj.AstActive)
                 obj.Wave = obj.Wave + 1;
                 obj.addScore(200 * obj.Wave);
                 obj.spawnWave(obj.Wave);
@@ -375,35 +469,42 @@ classdef OrbitalDefense < GameBase
             obj.LivesTextH = [];
             obj.WaveTextH = [];
 
-            % Delete asteroid patches
-            for k = 1:numel(obj.Asteroids)
-                if ~isempty(obj.Asteroids(k).patchH) && isvalid(obj.Asteroids(k).patchH)
-                    delete(obj.Asteroids(k).patchH);
+            % Delete interceptor pool
+            if ~isempty(obj.IntPoolLine)
+                for k = 1:numel(obj.IntPoolLine)
+                    h = obj.IntPoolLine{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.Asteroids = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                "radius", {}, "tier", {}, "angle", {}, "spin", {}, "patchH", {});
+            obj.IntPoolLine = {};
+            obj.IntActive = false(1, 10);
 
-            % Delete explosion patches
-            for k = 1:numel(obj.Explosions)
-                if ~isempty(obj.Explosions(k).patchH) && isvalid(obj.Explosions(k).patchH)
-                    delete(obj.Explosions(k).patchH);
-                end
-                if ~isempty(obj.Explosions(k).glowH) && isvalid(obj.Explosions(k).glowH)
-                    delete(obj.Explosions(k).glowH);
+            % Delete explosion pool
+            if ~isempty(obj.ExpPoolPatch)
+                for k = 1:numel(obj.ExpPoolPatch)
+                    h = obj.ExpPoolPatch{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.Explosions = struct("x", {}, "y", {}, "radius", {}, ...
-                "maxRadius", {}, "phase", {}, "patchH", {}, "glowH", {});
+            if ~isempty(obj.ExpPoolGlow)
+                for k = 1:numel(obj.ExpPoolGlow)
+                    h = obj.ExpPoolGlow{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+            end
+            obj.ExpPoolPatch = {};
+            obj.ExpPoolGlow = {};
+            obj.ExpActive = false(1, 12);
 
-            % Delete interceptor lines
-            for k = 1:numel(obj.Interceptors)
-                if ~isempty(obj.Interceptors(k).lineH) && isvalid(obj.Interceptors(k).lineH)
-                    delete(obj.Interceptors(k).lineH);
+            % Delete asteroid pool
+            if ~isempty(obj.AstPoolPatch)
+                for k = 1:numel(obj.AstPoolPatch)
+                    h = obj.AstPoolPatch{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.Interceptors = struct("x", {}, "y", {}, "tx", {}, "ty", {}, ...
-                "speed", {}, "lineH", {});
+            obj.AstPoolPatch = {};
+            obj.AstActive = false(1, 50);
 
             % Orphan guard
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_orbitaldefense");
@@ -440,6 +541,14 @@ classdef OrbitalDefense < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
+            % Deactivate all existing asteroids before spawning new wave
+            activeAsts = find(obj.AstActive);
+            for ki = 1:numel(activeAsts)
+                a = activeAsts(ki);
+                obj.AstActive(a) = false;
+                obj.AstPoolPatch{a}.Visible = "off";
+            end
+
             nLarge = 2 + wave;
             nMedium = 1 + floor(wave * 0.8);
             nSmall = floor(wave * 0.6);
@@ -473,49 +582,64 @@ classdef OrbitalDefense < GameBase
         end
 
         function createAsteroid(obj, sx, sy, vx, vy, rockRadius, tier)
-            %createAsteroid  Create a single asteroid with neon wireframe.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
+            %createAsteroid  Activate a pooled asteroid patch with random shape.
+            slot = find(~obj.AstActive, 1);
+            if isempty(slot); return; end  % pool exhausted
 
             nVerts = 8 + randi(4);
             vertAngles = sort(rand(1, nVerts) * 2 * pi);
             vertRadii = rockRadius * (0.7 + 0.3 * rand(1, nVerts));
-            px = sx + vertRadii .* cos(vertAngles);
-            py = sy + vertRadii .* sin(vertAngles);
-            px(end+1) = px(1);
-            py(end+1) = py(1);
+            shpX = vertRadii .* cos(vertAngles);
+            shpY = vertRadii .* sin(vertAngles);
+            shpX(end+1) = shpX(1); %#ok<AGROW>
+            shpY(end+1) = shpY(1); %#ok<AGROW>
+
+            obj.AstShapeX{slot} = shpX;
+            obj.AstShapeY{slot} = shpY;
+            obj.AstX(slot) = sx;
+            obj.AstY(slot) = sy;
+            obj.AstVx(slot) = vx;
+            obj.AstVy(slot) = vy;
+            obj.AstRadius(slot) = rockRadius;
+            obj.AstTier(slot) = tier;
+            obj.AstAngle(slot) = 0;
+            obj.AstSpin(slot) = (rand - 0.5) * 0.05;
+            obj.AstActive(slot) = true;
 
             tierColors = {obj.ColorSilver, obj.ColorGold, obj.ColorRed};
             rockColor = tierColors{min(tier, 3)};
 
-            pH = patch(ax, "XData", px, "YData", py, ...
-                "FaceColor", rockColor, "FaceAlpha", 0.20, ...
-                "EdgeColor", rockColor, "LineWidth", 1.5, ...
-                "Tag", "GT_orbitaldefense");
-
-            obj.Asteroids(end + 1) = struct("x", sx, "y", sy, ...
-                "vx", vx, "vy", vy, ...
-                "radius", rockRadius, "tier", tier, "angle", 0, ...
-                "spin", (rand - 0.5) * 0.05, "patchH", pH);
+            pH = obj.AstPoolPatch{slot};
+            pH.XData = sx + shpX;
+            pH.YData = sy + shpY;
+            pH.FaceColor = rockColor;
+            pH.EdgeColor = rockColor;
+            pH.Visible = "on";
         end
 
         function spawnExplosion(obj, ex, ey)
-            %spawnExplosion  Create an expanding/contracting explosion.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
+            %spawnExplosion  Activate a pooled explosion at the given position.
+            slot = find(~obj.ExpActive, 1);
+            if isempty(slot); return; end  % pool exhausted
+
             maxR = max(8, min(diff(obj.DisplayRange.X), diff(obj.DisplayRange.Y)) * 0.06);
-            circTheta = linspace(0, 2*pi, 24);
-            pH = patch(ax, "XData", ex + cos(circTheta), ...
-                "YData", ey + sin(circTheta), ...
-                "FaceColor", obj.ColorOrange, "FaceAlpha", 0.4, ...
-                "EdgeColor", obj.ColorGold, "LineWidth", 1, ...
-                "Tag", "GT_orbitaldefense");
-            gH = patch(ax, "XData", ex + 1.3*cos(circTheta), ...
-                "YData", ey + 1.3*sin(circTheta), ...
-                "FaceColor", obj.ColorOrange, "FaceAlpha", 0.1, ...
-                "EdgeColor", "none", "Tag", "GT_orbitaldefense");
-            obj.Explosions(end + 1) = struct("x", ex, "y", ey, "radius", 1, ...
-                "maxRadius", maxR, "phase", 1, "patchH", pH, "glowH", gH);
+            cosT = cos(obj.ThetaCircle24);
+            sinT = sin(obj.ThetaCircle24);
+
+            obj.ExpX(slot) = ex;
+            obj.ExpY(slot) = ey;
+            obj.ExpRadius(slot) = 1;
+            obj.ExpMaxRadius(slot) = maxR;
+            obj.ExpPhase(slot) = 1;
+            obj.ExpActive(slot) = true;
+
+            obj.ExpPoolPatch{slot}.XData = ex + cosT;
+            obj.ExpPoolPatch{slot}.YData = ey + sinT;
+            obj.ExpPoolPatch{slot}.Visible = "on";
+
+            obj.ExpPoolGlow{slot}.XData = ex + 1.3 * cosT;
+            obj.ExpPoolGlow{slot}.YData = ey + 1.3 * sinT;
+            obj.ExpPoolGlow{slot}.Visible = "on";
         end
 
         function showWave(obj, wave)

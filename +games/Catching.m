@@ -39,6 +39,17 @@ classdef Catching < GameBase
     end
 
     % =================================================================
+    % FIREFLY GRAPHICS POOL (4 slots — max 3 on screen + 1 spare)
+    % =================================================================
+    properties (Access = private)
+        FFPoolDotH      cell               % {1x4} scatter handles (core dot)
+        FFPoolAuraH     cell               % {1x4} scatter handles (aura glow)
+        FFPoolTrailH    cell               % {1x4} line handles (solid trail)
+        FFPoolTrailGlowH cell              % {1x4} line handles (glow trail)
+        FFPoolActive    (1,4) logical = false  % true = slot in use
+    end
+
+    % =================================================================
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
@@ -80,6 +91,34 @@ classdef Catching < GameBase
             obj.ComboTextH = [];
             obj.FirefliesCaught = 0;
             obj.FirefliesMissed = 0;
+
+            % Combo text (pre-allocated, hidden until needed)
+            obj.ComboTextH = text(ax, 0, 0, "", ...
+                "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
+                "FontWeight", "bold", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_catch");
+
+            % Pre-allocate firefly graphics pool (4 slots, all hidden)
+            nPool = 4;
+            obj.FFPoolDotH = cell(1, nPool);
+            obj.FFPoolAuraH = cell(1, nPool);
+            obj.FFPoolTrailH = cell(1, nPool);
+            obj.FFPoolTrailGlowH = cell(1, nPool);
+            obj.FFPoolActive = false(1, nPool);
+            for k = 1:nPool
+                obj.FFPoolAuraH{k} = scatter(ax, NaN, NaN, 1, ...
+                    "MarkerFaceColor", [1 1 1], "MarkerFaceAlpha", 0.35, ...
+                    "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_catch");
+                obj.FFPoolTrailGlowH{k} = line(ax, NaN, NaN, ...
+                    "Color", [1 1 1 0.2], "LineWidth", 1, ...
+                    "Visible", "off", "Tag", "GT_catch");
+                obj.FFPoolTrailH{k} = line(ax, NaN, NaN, ...
+                    "Color", [1 1 1 0.4], "LineWidth", 2, ...
+                    "Visible", "off", "Tag", "GT_catch");
+                obj.FFPoolDotH{k} = scatter(ax, NaN, NaN, 1, ...
+                    "MarkerFaceColor", [1 1 1], "MarkerFaceAlpha", 1, ...
+                    "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_catch");
+            end
 
             % Mouse input needs larger catch radius — finger tracking has
             % a natural ~30px "fat finger" zone from scatter marker + wobble
@@ -181,11 +220,12 @@ classdef Catching < GameBase
                     end
                 end
 
-                % Update graphics
-                set(ff.dotH, "XData", ffPos(1), "YData", ffPos(2));
-                set(ff.auraH, "XData", ffPos(1), "YData", ffPos(2));
-                set(ff.trailH, "XData", tx, "YData", ty);
-                set(ff.trailGlowH, "XData", tx, "YData", ty);
+                % Update graphics via pool handles
+                si = ff.poolIdx;
+                set(obj.FFPoolDotH{si}, "XData", ffPos(1), "YData", ffPos(2));
+                set(obj.FFPoolAuraH{si}, "XData", ffPos(1), "YData", ffPos(2));
+                set(obj.FFPoolTrailH{si}, "XData", tx, "YData", ty);
+                set(obj.FFPoolTrailGlowH{si}, "XData", tx, "YData", ty);
 
                 obj.Fireflies(i) = ff;
             end
@@ -224,24 +264,23 @@ classdef Catching < GameBase
         end
 
         function onCleanup(obj)
-            %onCleanup  Delete all firefly and combo graphics.
+            %onCleanup  Delete all firefly pool and combo graphics.
 
-            % Delete firefly graphics
-            for i = 1:numel(obj.Fireflies)
-                ff = obj.Fireflies(i);
-                if ~isempty(ff.dotH) && isvalid(ff.dotH)
-                    delete(ff.dotH);
-                end
-                if ~isempty(ff.trailH) && isvalid(ff.trailH)
-                    delete(ff.trailH);
-                end
-                if ~isempty(ff.trailGlowH) && isvalid(ff.trailGlowH)
-                    delete(ff.trailGlowH);
-                end
-                if ~isempty(ff.auraH) && isvalid(ff.auraH)
-                    delete(ff.auraH);
+            % Delete firefly pool handles
+            pools = {obj.FFPoolDotH, obj.FFPoolAuraH, obj.FFPoolTrailH, obj.FFPoolTrailGlowH};
+            for p = 1:numel(pools)
+                pool = pools{p};
+                for k = 1:numel(pool)
+                    if ~isempty(pool{k}) && isvalid(pool{k})
+                        delete(pool{k});
+                    end
                 end
             end
+            obj.FFPoolDotH = {};
+            obj.FFPoolAuraH = {};
+            obj.FFPoolTrailH = {};
+            obj.FFPoolTrailGlowH = {};
+            obj.FFPoolActive = false(1, 4);
             obj.Fireflies = [];
 
             % Delete combo text
@@ -283,9 +322,13 @@ classdef Catching < GameBase
     methods (Access = private)
 
         function spawnFirefly(obj)
-            %spawnFirefly  Create a new firefly on a random path.
+            %spawnFirefly  Activate a pool slot for a new firefly on a random path.
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
+
+            % Find idle pool slot
+            slot = find(~obj.FFPoolActive, 1);
+            if isempty(slot); return; end
 
             % Tier selection (weighted random — 5 tiers, rarer = more points)
             bs = obj.BaseSpeed;
@@ -319,6 +362,7 @@ classdef Catching < GameBase
             ff.points = pts;
             ff.phase = rand * 2 * pi;
             ff.isSnitch = isGold;
+            ff.poolIdx = slot;
 
             drx = obj.DisplayRange.X;
             dry = obj.DisplayRange.Y;
@@ -372,19 +416,22 @@ classdef Catching < GameBase
             dotSize = radius;
             auraSize = radius * 3.5;
 
-            % Graphics: aura -> glow trail -> solid trail -> dot
-            ff.auraH = scatter(ax, startX, startY, auraSize^2, ...
-                "MarkerFaceColor", clr, "MarkerFaceAlpha", 0.35, ...
-                "MarkerEdgeColor", "none", "Tag", "GT_catch");
-            ff.trailGlowH = line(ax, NaN, NaN, ...
-                "Color", [clr, 0.2], "LineWidth", dotSize * 0.8, ...
-                "Tag", "GT_catch");
-            ff.trailH = line(ax, NaN, NaN, ...
-                "Color", [clr, 0.4], "LineWidth", 2, ...
-                "Tag", "GT_catch");
-            ff.dotH = scatter(ax, startX, startY, dotSize^2, ...
-                "MarkerFaceColor", clr, "MarkerFaceAlpha", 1, ...
-                "MarkerEdgeColor", "none", "Tag", "GT_catch");
+            % Activate pool slot — update properties, make visible
+            hDot = obj.FFPoolDotH{slot};
+            hAura = obj.FFPoolAuraH{slot};
+            hTrail = obj.FFPoolTrailH{slot};
+            hTrailGlow = obj.FFPoolTrailGlowH{slot};
+
+            set(hAura, "XData", startX, "YData", startY, ...
+                "SizeData", auraSize^2, "MarkerFaceColor", clr, "Visible", "on");
+            set(hTrailGlow, "XData", NaN, "YData", NaN, ...
+                "Color", [clr, 0.2], "LineWidth", dotSize * 0.8, "Visible", "on");
+            set(hTrail, "XData", NaN, "YData", NaN, ...
+                "Color", [clr, 0.4], "Visible", "on");
+            set(hDot, "XData", startX, "YData", startY, ...
+                "SizeData", dotSize^2, "MarkerFaceColor", clr, "Visible", "on");
+
+            obj.FFPoolActive(slot) = true;
 
             if isempty(obj.Fireflies)
                 obj.Fireflies = ff;
@@ -407,11 +454,13 @@ classdef Catching < GameBase
             obj.spawnHitEffect(hitPos, ff.color, totalPoints, ff.radius);
             obj.showComboText(hitPos + [0, 12]);
 
-            % Delete graphics
-            delete(ff.dotH);
-            delete(ff.trailH);
-            delete(ff.trailGlowH);
-            delete(ff.auraH);
+            % Return pool slot — hide graphics
+            si = ff.poolIdx;
+            obj.FFPoolDotH{si}.Visible = "off";
+            obj.FFPoolAuraH{si}.Visible = "off";
+            obj.FFPoolTrailH{si}.Visible = "off";
+            obj.FFPoolTrailGlowH{si}.Visible = "off";
+            obj.FFPoolActive(si) = false;
             obj.Fireflies(idx) = [];
 
             % Immediately spawn a replacement (respecting max)
@@ -441,13 +490,7 @@ classdef Catching < GameBase
             if obj.Combo >= 2
                 % Cancel any active fade
                 obj.ComboFadeTic = [];
-                % Recreate if previously deleted
-                if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH)
-                    obj.ComboTextH = text(obj.Ax, 0, 0, "", ...
-                        "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
-                        "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                        "VerticalAlignment", "top", "Tag", "GT_catch");
-                end
+                if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH); return; end
                 obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
                 obj.ComboTextH.Color = obj.ColorGreen * 0.9;
                 if ~any(isnan(hitPos))

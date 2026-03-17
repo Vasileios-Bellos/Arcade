@@ -64,6 +64,13 @@ classdef Pong < GameBase
         ComboFadeTic    = []                         % tic when fade started
         ComboFadeColor  (1,3) double = [0.2, 1, 0.4]
         ComboShowTic    = []                         % tic when combo was shown
+
+        % Cached constants (avoid per-frame allocation)
+        ThetaCircle48   (1,48) double                % pre-computed linspace(0,2pi,48)
+
+        % Dirty flags for HUD updates
+        PrevPlayerScore   (1,1) double = -1
+        PrevOpponentScore (1,1) double = -1
     end
 
     % =================================================================
@@ -149,6 +156,13 @@ classdef Pong < GameBase
             obj.ComboFadeTic = [];
             obj.ComboShowTic = [];
 
+            % Pre-compute constant arrays
+            obj.ThetaCircle48 = linspace(0, 2*pi, 48);
+
+            % Dirty flags
+            obj.PrevPlayerScore = -1;
+            obj.PrevOpponentScore = -1;
+
             % --- Create graphics ---
             % Center dashed line
             obj.CenterLineH = line(ax, [cx, cx], [dy(1), dy(2)], ...
@@ -222,6 +236,12 @@ classdef Pong < GameBase
                 "FontWeight", "bold", ...
                 "HorizontalAlignment", "center", "VerticalAlignment", "middle", ...
                 "Visible", "off", "Tag", "GT_pong");
+
+            % Combo text (pre-allocated, hidden until needed)
+            obj.ComboTextH = text(ax, 0, 0, "", ...
+                "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
+                "FontWeight", "bold", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_pong");
 
             % Start first serve
             obj.beginServe();
@@ -619,12 +639,7 @@ classdef Pong < GameBase
             %showCombo  Show combo text at hit location.
             if obj.Combo < 2; return; end
             obj.ComboFadeTic = [];
-            if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH)
-                obj.ComboTextH = text(obj.Ax, 0, 0, "", ...
-                    "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
-                    "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                    "VerticalAlignment", "top", "Tag", "GT_pong");
-            end
+            if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH); return; end
             obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
             obj.ComboTextH.Color = obj.ColorGreen * 0.9;
             if ~any(isnan(hitPos))
@@ -694,9 +709,8 @@ classdef Pong < GameBase
             end
             % Ball glow ring
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
-                theta = linspace(0, 2*pi, 48);
-                obj.BallGlowH.XData = bx + r * cos(theta);
-                obj.BallGlowH.YData = by + r * sin(theta);
+                obj.BallGlowH.XData = bx + r * cos(obj.ThetaCircle48);
+                obj.BallGlowH.YData = by + r * sin(obj.ThetaCircle48);
                 obj.BallGlowH.Color = [clr, 0.4];
             end
             % Ball aura
@@ -763,8 +777,13 @@ classdef Pong < GameBase
                 end
             end
 
-            % Score display
-            obj.refreshScoreText();
+            % Score display — only update when changed
+            if obj.PlayerScore ~= obj.PrevPlayerScore || ...
+                    obj.OpponentScore ~= obj.PrevOpponentScore
+                obj.refreshScoreText();
+                obj.PrevPlayerScore = obj.PlayerScore;
+                obj.PrevOpponentScore = obj.OpponentScore;
+            end
         end
 
         function refreshScoreText(obj)

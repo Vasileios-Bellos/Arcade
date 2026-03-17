@@ -21,6 +21,23 @@ classdef ShieldGuardian < GameBase
     end
 
     % =================================================================
+    % PROJECTILE POOL (20 slots)
+    % =================================================================
+    properties (Access = private)
+        ProjPoolScatter             % cell array of 20 scatter handles (core)
+        ProjPoolGlow                % cell array of 20 scatter handles (glow)
+        ProjX               (1,20) double = zeros(1, 20)
+        ProjY               (1,20) double = zeros(1, 20)
+        ProjVx              (1,20) double = zeros(1, 20)
+        ProjVy              (1,20) double = zeros(1, 20)
+        ProjType            (1,20) string = repmat("", 1, 20)
+        ProjSpeed           (1,20) double = zeros(1, 20)
+        ProjRadius          (1,20) double = zeros(1, 20)
+        ProjColor           (20,3) double = zeros(20, 3)
+        ProjActive          (1,20) logical = false(1, 20)
+    end
+
+    % =================================================================
     % GAME STATE
     % =================================================================
     properties (Access = private)
@@ -30,12 +47,10 @@ classdef ShieldGuardian < GameBase
         MaxLives        (1,1) double = 3
         ShieldAngle     (1,1) double = 0        % shield center angle (radians)
         ShieldArc       (1,1) double = pi        % shield width (radians)
-        Projectiles     struct = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                                        "type", {}, "speed", {}, "radius", {}, ...
-                                        "color", {}, "scatterH", {}, "glowH", {})
         Wave            (1,1) double = 1
         SpawnTimer      (1,1) double = 0
         GameOver        (1,1) logical = false
+        CachedPtsToData (1,1) double = 1        % points-to-data conversion factor
     end
 
     % =================================================================
@@ -83,9 +98,16 @@ classdef ShieldGuardian < GameBase
             obj.SpawnTimer = 0;
             obj.LivesFlashTic = [];
 
-            obj.Projectiles = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                "type", {}, "speed", {}, "radius", {}, "color", {}, ...
-                "scatterH", {}, "glowH", {});
+            % Reset projectile pool state
+            obj.ProjActive(:) = false;
+            obj.ProjX(:) = 0;
+            obj.ProjY(:) = 0;
+            obj.ProjVx(:) = 0;
+            obj.ProjVy(:) = 0;
+            obj.ProjSpeed(:) = 0;
+            obj.ProjRadius(:) = 0;
+            obj.ProjColor(:) = 0;
+            obj.ProjType(:) = "";
 
             % Core sizing
             coreR = max(18, round(min(areaW, areaH) * 0.12));
@@ -94,11 +116,14 @@ classdef ShieldGuardian < GameBase
             % Shield radius
             shieldR = max(12, round(min(areaW, areaH) * 0.12));
 
-            % Hitbox disc (scatter sized to collision radius in data units)
-            hitboxR = shieldR * 0.9;
+            % Cache DPI/pixel conversion (expensive calls done once)
             axPix = getpixelposition(ax);
             dpiVal = get(0, "ScreenPixelsPerInch");
             pxPerData = axPix(4) / areaH;
+            obj.CachedPtsToData = dpiVal / (72 * pxPerData);
+
+            % Hitbox disc (scatter sized to collision radius in data units)
+            hitboxR = shieldR * 0.9;
             hitboxPts = hitboxR * pxPerData * 72 / dpiVal;
             obj.HitboxCircleH = scatter(ax, obj.CorePos(1), obj.CorePos(2), ...
                 hitboxPts^2 * pi, obj.ColorCyan, "filled", ...
@@ -130,6 +155,19 @@ classdef ShieldGuardian < GameBase
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Visible", "off", ...
                 "Tag", "GT_shieldguardian");
+
+            % Pre-allocate projectile pool (20 scatter pairs, all hidden)
+            obj.ProjPoolScatter = cell(1, 20);
+            obj.ProjPoolGlow = cell(1, 20);
+            defaultSz = max(40, coreR^2 * pi);
+            for k = 1:20
+                obj.ProjPoolGlow{k} = scatter(ax, NaN, NaN, defaultSz * 3, ...
+                    obj.ColorRed, "filled", "MarkerFaceAlpha", 0.12, ...
+                    "Visible", "off", "Tag", "GT_shieldguardian");
+                obj.ProjPoolScatter{k} = scatter(ax, NaN, NaN, defaultSz, ...
+                    obj.ColorRed, "filled", "MarkerFaceAlpha", 0.8, ...
+                    "Visible", "off", "Tag", "GT_shieldguardian");
+            end
         end
 
         function onUpdate(obj, pos)
@@ -145,10 +183,8 @@ classdef ShieldGuardian < GameBase
             areaH = diff(dy);
             corePos = obj.CorePos;
 
-            % Points-to-data conversion for scatter visual radius
-            axPix = getpixelposition(ax);
-            dpiVal = get(0, "ScreenPixelsPerInch");
-            ptsToData = dpiVal / (72 * axPix(4) / areaH);
+            % Use cached points-to-data conversion
+            ptsToData = obj.CachedPtsToData;
 
             % --- Update shield angle based on finger position ---
             if ~any(isnan(pos))
@@ -178,53 +214,59 @@ classdef ShieldGuardian < GameBase
                 obj.spawnProjectile();
             end
 
-            % --- Move projectiles ---
+            % --- Move projectiles (iterate active pool slots in reverse) ---
             hitboxR = shieldR * 0.9;
-            idx = 1;
-            while idx <= numel(obj.Projectiles)
-                p = obj.Projectiles(idx);
-                p.x = p.x + p.vx;
-                p.y = p.y + p.vy;
-                obj.Projectiles(idx) = p;
+            activeIdx = find(obj.ProjActive);
 
-                if ~isempty(p.scatterH) && isvalid(p.scatterH)
-                    p.scatterH.XData = p.x;
-                    p.scatterH.YData = p.y;
+            for ii = numel(activeIdx):-1:1
+                k = activeIdx(ii);
+
+                % Move
+                obj.ProjX(k) = obj.ProjX(k) + obj.ProjVx(k);
+                obj.ProjY(k) = obj.ProjY(k) + obj.ProjVy(k);
+                px = obj.ProjX(k);
+                py = obj.ProjY(k);
+
+                % Update scatter positions
+                sH = obj.ProjPoolScatter{k};
+                gH = obj.ProjPoolGlow{k};
+                if ~isempty(sH) && isvalid(sH)
+                    sH.XData = px;
+                    sH.YData = py;
                 end
-                if ~isempty(p.glowH) && isvalid(p.glowH)
-                    p.glowH.XData = p.x;
-                    p.glowH.YData = p.y;
+                if ~isempty(gH) && isvalid(gH)
+                    gH.XData = px;
+                    gH.YData = py;
                 end
 
-                distToCore = norm([p.x - corePos(1), p.y - corePos(2)]);
+                distToCore = sqrt((px - corePos(1))^2 + (py - corePos(2))^2);
 
                 % --- Shield deflection ---
                 if distToCore < shieldR + 3 && distToCore > shieldR - 5
-                    projAngle = atan2(p.y - corePos(2), p.x - corePos(1));
+                    projAngle = atan2(py - corePos(2), px - corePos(1));
                     angleDiff = mod(projAngle - obj.ShieldAngle + pi, 2*pi) - pi;
                     if abs(angleDiff) < obj.ShieldArc / 2
                         obj.addScore(25);
                         obj.incrementCombo();
                         normalVec = [cos(projAngle), sin(projAngle)];
-                        vel = [p.vx, p.vy];
+                        vel = [obj.ProjVx(k), obj.ProjVy(k)];
                         reflected = vel - 2 * dot(vel, normalVec) * normalVec;
-                        obj.Projectiles(idx).vx = reflected(1) * 1.5;
-                        obj.Projectiles(idx).vy = reflected(2) * 1.5;
-                        obj.Projectiles(idx).type = "deflected";
-                        if ~isempty(p.scatterH) && isvalid(p.scatterH)
-                            p.scatterH.CData = obj.ColorGreen;
+                        obj.ProjVx(k) = reflected(1) * 1.5;
+                        obj.ProjVy(k) = reflected(2) * 1.5;
+                        obj.ProjType(k) = "deflected";
+                        if ~isempty(sH) && isvalid(sH)
+                            sH.CData = obj.ColorGreen;
                         end
-                        if ~isempty(p.glowH) && isvalid(p.glowH)
-                            p.glowH.CData = obj.ColorGreen;
+                        if ~isempty(gH) && isvalid(gH)
+                            gH.CData = obj.ColorGreen;
                         end
-                        obj.spawnBounceEffect([p.x, p.y], normalVec, 0, 6);
-                        idx = idx + 1;
+                        obj.spawnBounceEffect([px, py], normalVec, 0, 6);
                         continue;
                     end
                 end
 
                 % --- Core hit (hitbox = glow radius) ---
-                if distToCore < hitboxR && p.type ~= "deflected"
+                if distToCore < hitboxR && obj.ProjType(k) ~= "deflected"
                     obj.Lives = obj.Lives - 1;
                     obj.resetCombo();
 
@@ -236,15 +278,10 @@ classdef ShieldGuardian < GameBase
                         obj.LivesTextH.Visible = "on";
                         obj.LivesFlashTic = tic;
                     end
-                    obj.spawnBounceEffect([p.x, p.y], [0, 1], 0, 14);
+                    obj.spawnBounceEffect([px, py], [0, 1], 0, 14);
 
-                    if ~isempty(p.scatterH) && isvalid(p.scatterH)
-                        delete(p.scatterH);
-                    end
-                    if ~isempty(p.glowH) && isvalid(p.glowH)
-                        delete(p.glowH);
-                    end
-                    obj.Projectiles(idx) = [];
+                    % Deactivate projectile (return to pool)
+                    obj.deactivateProjectile(k);
 
                     if obj.Lives <= 0
                         obj.GameOver = true;
@@ -255,45 +292,30 @@ classdef ShieldGuardian < GameBase
                 end
 
                 % --- Off screen ---
-                if p.x < dx(1) - 30 || p.x > dx(2) + 30 ...
-                        || p.y < dy(1) - 30 || p.y > dy(2) + 30
-                    if ~isempty(p.scatterH) && isvalid(p.scatterH)
-                        delete(p.scatterH);
-                    end
-                    if ~isempty(p.glowH) && isvalid(p.glowH)
-                        delete(p.glowH);
-                    end
-                    obj.Projectiles(idx) = [];
+                if px < dx(1) - 30 || px > dx(2) + 30 ...
+                        || py < dy(1) - 30 || py > dy(2) + 30
+                    obj.deactivateProjectile(k);
                     continue;
                 end
 
                 % --- Deflected hitting another projectile (chain) ---
-                if p.type == "deflected"
-                    for j = numel(obj.Projectiles):-1:1
-                        if j == idx; continue; end
-                        other = obj.Projectiles(j);
-                        if other.type ~= "deflected" && ...
-                                norm([p.x - other.x, p.y - other.y]) ...
-                                < (p.radius + other.radius) * ptsToData
+                if obj.ProjType(k) == "deflected"
+                    activeJ = find(obj.ProjActive);
+                    for jj = numel(activeJ):-1:1
+                        j = activeJ(jj);
+                        if j == k; continue; end
+                        if obj.ProjType(j) ~= "deflected" && ...
+                                sqrt((px - obj.ProjX(j))^2 + ...
+                                     (py - obj.ProjY(j))^2) ...
+                                < (obj.ProjRadius(k) + obj.ProjRadius(j)) * ptsToData
                             obj.addScore(50);
                             obj.incrementCombo();
                             obj.spawnBounceEffect( ...
-                                [other.x, other.y], [0, -1], 0, 8);
-                            if ~isempty(other.scatterH) ...
-                                    && isvalid(other.scatterH)
-                                delete(other.scatterH);
-                            end
-                            if ~isempty(other.glowH) ...
-                                    && isvalid(other.glowH)
-                                delete(other.glowH);
-                            end
-                            obj.Projectiles(j) = [];
-                            if j < idx; idx = idx - 1; end
+                                [obj.ProjX(j), obj.ProjY(j)], [0, -1], 0, 8);
+                            obj.deactivateProjectile(j);
                         end
                     end
                 end
-
-                idx = idx + 1;
             end
 
             % --- Lives flash animation (0.6s hold + 0.4s fade) ---
@@ -334,19 +356,20 @@ classdef ShieldGuardian < GameBase
             obj.LivesTextH = [];
             obj.LivesFlashTic = [];
 
-            for k = 1:numel(obj.Projectiles)
-                if ~isempty(obj.Projectiles(k).scatterH) ...
-                        && isvalid(obj.Projectiles(k).scatterH)
-                    delete(obj.Projectiles(k).scatterH);
+            % Delete projectile pool handles
+            for k = 1:20
+                if ~isempty(obj.ProjPoolScatter) && numel(obj.ProjPoolScatter) >= k
+                    h = obj.ProjPoolScatter{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
-                if ~isempty(obj.Projectiles(k).glowH) ...
-                        && isvalid(obj.Projectiles(k).glowH)
-                    delete(obj.Projectiles(k).glowH);
+                if ~isempty(obj.ProjPoolGlow) && numel(obj.ProjPoolGlow) >= k
+                    h = obj.ProjPoolGlow{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.Projectiles = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                "type", {}, "speed", {}, "radius", {}, "color", {}, ...
-                "scatterH", {}, "glowH", {});
+            obj.ProjPoolScatter = {};
+            obj.ProjPoolGlow = {};
+            obj.ProjActive(:) = false;
 
             % Orphan guard
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_shieldguardian");
@@ -383,8 +406,13 @@ classdef ShieldGuardian < GameBase
 
         function spawnProjectile(obj)
             %spawnProjectile  Spawn a projectile from a random edge aimed at core.
+            %   Activates the first available slot from the pre-allocated pool.
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
+
+            % Find first inactive pool slot
+            slot = find(~obj.ProjActive, 1);
+            if isempty(slot); return; end  % pool exhausted, skip spawn
 
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
@@ -428,17 +456,43 @@ classdef ShieldGuardian < GameBase
             speedVal = baseSpeed * speedMult;
             vx = aimed(1) * speedVal;
             vy = aimed(2) * speedVal;
-
             markerSz = max(40, radiusVal^2 * pi);
-            scatterH = scatter(ax, x, y, markerSz, clr, "filled", ...
-                "MarkerFaceAlpha", 0.8, "Tag", "GT_shieldguardian");
-            glowH = scatter(ax, x, y, markerSz * 3, clr, "filled", ...
-                "MarkerFaceAlpha", 0.12, "Tag", "GT_shieldguardian");
 
-            obj.Projectiles(end + 1) = struct("x", x, "y", y, ...
-                "vx", vx, "vy", vy, "type", "incoming", "speed", speedVal, ...
-                "radius", radiusVal, "color", clr, ...
-                "scatterH", scatterH, "glowH", glowH);
+            % Populate pool slot
+            obj.ProjX(slot) = x;
+            obj.ProjY(slot) = y;
+            obj.ProjVx(slot) = vx;
+            obj.ProjVy(slot) = vy;
+            obj.ProjType(slot) = "incoming";
+            obj.ProjSpeed(slot) = speedVal;
+            obj.ProjRadius(slot) = radiusVal;
+            obj.ProjColor(slot, :) = clr;
+            obj.ProjActive(slot) = true;
+
+            % Activate pool scatter handles
+            sH = obj.ProjPoolScatter{slot};
+            if ~isempty(sH) && isvalid(sH)
+                set(sH, "XData", x, "YData", y, "SizeData", markerSz, ...
+                    "CData", clr, "Visible", "on");
+            end
+            gH = obj.ProjPoolGlow{slot};
+            if ~isempty(gH) && isvalid(gH)
+                set(gH, "XData", x, "YData", y, "SizeData", markerSz * 3, ...
+                    "CData", clr, "Visible", "on");
+            end
+        end
+
+        function deactivateProjectile(obj, slot)
+            %deactivateProjectile  Return a pool slot to inactive state.
+            obj.ProjActive(slot) = false;
+            sH = obj.ProjPoolScatter{slot};
+            if ~isempty(sH) && isvalid(sH)
+                set(sH, "XData", NaN, "YData", NaN, "Visible", "off");
+            end
+            gH = obj.ProjPoolGlow{slot};
+            if ~isempty(gH) && isvalid(gH)
+                set(gH, "XData", NaN, "YData", NaN, "Visible", "off");
+            end
         end
     end
 end

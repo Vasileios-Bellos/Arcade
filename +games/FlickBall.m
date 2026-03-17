@@ -54,6 +54,9 @@ classdef FlickBall < GameBase
         ComboFadeTic        uint64                        % tic when combo fade-out started
         ComboFadeColor      (1,3) double = [0.2, 1, 0.4] % fade color
         ComboShowTic        uint64                        % tic when combo text appeared
+
+        % Cached constants
+        ThetaCircle48       (1,48) double                 % pre-computed linspace(0,2pi,48)
     end
 
     % =================================================================
@@ -120,6 +123,9 @@ classdef FlickBall < GameBase
             obj.TrailBufY = NaN(1, obj.TrailLen);
             obj.TrailIdx = 0;
 
+            % Pre-compute constant arrays
+            obj.ThetaCircle48 = linspace(0, 2*pi, 48);
+
             % --- Create graphics (layered for depth) ---
 
             % Trail glow (wide, soft, behind everything)
@@ -158,8 +164,11 @@ classdef FlickBall < GameBase
                 "VerticalAlignment", "bottom", "Visible", "off", ...
                 "Tag", "GT_flick");
 
-            % Combo text (created on demand, initially empty)
-            obj.ComboTextH = [];
+            % Combo text (pre-allocated, hidden until needed)
+            obj.ComboTextH = text(ax, 0, 0, "", ...
+                "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
+                "FontWeight", "bold", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_flick");
         end
 
         function onUpdate(obj, pos)
@@ -471,10 +480,9 @@ classdef FlickBall < GameBase
 
             % --- Glow ring ---
             if ~isempty(obj.GlowH) && isvalid(obj.GlowH)
-                theta = linspace(0, 2*pi, 48);
                 gr = rr * breath;
-                obj.GlowH.XData = bx + gr * cos(theta);
-                obj.GlowH.YData = by + gr * sin(theta);
+                obj.GlowH.XData = bx + gr * cos(obj.ThetaCircle48);
+                obj.GlowH.YData = by + gr * sin(obj.ThetaCircle48);
                 glowAlpha = 0.3 + min(0.5, spd * 0.04);
                 glowWidth = 4 + min(4, spd * 0.3);
                 obj.GlowH.Color = [clr, glowAlpha];
@@ -563,16 +571,7 @@ classdef FlickBall < GameBase
             if obj.Combo >= 2
                 % Cancel any active fade
                 obj.ComboFadeTic = uint64.empty;
-
-                % Recreate if previously deleted
-                if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH)
-                    ax = obj.Ax;
-                    if isempty(ax) || ~isvalid(ax); return; end
-                    obj.ComboTextH = text(ax, 0, 0, "", ...
-                        "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
-                        "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                        "VerticalAlignment", "top", "Tag", "GT_flick");
-                end
+                if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH); return; end
                 obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
                 obj.ComboTextH.Color = obj.ColorGreen * 0.9;
                 if ~any(isnan(hitPos))

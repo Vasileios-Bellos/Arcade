@@ -185,7 +185,11 @@ classdef GlyphTrace < GameBase
                 obj.ColorCyan, "FaceAlpha", 0.7, "EdgeColor", "none", ...
                 "Visible", "off", "Tag", "GT_glyphtrace");
 
-            obj.ComboTextH = [];
+            % Combo text (pre-allocated, hidden until needed)
+            obj.ComboTextH = text(ax, 0, 0, "", ...
+                "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
+                "FontWeight", "bold", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_glyphtrace");
 
             obj.showTimeBar();
             obj.spawnNextLetter();
@@ -755,12 +759,7 @@ classdef GlyphTrace < GameBase
             %showCombo  Show combo text briefly at hit location.
             if obj.Combo >= 2
                 obj.ComboFadeTic = [];
-                if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH)
-                    obj.ComboTextH = text(obj.Ax, 0, 0, "", ...
-                        "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
-                        "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                        "VerticalAlignment", "top", "Tag", "GT_glyphtrace");
-                end
+                if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH); return; end
                 obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
                 obj.ComboTextH.Color = obj.ColorGreen * 0.9;
                 if ~any(isnan(hitPos))
@@ -798,14 +797,12 @@ classdef GlyphTrace < GameBase
             elapsed = toc(obj.ComboFadeTic);
             fadeDur = 0.6;
             if elapsed >= fadeDur
-                delete(obj.ComboTextH);
-                obj.ComboTextH = [];
+                obj.ComboTextH.Visible = "off";
                 obj.ComboFadeTic = [];
                 return;
             end
-            t = elapsed / fadeDur;
-            fadeAlpha = max(0, 1 - t);
-            obj.ComboTextH.Color = obj.ComboFadeColor * fadeAlpha;
+            fadeAlpha = max(0, 1 - elapsed / fadeDur);
+            obj.ComboTextH.Color = [obj.ComboFadeColor, fadeAlpha];
         end
     end
 end

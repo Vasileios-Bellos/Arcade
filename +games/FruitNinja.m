@@ -14,22 +14,64 @@ classdef FruitNinja < GameBase
     end
 
     % =================================================================
+    % PRE-COMPUTED CONSTANTS
+    % =================================================================
+    properties (Access = private)
+        ThetaCircle24   (1,24) double       % linspace(0, 2*pi, 24), computed once
+    end
+
+    % =================================================================
+    % FRUIT POOL (8 slots)
+    % =================================================================
+    properties (Access = private)
+        FruitPoolPatch  cell                % {1x8} patch handles (body)
+        FruitPoolGlow   cell                % {1x8} patch handles (glow)
+        FruitX          (1,8) double = NaN  % x position per slot
+        FruitY          (1,8) double = NaN  % y position per slot
+        FruitVx         (1,8) double = 0    % x velocity per slot
+        FruitVy         (1,8) double = 0    % y velocity per slot
+        FruitRadius     (1,8) double = 0    % radius per slot
+        FruitColor      cell                % {1x8} [r,g,b] per slot
+        FruitSlashing   (1,8) logical = false  % finger inside?
+        FruitEntryAngle (1,8) double = NaN  % entry angle per slot
+        FruitActive     (1,8) logical = false  % is slot in use?
+    end
+
+    % =================================================================
+    % HALF POOL (16 slots — 2 per fruit max)
+    % =================================================================
+    properties (Access = private)
+        HalfPoolPatch   cell                % {1x16} patch handles
+        HalfVerts       cell                % {1x16} Nx2 vertex arrays
+        HalfVx          (1,16) double = 0
+        HalfVy          (1,16) double = 0
+        HalfSpin        (1,16) double = 0
+        HalfAlpha       (1,16) double = 0
+        HalfFrames      (1,16) double = 0
+        HalfColor       cell                % {1x16} [r,g,b]
+        HalfActive      (1,16) logical = false
+    end
+
+    % =================================================================
+    % SLASH EFFECT POOL (6 slots)
+    % =================================================================
+    properties (Access = private)
+        SlashPoolCore   cell                % {1x6} line handles (core)
+        SlashPoolGlow   cell                % {1x6} line handles (glow)
+        SlashFrames     (1,6) double = 0
+        SlashFadeFrames (1,6) double = 0
+        SlashIdxStart   (1,6) double = 0
+        SlashIdxEnd     (1,6) double = 0
+        SlashActive     (1,6) logical = false
+    end
+
+    % =================================================================
     % GAME STATE
     % =================================================================
     properties (Access = private)
-        % Fruit physics
-        Fruits          struct = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                                        "radius", {}, "color", {}, "patchH", {}, "glowH", {}, ...
-                                        "slashing", {}, "entryAngle", {})
-        Halves          struct = struct("verts", {}, "color", {}, "patchH", {}, ...
-                                        "vx", {}, "vy", {}, "spin", {}, "alpha", {}, "frames", {})
         Gravity         (1,1) double = 0.12
         SpawnTimer      (1,1) double = 0
         SlashThreshold  (1,1) double = 1.5
-
-        % Slash effects — animated slash lines shown on fruit cut
-        SlashEffects    struct = struct("coreH", {}, "glowH", {}, ...
-                                        "frames", {}, "fadeFrames", {}, "idxStart", {}, "idxEnd", {})
 
         % Stats
         StartTicLocal   uint64
@@ -52,7 +94,7 @@ classdef FruitNinja < GameBase
     % =================================================================
     methods
         function onInit(obj, ax, displayRange, caps)
-            %onInit  Create graphics and initialize state.
+            %onInit  Create graphics pools and initialize state.
             arguments
                 obj
                 ax
@@ -70,13 +112,6 @@ classdef FruitNinja < GameBase
             areaH = dy(2) - dy(1);
 
             obj.Gravity = max(0.06, areaH * 0.001);
-            obj.Fruits = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                "radius", {}, "color", {}, "patchH", {}, "glowH", {}, ...
-                "slashing", {}, "entryAngle", {});
-            obj.Halves = struct("verts", {}, "color", {}, "patchH", {}, ...
-                "vx", {}, "vy", {}, "spin", {}, "alpha", {}, "frames", {});
-            obj.SlashEffects = struct("coreH", {}, "glowH", {}, ...
-                "frames", {}, "fadeFrames", {}, "idxStart", {}, "idxEnd", {});
             obj.SpawnTimer = 0;
             obj.StartTicLocal = tic;
             obj.FruitsSliced = 0;
@@ -84,6 +119,9 @@ classdef FruitNinja < GameBase
             obj.SliceHistory = struct("centrality", {}, "speed", {}, ...
                 "angle", {}, "position", {}, "time", {});
             obj.PrevPos = [NaN, NaN];
+
+            % Pre-compute theta for fruit circles
+            obj.ThetaCircle24 = linspace(0, 2*pi, 24);
 
             % Trace source: prefer host-provided smoothed trace
             if isfield(caps, "getSmoothedTrace")
@@ -96,6 +134,65 @@ classdef FruitNinja < GameBase
             obj.TraceBufferX = NaN(1, obj.TraceBufferLen);
             obj.TraceBufferY = NaN(1, obj.TraceBufferLen);
             obj.TraceBufferIdx = 0;
+
+            % --- Pre-allocate Fruit Pool (8 slots) ---
+            obj.FruitPoolPatch = cell(1, 8);
+            obj.FruitPoolGlow = cell(1, 8);
+            obj.FruitColor = cell(1, 8);
+            obj.FruitX(:) = NaN;
+            obj.FruitY(:) = NaN;
+            obj.FruitVx(:) = 0;
+            obj.FruitVy(:) = 0;
+            obj.FruitRadius(:) = 0;
+            obj.FruitSlashing(:) = false;
+            obj.FruitEntryAngle(:) = NaN;
+            obj.FruitActive(:) = false;
+            nanXY = NaN(1, 24);
+            for kk = 1:8
+                obj.FruitPoolGlow{kk} = patch(ax, "XData", nanXY, "YData", nanXY, ...
+                    "FaceColor", [1 1 1], "FaceAlpha", 0.15, ...
+                    "EdgeColor", "none", "Visible", "off", "Tag", "GT_fruitninja");
+                obj.FruitPoolPatch{kk} = patch(ax, "XData", nanXY, "YData", nanXY, ...
+                    "FaceColor", [1 1 1], "FaceAlpha", 0.5, ...
+                    "EdgeColor", [1 1 1], "LineWidth", 1.5, "Visible", "off", "Tag", "GT_fruitninja");
+                obj.FruitColor{kk} = [1 1 1];
+            end
+
+            % --- Pre-allocate Half Pool (16 slots) ---
+            obj.HalfPoolPatch = cell(1, 16);
+            obj.HalfVerts = cell(1, 16);
+            obj.HalfColor = cell(1, 16);
+            obj.HalfVx(:) = 0;
+            obj.HalfVy(:) = 0;
+            obj.HalfSpin(:) = 0;
+            obj.HalfAlpha(:) = 0;
+            obj.HalfFrames(:) = 0;
+            obj.HalfActive(:) = false;
+            nanHalf = NaN(1, 20);
+            for kk = 1:16
+                obj.HalfPoolPatch{kk} = patch(ax, "XData", nanHalf, "YData", nanHalf, ...
+                    "FaceColor", [1 1 1], "FaceAlpha", 0.5, ...
+                    "EdgeColor", [1 1 1], "LineWidth", 1.5, "Visible", "off", "Tag", "GT_fruitninja");
+                obj.HalfVerts{kk} = zeros(20, 2);
+                obj.HalfColor{kk} = [1 1 1];
+            end
+
+            % --- Pre-allocate Slash Effect Pool (6 slots) ---
+            obj.SlashPoolCore = cell(1, 6);
+            obj.SlashPoolGlow = cell(1, 6);
+            obj.SlashFrames(:) = 0;
+            obj.SlashFadeFrames(:) = 0;
+            obj.SlashIdxStart(:) = 0;
+            obj.SlashIdxEnd(:) = 0;
+            obj.SlashActive(:) = false;
+            for kk = 1:6
+                obj.SlashPoolGlow{kk} = line(ax, NaN, NaN, ...
+                    "Color", [obj.ColorCyan, 0.5], ...
+                    "LineWidth", 6, "Visible", "off", "Tag", "GT_fruitninja");
+                obj.SlashPoolCore{kk} = line(ax, NaN, NaN, ...
+                    "Color", [obj.ColorWhite, 0.9], ...
+                    "LineWidth", 2.5, "Visible", "off", "Tag", "GT_fruitninja");
+            end
         end
 
         function onUpdate(obj, pos)
@@ -128,187 +225,201 @@ classdef FruitNinja < GameBase
                 obj.spawnFruit();
             end
 
-            % --- Update fruits (gravity + movement) ---
-            kk = 1;
-            while kk <= numel(obj.Fruits)
-                f = obj.Fruits(kk);
-                f.x = f.x + f.vx;
-                f.y = f.y + f.vy;
-                f.vy = f.vy + obj.Gravity;
+            theta = obj.ThetaCircle24;
+
+            % --- Update active fruits (gravity + movement) ---
+            for kk = 1:8
+                if ~obj.FruitActive(kk); continue; end
+
+                fx = obj.FruitX(kk) + obj.FruitVx(kk);
+                fy = obj.FruitY(kk) + obj.FruitVy(kk);
+                fvy = obj.FruitVy(kk) + obj.Gravity;
+                fvx = obj.FruitVx(kk);
+                fRadius = obj.FruitRadius(kk);
 
                 % Wall collision -- bounce off top, left, right (not bottom)
-                if f.x - f.radius < dx(1)
-                    f.x = dx(1) + f.radius;
-                    f.vx = abs(f.vx) * 0.8;
-                elseif f.x + f.radius > dx(2)
-                    f.x = dx(2) - f.radius;
-                    f.vx = -abs(f.vx) * 0.8;
+                if fx - fRadius < dx(1)
+                    fx = dx(1) + fRadius;
+                    fvx = abs(fvx) * 0.8;
+                elseif fx + fRadius > dx(2)
+                    fx = dx(2) - fRadius;
+                    fvx = -abs(fvx) * 0.8;
                 end
-                if f.y - f.radius < dy(1)
-                    f.y = dy(1) + f.radius;
-                    f.vy = abs(f.vy) * 0.8;
+                if fy - fRadius < dy(1)
+                    fy = dy(1) + fRadius;
+                    fvy = abs(fvy) * 0.8;
                 end
-                obj.Fruits(kk) = f;
+
+                obj.FruitX(kk) = fx;
+                obj.FruitY(kk) = fy;
+                obj.FruitVx(kk) = fvx;
+                obj.FruitVy(kk) = fvy;
 
                 % Update graphics
-                theta = linspace(0, 2*pi, 24);
-                circX = f.x + f.radius * cos(theta);
-                circY = f.y + f.radius * sin(theta);
-                if ~isempty(f.patchH) && isvalid(f.patchH)
-                    f.patchH.XData = circX;
-                    f.patchH.YData = circY;
+                circX = fx + fRadius * cos(theta);
+                circY = fy + fRadius * sin(theta);
+                pH = obj.FruitPoolPatch{kk};
+                if ~isempty(pH) && isvalid(pH)
+                    pH.XData = circX;
+                    pH.YData = circY;
                 end
-                if ~isempty(f.glowH) && isvalid(f.glowH)
-                    f.glowH.XData = circX;
-                    f.glowH.YData = circY;
+                gH = obj.FruitPoolGlow{kk};
+                if ~isempty(gH) && isvalid(gH)
+                    gH.XData = circX;
+                    gH.YData = circY;
                 end
 
                 % Slash detection: enter/exit through fruit
                 if ~any(isnan(pos))
-                    distToFruit = norm(pos(:) - [f.x; f.y]);
-                    if f.slashing
+                    distToFruit = norm(pos(:) - [fx; fy]);
+                    if obj.FruitSlashing(kk)
                         % Finger was inside -- check if it exited
-                        if distToFruit > f.radius + 3
+                        if distToFruit > fRadius + 3
                             obj.sliceFruit(kk, pos, slashSpeed, traceX, traceY, nTrace);
-                            continue;  % fruit removed, don't increment kk
+                            continue;  % fruit deactivated, move on
                         end
                     else
                         % Check if finger entered fruit with some movement
-                        if distToFruit < f.radius + 3 && slashSpeed > slashThresh
-                            f.slashing = true;
-                            f.entryAngle = atan2(pos(2) - f.y, pos(1) - f.x);
-                            obj.Fruits(kk) = f;
+                        if distToFruit < fRadius + 3 && slashSpeed > slashThresh
+                            obj.FruitSlashing(kk) = true;
+                            obj.FruitEntryAngle(kk) = atan2(pos(2) - fy, pos(1) - fx);
                         end
                     end
                 end
 
                 % Check if fruit fell off screen
-                if f.y > dy(2) + f.radius * 2
+                if fy > dy(2) + fRadius * 2
                     obj.FruitsDropped = obj.FruitsDropped + 1;
                     obj.resetCombo();
-                    if ~isempty(f.patchH) && isvalid(f.patchH); delete(f.patchH); end
-                    if ~isempty(f.glowH) && isvalid(f.glowH); delete(f.glowH); end
-                    obj.Fruits(kk) = [];
-                    continue;
+                    obj.deactivateFruit(kk);
                 end
-                kk = kk + 1;
             end
 
             % --- Update split halves animation ---
-            kk = 1;
-            while kk <= numel(obj.Halves)
-                hf = obj.Halves(kk);
-                hf.frames = hf.frames + 1;
-                hf.vx = hf.vx * 0.97;
-                hf.vy = hf.vy + obj.Gravity;
-                hf.alpha = max(0, hf.alpha - 0.04);
+            for kk = 1:16
+                if ~obj.HalfActive(kk); continue; end
+
+                obj.HalfFrames(kk) = obj.HalfFrames(kk) + 1;
+                obj.HalfVx(kk) = obj.HalfVx(kk) * 0.97;
+                obj.HalfVy(kk) = obj.HalfVy(kk) + obj.Gravity;
+                obj.HalfAlpha(kk) = max(0, obj.HalfAlpha(kk) - 0.04);
+
+                verts = obj.HalfVerts{kk};
 
                 % Move vertices
-                hf.verts(:,1) = hf.verts(:,1) + hf.vx;
-                hf.verts(:,2) = hf.verts(:,2) + hf.vy;
+                verts(:,1) = verts(:,1) + obj.HalfVx(kk);
+                verts(:,2) = verts(:,2) + obj.HalfVy(kk);
 
                 % Rotate
-                centX = mean(hf.verts(:,1));
-                centY = mean(hf.verts(:,2));
-                ca = cos(hf.spin); sa = sin(hf.spin);
-                relX = hf.verts(:,1) - centX;
-                relY = hf.verts(:,2) - centY;
-                hf.verts(:,1) = centX + relX * ca - relY * sa;
-                hf.verts(:,2) = centY + relX * sa + relY * ca;
+                centX = mean(verts(:,1));
+                centY = mean(verts(:,2));
+                ca = cos(obj.HalfSpin(kk)); sa = sin(obj.HalfSpin(kk));
+                relX = verts(:,1) - centX;
+                relY = verts(:,2) - centY;
+                verts(:,1) = centX + relX * ca - relY * sa;
+                verts(:,2) = centY + relX * sa + relY * ca;
 
-                if ~isempty(hf.patchH) && isvalid(hf.patchH)
-                    hf.patchH.XData = hf.verts(:,1);
-                    hf.patchH.YData = hf.verts(:,2);
-                    hf.patchH.FaceAlpha = hf.alpha * 0.6;
-                    hf.patchH.EdgeAlpha = hf.alpha;
-                end
-                obj.Halves(kk) = hf;
+                obj.HalfVerts{kk} = verts;
 
-                if hf.alpha <= 0 || hf.frames > 30
-                    if ~isempty(hf.patchH) && isvalid(hf.patchH); delete(hf.patchH); end
-                    obj.Halves(kk) = [];
-                    continue;
+                hpH = obj.HalfPoolPatch{kk};
+                if ~isempty(hpH) && isvalid(hpH)
+                    hpH.XData = verts(:,1);
+                    hpH.YData = verts(:,2);
+                    hpH.FaceAlpha = obj.HalfAlpha(kk) * 0.6;
+                    hpH.EdgeAlpha = obj.HalfAlpha(kk);
                 end
-                kk = kk + 1;
+
+                if obj.HalfAlpha(kk) <= 0 || obj.HalfFrames(kk) > 30
+                    obj.deactivateHalf(kk);
+                end
             end
 
             % --- Animate slash effects (capture -> fade) ---
-            kk = 1;
-            while kk <= numel(obj.SlashEffects)
-                se = obj.SlashEffects(kk);
-                se.frames = se.frames + 1;
+            for kk = 1:6
+                if ~obj.SlashActive(kk); continue; end
 
-                if se.frames > se.fadeFrames
-                    if ~isempty(se.coreH) && isvalid(se.coreH); delete(se.coreH); end
-                    if ~isempty(se.glowH) && isvalid(se.glowH); delete(se.glowH); end
-                    obj.SlashEffects(kk) = [];
+                obj.SlashFrames(kk) = obj.SlashFrames(kk) + 1;
+
+                if obj.SlashFrames(kk) > obj.SlashFadeFrames(kk)
+                    obj.deactivateSlash(kk);
                     continue;
-                else
-                    % Update coordinates from current trace every frame.
-                    % Buffer shifts by 1 each frame, so adjust indices to
-                    % track the same physical points.
-                    age = se.frames - 1;
-                    trN = numel(traceX);
-                    i1 = max(1, se.idxStart - age);
-                    i2 = min(trN, se.idxEnd - age);
-                    if i1 < i2
-                        sx = traceX(i1:i2);
-                        sy = traceY(i1:i2);
-                    else
-                        sx = NaN; sy = NaN;
-                    end
-                    fadeProgress = se.frames / se.fadeFrames;
-                    alphaVal = 1 - fadeProgress^0.5;
-                    if ~isempty(se.coreH) && isvalid(se.coreH)
-                        se.coreH.XData = sx;
-                        se.coreH.YData = sy;
-                        se.coreH.Color(4) = alphaVal * 0.9;
-                    end
-                    if ~isempty(se.glowH) && isvalid(se.glowH)
-                        se.glowH.XData = sx;
-                        se.glowH.YData = sy;
-                        se.glowH.Color(4) = alphaVal * 0.5;
-                    end
                 end
-                obj.SlashEffects(kk) = se;
-                kk = kk + 1;
+
+                % Update coordinates from current trace every frame.
+                % Buffer shifts by 1 each frame, so adjust indices to
+                % track the same physical points.
+                age = obj.SlashFrames(kk) - 1;
+                trN = numel(traceX);
+                i1 = max(1, obj.SlashIdxStart(kk) - age);
+                i2 = min(trN, obj.SlashIdxEnd(kk) - age);
+                if i1 < i2
+                    sx = traceX(i1:i2);
+                    sy = traceY(i1:i2);
+                else
+                    sx = NaN; sy = NaN;
+                end
+                fadeProgress = obj.SlashFrames(kk) / obj.SlashFadeFrames(kk);
+                alphaVal = 1 - fadeProgress^0.5;
+
+                coreH = obj.SlashPoolCore{kk};
+                if ~isempty(coreH) && isvalid(coreH)
+                    coreH.XData = sx;
+                    coreH.YData = sy;
+                    coreH.Color(4) = alphaVal * 0.9;
+                end
+                glowH = obj.SlashPoolGlow{kk};
+                if ~isempty(glowH) && isvalid(glowH)
+                    glowH.XData = sx;
+                    glowH.YData = sy;
+                    glowH.Color(4) = alphaVal * 0.5;
+                end
             end
 
             obj.PrevPos = pos;
         end
 
         function onCleanup(obj)
-            %onCleanup  Delete all fruit ninja graphics.
-            for kk = 1:numel(obj.Fruits)
-                if ~isempty(obj.Fruits(kk).patchH) && isvalid(obj.Fruits(kk).patchH)
-                    delete(obj.Fruits(kk).patchH);
-                end
-                if ~isempty(obj.Fruits(kk).glowH) && isvalid(obj.Fruits(kk).glowH)
-                    delete(obj.Fruits(kk).glowH);
-                end
-            end
-            obj.Fruits = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
-                "radius", {}, "color", {}, "patchH", {}, "glowH", {}, ...
-                "slashing", {}, "entryAngle", {});
+            %onCleanup  Delete all pool graphics and reset state.
 
-            for kk = 1:numel(obj.Halves)
-                if ~isempty(obj.Halves(kk).patchH) && isvalid(obj.Halves(kk).patchH)
-                    delete(obj.Halves(kk).patchH);
+            % Delete fruit pool
+            for kk = 1:8
+                if ~isempty(obj.FruitPoolPatch) && numel(obj.FruitPoolPatch) >= kk
+                    h = obj.FruitPoolPatch{kk};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+                if ~isempty(obj.FruitPoolGlow) && numel(obj.FruitPoolGlow) >= kk
+                    h = obj.FruitPoolGlow{kk};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.Halves = struct("verts", {}, "color", {}, "patchH", {}, ...
-                "vx", {}, "vy", {}, "spin", {}, "alpha", {}, "frames", {});
+            obj.FruitPoolPatch = {};
+            obj.FruitPoolGlow = {};
+            obj.FruitActive(:) = false;
 
-            for kk = 1:numel(obj.SlashEffects)
-                if ~isempty(obj.SlashEffects(kk).coreH) && isvalid(obj.SlashEffects(kk).coreH)
-                    delete(obj.SlashEffects(kk).coreH);
-                end
-                if ~isempty(obj.SlashEffects(kk).glowH) && isvalid(obj.SlashEffects(kk).glowH)
-                    delete(obj.SlashEffects(kk).glowH);
+            % Delete half pool
+            for kk = 1:16
+                if ~isempty(obj.HalfPoolPatch) && numel(obj.HalfPoolPatch) >= kk
+                    h = obj.HalfPoolPatch{kk};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.SlashEffects = struct("coreH", {}, "glowH", {}, ...
-                "frames", {}, "fadeFrames", {}, "idxStart", {}, "idxEnd", {});
+            obj.HalfPoolPatch = {};
+            obj.HalfActive(:) = false;
+
+            % Delete slash pool
+            for kk = 1:6
+                if ~isempty(obj.SlashPoolCore) && numel(obj.SlashPoolCore) >= kk
+                    h = obj.SlashPoolCore{kk};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+                if ~isempty(obj.SlashPoolGlow) && numel(obj.SlashPoolGlow) >= kk
+                    h = obj.SlashPoolGlow{kk};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+            end
+            obj.SlashPoolCore = {};
+            obj.SlashPoolGlow = {};
+            obj.SlashActive(:) = false;
 
             % Orphan guard
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_fruitninja");
@@ -376,9 +487,13 @@ classdef FruitNinja < GameBase
         end
 
         function spawnFruit(obj)
-            %spawnFruit  Launch a fruit upward from the bottom.
+            %spawnFruit  Activate an inactive fruit pool slot.
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
+
+            % Find first inactive slot
+            slot = find(~obj.FruitActive, 1);
+            if isempty(slot); return; end  % pool full
 
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
@@ -396,37 +511,97 @@ classdef FruitNinja < GameBase
             velX = (rand - 0.5) * areaW * 0.012;
             velY = -(areaH * (0.022 + rand * 0.025));
 
-            theta = linspace(0, 2*pi, 24);
+            theta = obj.ThetaCircle24;
             circX = xPos + fruitRadius * cos(theta);
             circY = yPos + fruitRadius * sin(theta);
 
-            glowH = patch(ax, "XData", circX, "YData", circY, ...
-                "FaceColor", clr, "FaceAlpha", 0.15, ...
-                "EdgeColor", "none", "Tag", "GT_fruitninja");
-            patchH = patch(ax, "XData", circX, "YData", circY, ...
-                "FaceColor", clr, "FaceAlpha", 0.5, ...
-                "EdgeColor", clr, "LineWidth", 1.5, "Tag", "GT_fruitninja");
+            % Populate slot data
+            obj.FruitX(slot) = xPos;
+            obj.FruitY(slot) = yPos;
+            obj.FruitVx(slot) = velX;
+            obj.FruitVy(slot) = velY;
+            obj.FruitRadius(slot) = fruitRadius;
+            obj.FruitColor{slot} = clr;
+            obj.FruitSlashing(slot) = false;
+            obj.FruitEntryAngle(slot) = NaN;
+            obj.FruitActive(slot) = true;
 
-            obj.Fruits(end + 1) = struct("x", xPos, "y", yPos, ...
-                "vx", velX, "vy", velY, ...
-                "radius", fruitRadius, "color", clr, ...
-                "patchH", patchH, "glowH", glowH, ...
-                "slashing", false, "entryAngle", NaN);
+            % Activate pool graphics
+            gH = obj.FruitPoolGlow{slot};
+            if ~isempty(gH) && isvalid(gH)
+                gH.XData = circX;
+                gH.YData = circY;
+                gH.FaceColor = clr;
+                gH.Visible = "on";
+            end
+            pH = obj.FruitPoolPatch{slot};
+            if ~isempty(pH) && isvalid(pH)
+                pH.XData = circX;
+                pH.YData = circY;
+                pH.FaceColor = clr;
+                pH.EdgeColor = clr;
+                pH.Visible = "on";
+            end
         end
 
-        function sliceFruit(obj, fruitIdx, exitPos, slashSpeed, traceX, traceY, nTrace)
+        function deactivateFruit(obj, slot)
+            %deactivateFruit  Hide fruit and mark slot inactive.
+            obj.FruitActive(slot) = false;
+            pH = obj.FruitPoolPatch{slot};
+            if ~isempty(pH) && isvalid(pH)
+                pH.Visible = "off";
+            end
+            gH = obj.FruitPoolGlow{slot};
+            if ~isempty(gH) && isvalid(gH)
+                gH.Visible = "off";
+            end
+        end
+
+        function deactivateHalf(obj, slot)
+            %deactivateHalf  Hide half-patch and mark slot inactive.
+            obj.HalfActive(slot) = false;
+            hpH = obj.HalfPoolPatch{slot};
+            if ~isempty(hpH) && isvalid(hpH)
+                hpH.Visible = "off";
+            end
+        end
+
+        function deactivateSlash(obj, slot)
+            %deactivateSlash  Hide slash effect and mark slot inactive.
+            obj.SlashActive(slot) = false;
+            cH = obj.SlashPoolCore{slot};
+            if ~isempty(cH) && isvalid(cH)
+                cH.Visible = "off";
+                cH.XData = NaN;
+                cH.YData = NaN;
+            end
+            gH = obj.SlashPoolGlow{slot};
+            if ~isempty(gH) && isvalid(gH)
+                gH.Visible = "off";
+                gH.XData = NaN;
+                gH.YData = NaN;
+            end
+        end
+
+        function sliceFruit(obj, fruitSlot, exitPos, slashSpeed, traceX, traceY, nTrace)
             %sliceFruit  Slice fruit into two halves with slash animation.
             %   Uses entry/exit angles for accurate cut geometry.
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
-            f = obj.Fruits(fruitIdx);
+            fx = obj.FruitX(fruitSlot);
+            fy = obj.FruitY(fruitSlot);
+            fRadius = obj.FruitRadius(fruitSlot);
+            fColor = obj.FruitColor{fruitSlot};
+            fvx = obj.FruitVx(fruitSlot);
+            fvy = obj.FruitVy(fruitSlot);
+
             obj.FruitsSliced = obj.FruitsSliced + 1;
             obj.incrementCombo();
 
             % Entry/exit angles relative to current fruit center
-            a1 = f.entryAngle;
-            a2 = atan2(exitPos(2) - f.y, exitPos(1) - f.x);
+            a1 = obj.FruitEntryAngle(fruitSlot);
+            a2 = atan2(exitPos(2) - fy, exitPos(1) - fx);
 
             % Centrality: how close the chord passes through center.
             % Smaller arc => chord further from center => lower centrality.
@@ -443,11 +618,11 @@ classdef FruitNinja < GameBase
             slashAngle = atan2(sin(a2 - a1), cos(a2 - a1));
             obj.SliceHistory(end + 1) = struct("centrality", centrality, ...
                 "speed", slashSpeed, "angle", rad2deg(slashAngle), ...
-                "position", [f.x, f.y], "time", toc(obj.StartTicLocal));
+                "position", [fx, fy], "time", toc(obj.StartTicLocal));
 
             % Cut direction from entry to exit on circle boundary
-            entryOnCircle = [f.x + f.radius * cos(a1), f.y + f.radius * sin(a1)];
-            exitOnCircle  = [f.x + f.radius * cos(a2), f.y + f.radius * sin(a2)];
+            entryOnCircle = [fx + fRadius * cos(a1), fy + fRadius * sin(a1)];
+            exitOnCircle  = [fx + fRadius * cos(a2), fy + fRadius * sin(a2)];
             slashDir = [exitOnCircle(1) - entryOnCircle(1); ...
                         exitOnCircle(2) - entryOnCircle(2)];
             if norm(slashDir) > 0
@@ -457,7 +632,7 @@ classdef FruitNinja < GameBase
             end
             splitNorm = [-slashDir(2); slashDir(1)];
 
-            % Build two pieces: arc from a1->a2 and arc from a2->a1+2pi
+            % Build two half-pieces: arc from a1->a2 and arc from a2->a1+2pi
             for side = [1, -1]
                 if side == 1
                     arcSpan = mod(a2 - a1, 2*pi);
@@ -466,26 +641,41 @@ classdef FruitNinja < GameBase
                     arcSpan = mod(a1 - a2, 2*pi);
                     arcTheta = linspace(a2, a2 + arcSpan, 20);
                 end
-                hx = f.x + f.radius * cos(arcTheta);
-                hy = f.y + f.radius * sin(arcTheta);
+                hx = fx + fRadius * cos(arcTheta);
+                hy = fy + fRadius * sin(arcTheta);
 
-                halfPatch = patch(ax, "XData", hx, "YData", hy, ...
-                    "FaceColor", f.color, "FaceAlpha", 0.5, ...
-                    "EdgeColor", f.color, "LineWidth", 1.5, "Tag", "GT_fruitninja");
+                % Find inactive half slot
+                halfSlot = find(~obj.HalfActive, 1);
+                if isempty(halfSlot); continue; end  % pool full, skip
 
-                splitVx = f.vx + splitNorm(1) * side * 1.5;
-                splitVy = f.vy + splitNorm(2) * side * 1.5 - 0.5;
+                splitVx = fvx + splitNorm(1) * side * 1.5;
+                splitVy = fvy + splitNorm(2) * side * 1.5 - 0.5;
 
-                obj.Halves(end + 1) = struct("verts", [hx(:), hy(:)], ...
-                    "color", f.color, "patchH", halfPatch, ...
-                    "vx", splitVx, "vy", splitVy, ...
-                    "spin", side * 0.06, "alpha", 1.0, "frames", 0);
+                obj.HalfVerts{halfSlot} = [hx(:), hy(:)];
+                obj.HalfColor{halfSlot} = fColor;
+                obj.HalfVx(halfSlot) = splitVx;
+                obj.HalfVy(halfSlot) = splitVy;
+                obj.HalfSpin(halfSlot) = side * 0.06;
+                obj.HalfAlpha(halfSlot) = 1.0;
+                obj.HalfFrames(halfSlot) = 0;
+                obj.HalfActive(halfSlot) = true;
+
+                hpH = obj.HalfPoolPatch{halfSlot};
+                if ~isempty(hpH) && isvalid(hpH)
+                    hpH.XData = hx(:);
+                    hpH.YData = hy(:);
+                    hpH.FaceColor = fColor;
+                    hpH.EdgeColor = fColor;
+                    hpH.FaceAlpha = 0.5;
+                    hpH.EdgeAlpha = 1.0;
+                    hpH.Visible = "on";
+                end
             end
 
             % Slash animation -- store trace INDEX range, update coordinates
             % from the live trace every frame so it stays superimposed.
-            entryOnCircle = [f.x + f.radius * cos(a1), ...
-                             f.y + f.radius * sin(a1)];
+            entryOnCircle = [fx + fRadius * cos(a1), ...
+                             fy + fRadius * sin(a1)];
             entryDists = (traceX - entryOnCircle(1)).^2 + ...
                          (traceY - entryOnCircle(2)).^2;
             [~, entryIdx] = min(entryDists);
@@ -498,24 +688,37 @@ classdef FruitNinja < GameBase
             sx = traceX(idxStart:idxEnd);
             sy = traceY(idxStart:idxEnd);
 
-            fadeFrames = 12;
-            glowLine = line(ax, sx, sy, ...
-                "Color", [obj.ColorCyan, 0.5], ...
-                "LineWidth", 6, "Tag", "GT_fruitninja");
-            coreLine = line(ax, sx, sy, ...
-                "Color", [obj.ColorWhite, 0.9], ...
-                "LineWidth", 2.5, "Tag", "GT_fruitninja");
-            obj.SlashEffects(end + 1) = struct("coreH", coreLine, ...
-                "glowH", glowLine, "frames", 0, "fadeFrames", fadeFrames, ...
-                "idxStart", idxStart, "idxEnd", idxEnd);
+            % Find inactive slash slot
+            slashSlot = find(~obj.SlashActive, 1);
+            if ~isempty(slashSlot)
+                fadeFrames = 12;
+                obj.SlashFrames(slashSlot) = 0;
+                obj.SlashFadeFrames(slashSlot) = fadeFrames;
+                obj.SlashIdxStart(slashSlot) = idxStart;
+                obj.SlashIdxEnd(slashSlot) = idxEnd;
+                obj.SlashActive(slashSlot) = true;
+
+                glowH = obj.SlashPoolGlow{slashSlot};
+                if ~isempty(glowH) && isvalid(glowH)
+                    glowH.XData = sx;
+                    glowH.YData = sy;
+                    glowH.Color = [obj.ColorCyan, 0.5];
+                    glowH.Visible = "on";
+                end
+                coreH = obj.SlashPoolCore{slashSlot};
+                if ~isempty(coreH) && isvalid(coreH)
+                    coreH.XData = sx;
+                    coreH.YData = sy;
+                    coreH.Color = [obj.ColorWhite, 0.9];
+                    coreH.Visible = "on";
+                end
+            end
 
             % Spawn burst effect at fruit center
-            obj.spawnHitEffect([f.x, f.y], f.color, points, f.radius);
+            obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
 
-            % Delete original fruit
-            if ~isempty(f.patchH) && isvalid(f.patchH); delete(f.patchH); end
-            if ~isempty(f.glowH) && isvalid(f.glowH); delete(f.glowH); end
-            obj.Fruits(fruitIdx) = [];
+            % Deactivate original fruit (hide, not delete)
+            obj.deactivateFruit(fruitSlot);
         end
     end
 end

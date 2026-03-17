@@ -59,6 +59,7 @@ classdef Snake < GameBase
         FoodPatchH                      % scatter — food core
         FoodGlowH                       % scatter — food glow
         BodyPatchH      = {}            % cell array of line handles for body segments
+        BodyPoolSize    (1,1) double = 60  % pre-allocated body segment pool
         HeadPatchH                      % scatter — head glow overlay
     end
 
@@ -103,20 +104,28 @@ classdef Snake < GameBase
 
             obj.ColormapRGB = obj.buildColormap();
 
-            % Create body graphics — position-based taper, colormap stretched
-            obj.BodyPatchH = {};
+            % Pre-allocate body segment pool (all hidden, activated as snake grows)
+            nPool = obj.BodyPoolSize;
             nInit = size(obj.Body, 1);
             headSize = cs * 2.4;
             tailSize = cs * 0.9;
-            for i = 1:nInit
-                t = (i - 1) / max(1, nInit - 1);
-                mSize = headSize * (1 - t) + tailSize * t;
-                cmapIdx = max(1, round((1 - t) * (size(obj.ColormapRGB, 1) - 1)) + 1);
-                clr = obj.ColormapRGB(cmapIdx, :);
-                obj.BodyPatchH{i} = line(ax, obj.Body(i, 1), obj.Body(i, 2), ...
-                    "Marker", "o", "MarkerSize", mSize, ...
-                    "MarkerFaceColor", clr, "MarkerEdgeColor", clr * 0.7, ...
-                    "LineStyle", "none", "Tag", "GT_snake");
+            obj.BodyPatchH = cell(1, nPool);
+            for i = 1:nPool
+                if i <= nInit
+                    t = (i - 1) / max(1, nInit - 1);
+                    mSize = headSize * (1 - t) + tailSize * t;
+                    cmapIdx = max(1, round((1 - t) * (size(obj.ColormapRGB, 1) - 1)) + 1);
+                    clr = obj.ColormapRGB(cmapIdx, :);
+                    obj.BodyPatchH{i} = line(ax, obj.Body(i, 1), obj.Body(i, 2), ...
+                        "Marker", "o", "MarkerSize", mSize, ...
+                        "MarkerFaceColor", clr, "MarkerEdgeColor", clr * 0.7, ...
+                        "LineStyle", "none", "Tag", "GT_snake");
+                else
+                    obj.BodyPatchH{i} = line(ax, NaN, NaN, ...
+                        "Marker", "o", "MarkerSize", tailSize, ...
+                        "MarkerFaceColor", [1 1 1], "MarkerEdgeColor", [0.7 0.7 0.7], ...
+                        "LineStyle", "none", "Visible", "off", "Tag", "GT_snake");
+                end
             end
 
             % Head marker (glow overlay)
@@ -124,7 +133,14 @@ classdef Snake < GameBase
                 (cs * 2.4)^2, obj.ColormapRGB(end, :), "filled", ...
                 "MarkerFaceAlpha", 0.8, "Tag", "GT_snake");
 
-            % Spawn first food
+            % Pre-allocate food graphics (repositioned in spawnFood, never deleted)
+            obj.FoodGlowH = scatter(ax, NaN, NaN, ...
+                (cs * 6)^2, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.2, ...
+                "Tag", "GT_snake");
+            obj.FoodPatchH = scatter(ax, NaN, NaN, ...
+                (cs * 2.5)^2, obj.ColorRed, "filled", "Tag", "GT_snake");
+
+            % Place first food
             obj.spawnFood();
         end
 
@@ -259,9 +275,6 @@ classdef Snake < GameBase
 
         function spawnFood(obj)
             %spawnFood  Place food at a random grid-aligned position.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
-
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             cs = obj.CellSize;
@@ -269,7 +282,7 @@ classdef Snake < GameBase
 
             % Grid-aligned position, avoiding all snake segments
             foodXY = [NaN, NaN];
-            for attempt = 1:100
+            for attempt = 1:100 %#ok<FXUP>
                 rawX = dx(1) + margin + rand * (diff(dx) - 2 * margin);
                 rawY = dy(1) + margin + rand * (diff(dy) - 2 * margin);
                 candidate = [dx(1) + round((rawX - dx(1)) / cs) * cs, ...
@@ -280,58 +293,60 @@ classdef Snake < GameBase
                 end
             end
             if any(isnan(foodXY))
-                % Fallback: center of area
                 foodXY = [mean(dx), mean(dy)];
             end
             obj.FoodPos = foodXY;
 
-            % Delete old food graphics
+            % Reposition pre-allocated food graphics (no delete/create)
             if ~isempty(obj.FoodGlowH) && isvalid(obj.FoodGlowH)
-                delete(obj.FoodGlowH);
+                obj.FoodGlowH.XData = foodXY(1);
+                obj.FoodGlowH.YData = foodXY(2);
             end
             if ~isempty(obj.FoodPatchH) && isvalid(obj.FoodPatchH)
-                delete(obj.FoodPatchH);
+                obj.FoodPatchH.XData = foodXY(1);
+                obj.FoodPatchH.YData = foodXY(2);
             end
-
-            % Create food graphics
-            obj.FoodGlowH = scatter(ax, obj.FoodPos(1), obj.FoodPos(2), ...
-                (cs * 6)^2, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.2, ...
-                "Tag", "GT_snake");
-            obj.FoodPatchH = scatter(ax, obj.FoodPos(1), obj.FoodPos(2), ...
-                (cs * 2.5)^2, obj.ColorRed, "filled", "Tag", "GT_snake");
         end
 
         function updateBodyGraphics(obj)
             %updateBodyGraphics  Update body segment positions, sizes, and colors.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
-
             nBody = size(obj.Body, 1);
             cmapSize = size(obj.ColormapRGB, 1);
             cs = obj.CellSize;
             headSize = cs * (2.4 + 0.04 * max(0, nBody - 5));
             tailSize = cs * 1.3;
+            nPool = numel(obj.BodyPatchH);
 
-            % Add new body segment graphics if needed
-            while numel(obj.BodyPatchH) < nBody
-                obj.BodyPatchH{end + 1} = line(ax, 0, 0, ... %#ok<AGROW>
-                    "Marker", "o", "MarkerSize", 1, ...
-                    "MarkerFaceColor", [1, 1, 1], "MarkerEdgeColor", [0.7, 0.7, 0.7], ...
-                    "LineStyle", "none", "Tag", "GT_snake");
-            end
-
-            for i = 1:nBody
-                if i <= numel(obj.BodyPatchH) && ~isempty(obj.BodyPatchH{i}) && isvalid(obj.BodyPatchH{i})
-                    obj.BodyPatchH{i}.XData = obj.Body(i, 1);
-                    obj.BodyPatchH{i}.YData = obj.Body(i, 2);
+            % Activate/update segments up to nBody, hide rest
+            for i = 1:nPool
+                if i > nPool; break; end
+                h = obj.BodyPatchH{i};
+                if isempty(h) || ~isvalid(h); continue; end
+                if i <= nBody
+                    h.XData = obj.Body(i, 1);
+                    h.YData = obj.Body(i, 2);
                     t = (i - 1) / max(1, nBody - 1);
-                    % Size: head grows with food, tail stays constant base
-                    obj.BodyPatchH{i}.MarkerSize = headSize * (1 - t) + tailSize * t;
-                    % Color: neon colormap stretched across current length
+                    h.MarkerSize = headSize * (1 - t) + tailSize * t;
                     cmapIdx = max(1, round((1 - t) * (cmapSize - 1)) + 1);
                     clr = obj.ColormapRGB(cmapIdx, :);
-                    obj.BodyPatchH{i}.MarkerFaceColor = clr;
-                    obj.BodyPatchH{i}.MarkerEdgeColor = clr * 0.7;
+                    h.MarkerFaceColor = clr;
+                    h.MarkerEdgeColor = clr * 0.7;
+                    h.Visible = "on";
+                else
+                    h.Visible = "off";
+                end
+            end
+
+            % If snake exceeds pool (very long game), extend pool
+            if nBody > nPool
+                ax = obj.Ax;
+                if ~isempty(ax) && isvalid(ax)
+                    for i = (nPool + 1):nBody
+                        obj.BodyPatchH{i} = line(ax, obj.Body(i, 1), obj.Body(i, 2), ...
+                            "Marker", "o", "MarkerSize", tailSize, ...
+                            "MarkerFaceColor", [1 1 1], "MarkerEdgeColor", [0.7 0.7 0.7], ...
+                            "LineStyle", "none", "Tag", "GT_snake");
+                    end
                 end
             end
 

@@ -15,6 +15,15 @@ classdef SpaceInvaders < GameBase
     end
 
     % =================================================================
+    % POOL SIZES
+    % =================================================================
+    properties (Constant, Access = private)
+        BulletPoolSize  (1,1) double = 10
+        EBulletPoolSize (1,1) double = 15
+        PUPoolSize      (1,1) double = 4
+    end
+
+    % =================================================================
     % GAME STATE
     % =================================================================
     properties (Access = private)
@@ -32,11 +41,18 @@ classdef SpaceInvaders < GameBase
         AlienSpeed          (1,1) double = 0.3
         AlienDropDist       (1,1) double = 6
 
-        % Player bullets
-        Bullets             struct = struct("x", {}, "y", {}, "lineH", {}, "glowH", {})
+        % Player bullet pool
+        BulletPoolLine              % cell array of line handles (core)
+        BulletPoolGlow              % cell array of line handles (glow)
+        BulletX                     % x position per slot
+        BulletY                     % y position per slot
+        BulletActive                % logical array, true = in use
 
-        % Enemy bullets
-        EnemyBullets        struct = struct("x", {}, "y", {}, "lineH", {})
+        % Enemy bullet pool
+        EBulletPoolLine             % cell array of line handles
+        EBulletX                    % x position per slot
+        EBulletY                    % y position per slot
+        EBulletActive               % logical array, true = in use
 
         % Auto-fire
         FireCD              (1,1) double = 0
@@ -48,13 +64,23 @@ classdef SpaceInvaders < GameBase
         InvulnFrames        (1,1) double = 0
         GameOver            (1,1) logical = false
 
-        % Power-ups
-        PowerUps            struct = struct("type", {}, "x", {}, "y", {}, ...
-                                            "patchH", {}, "glowH", {}, "textH", {})
+        % Power-up pool
+        PUPoolPatch                 % cell array of patch handles (capsule body)
+        PUPoolGlow                  % cell array of line handles (dot marker glow)
+        PUPoolText                  % cell array of text handles (label)
+        PUX                         % x position per slot
+        PUY                         % y position per slot
+        PUType                      % string array of types
+        PUActive                    % logical array, true = in use
+
         LaserActive         (1,1) logical = false
         LaserExpiry         uint64
         ShieldActive        (1,1) logical = false
         ShieldExpiry        uint64
+
+        % Pre-computed theta arrays
+        ThetaCircle24               % 24-point circle for capsule
+        ThetaCircle32               % 32-point circle for shield
     end
 
     % =================================================================
@@ -67,7 +93,7 @@ classdef SpaceInvaders < GameBase
         LivesFlashTic       = []            % tic - flash timer
         WaveTextH                           % text - wave name display
         WaveFlashTic        = []            % tic - wave name timer
-        ShieldPatchH                        % patch - shield circle
+        ShieldPatchH                        % patch - shield circle (pre-allocated)
     end
 
     % =================================================================
@@ -93,6 +119,10 @@ classdef SpaceInvaders < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
+            % Pre-compute theta arrays once
+            obj.ThetaCircle24 = linspace(0, 2*pi, 24);
+            obj.ThetaCircle32 = linspace(0, 2*pi, 32);
+
             % Ship setup
             obj.ShipW = max(12, round(areaW * 0.06));
             obj.ShipH = max(6, round(areaH * 0.06));
@@ -110,11 +140,6 @@ classdef SpaceInvaders < GameBase
             obj.GameOver = false;
             obj.LaserActive = false;
             obj.ShieldActive = false;
-
-            obj.Bullets = struct("x", {}, "y", {}, "lineH", {}, "glowH", {});
-            obj.EnemyBullets = struct("x", {}, "y", {}, "lineH", {});
-            obj.PowerUps = struct("type", {}, "x", {}, "y", {}, ...
-                "patchH", {}, "glowH", {}, "textH", {});
 
             % Create ship - arrow-like shape
             sw = obj.ShipW;
@@ -147,7 +172,69 @@ classdef SpaceInvaders < GameBase
                 "Tag", "GT_spaceinvaders");
             obj.WaveFlashTic = [];
 
-            obj.ShieldPatchH = [];
+            % --- Pre-allocate player bullet pool ---
+            nB = obj.BulletPoolSize;
+            obj.BulletPoolLine = cell(1, nB);
+            obj.BulletPoolGlow = cell(1, nB);
+            obj.BulletX = zeros(1, nB);
+            obj.BulletY = zeros(1, nB);
+            obj.BulletActive = false(1, nB);
+            for k = 1:nB
+                obj.BulletPoolGlow{k} = line(ax, [0, 0], [0, 0], ...
+                    "Color", [obj.ColorCyan, 0.3], "LineWidth", 4, ...
+                    "Visible", "off", "Tag", "GT_spaceinvaders");
+                obj.BulletPoolLine{k} = line(ax, [0, 0], [0, 0], ...
+                    "Color", obj.ColorCyan, "LineWidth", 1.5, ...
+                    "Visible", "off", "Tag", "GT_spaceinvaders");
+            end
+
+            % --- Pre-allocate enemy bullet pool ---
+            nE = obj.EBulletPoolSize;
+            obj.EBulletPoolLine = cell(1, nE);
+            obj.EBulletX = zeros(1, nE);
+            obj.EBulletY = zeros(1, nE);
+            obj.EBulletActive = false(1, nE);
+            for k = 1:nE
+                obj.EBulletPoolLine{k} = line(ax, [0, 0], [0, 0], ...
+                    "Color", obj.ColorRed, "LineWidth", 2, ...
+                    "Visible", "off", "Tag", "GT_spaceinvaders");
+            end
+
+            % --- Pre-allocate power-up pool ---
+            nP = obj.PUPoolSize;
+            obj.PUPoolPatch = cell(1, nP);
+            obj.PUPoolGlow = cell(1, nP);
+            obj.PUPoolText = cell(1, nP);
+            obj.PUX = zeros(1, nP);
+            obj.PUY = zeros(1, nP);
+            obj.PUType = repmat("", 1, nP);
+            obj.PUActive = false(1, nP);
+            capR = 5;
+            thetaCap = obj.ThetaCircle24;
+            for k = 1:nP
+                obj.PUPoolGlow{k} = line(ax, 0, 0, "Color", [obj.ColorGold, 0.2], ...
+                    "Marker", ".", "MarkerSize", 20, ...
+                    "LineStyle", "none", "Visible", "off", "Tag", "GT_spaceinvaders");
+                obj.PUPoolPatch{k} = patch(ax, "XData", capR * cos(thetaCap), ...
+                    "YData", capR * sin(thetaCap), ...
+                    "FaceColor", obj.ColorGold, "FaceAlpha", 0.6, ...
+                    "EdgeColor", obj.ColorGold, "LineWidth", 1.5, ...
+                    "Visible", "off", "Tag", "GT_spaceinvaders");
+                obj.PUPoolText{k} = text(ax, 0, 0, "", ...
+                    "Color", [1, 1, 1], "FontSize", 15, "FontWeight", "bold", ...
+                    "HorizontalAlignment", "center", "VerticalAlignment", "middle", ...
+                    "Visible", "off", "Tag", "GT_spaceinvaders");
+            end
+
+            % --- Pre-allocate shield patch (hidden) ---
+            sr = obj.ShipW * 0.8;
+            thetaShield = obj.ThetaCircle32;
+            obj.ShieldPatchH = patch(ax, ...
+                "XData", obj.ShipX + sr * cos(thetaShield), ...
+                "YData", obj.ShipY + sr * sin(thetaShield), ...
+                "FaceColor", obj.ColorCyan, "FaceAlpha", 0.08, ...
+                "EdgeColor", obj.ColorCyan, "LineWidth", 1, ...
+                "Visible", "off", "Tag", "GT_spaceinvaders");
 
             % Build alien grid + show wave name
             obj.buildAlienGrid(obj.Wave);
@@ -189,29 +276,27 @@ classdef SpaceInvaders < GameBase
             % Move player bullets upward
             bulletSpeed = max(2, diff(dy) * 0.025);
             bLen = max(3, diff(dy) * 0.02);
-            k = 1;
-            while k <= numel(obj.Bullets)
-                obj.Bullets(k).y = obj.Bullets(k).y - bulletSpeed;
-                by = obj.Bullets(k).y;
-                bx = obj.Bullets(k).x;
-                if ~isempty(obj.Bullets(k).lineH) && isvalid(obj.Bullets(k).lineH)
-                    obj.Bullets(k).lineH.YData = [by, by + bLen];
-                    obj.Bullets(k).lineH.XData = [bx, bx];
+            for k = 1:obj.BulletPoolSize
+                if ~obj.BulletActive(k); continue; end
+                obj.BulletY(k) = obj.BulletY(k) - bulletSpeed;
+                by = obj.BulletY(k);
+                bx = obj.BulletX(k);
+
+                % Update line positions
+                bLineH = obj.BulletPoolLine{k};
+                if ~isempty(bLineH) && isvalid(bLineH)
+                    bLineH.YData = [by, by + bLen];
+                    bLineH.XData = [bx, bx];
                 end
-                if ~isempty(obj.Bullets(k).glowH) && isvalid(obj.Bullets(k).glowH)
-                    obj.Bullets(k).glowH.YData = [by - 1, by + bLen + 1];
-                    obj.Bullets(k).glowH.XData = [bx, bx];
+                bGlowH = obj.BulletPoolGlow{k};
+                if ~isempty(bGlowH) && isvalid(bGlowH)
+                    bGlowH.YData = [by - 1, by + bLen + 1];
+                    bGlowH.XData = [bx, bx];
                 end
 
-                % Off screen
+                % Off screen — deactivate
                 if by < dy(1) - 10
-                    if ~isempty(obj.Bullets(k).lineH) && isvalid(obj.Bullets(k).lineH)
-                        delete(obj.Bullets(k).lineH);
-                    end
-                    if ~isempty(obj.Bullets(k).glowH) && isvalid(obj.Bullets(k).glowH)
-                        delete(obj.Bullets(k).glowH);
-                    end
-                    obj.Bullets(k) = [];
+                    obj.deactivateBullet(k);
                     continue;
                 end
 
@@ -247,16 +332,8 @@ classdef SpaceInvaders < GameBase
                     end
                 end
                 if hitAlien
-                    if ~isempty(obj.Bullets(k).lineH) && isvalid(obj.Bullets(k).lineH)
-                        delete(obj.Bullets(k).lineH);
-                    end
-                    if ~isempty(obj.Bullets(k).glowH) && isvalid(obj.Bullets(k).glowH)
-                        delete(obj.Bullets(k).glowH);
-                    end
-                    obj.Bullets(k) = [];
-                    continue;
+                    obj.deactivateBullet(k);
                 end
-                k = k + 1;
             end
 
             % Move aliens
@@ -288,52 +365,45 @@ classdef SpaceInvaders < GameBase
                 end
             end
 
-            % Enemy fire (random alien shoots)
+            % Enemy fire (random alien shoots) — use pool
             if ~isempty(obj.Aliens) && rand < 0.02 * (1 + obj.Wave * 0.3)
                 shooter = obj.Aliens(randi(numel(obj.Aliens)));
-                eLineH = line(obj.Ax, [shooter.x, shooter.x], ...
-                    [shooter.y, shooter.y + 4], ...
-                    "Color", obj.ColorRed, "LineWidth", 2, "Tag", "GT_spaceinvaders");
-                obj.EnemyBullets(end + 1) = struct("x", shooter.x, "y", shooter.y, ...
-                    "lineH", eLineH);
+                obj.activateEBullet(shooter.x, shooter.y);
             end
 
             % Move enemy bullets
             eBulletSpeed = max(1.5, diff(dy) * 0.015);
-            k = 1;
-            while k <= numel(obj.EnemyBullets)
-                obj.EnemyBullets(k).y = obj.EnemyBullets(k).y + eBulletSpeed;
-                eb = obj.EnemyBullets(k);
-                if ~isempty(eb.lineH) && isvalid(eb.lineH)
-                    eb.lineH.YData = [eb.y, eb.y + 4];
-                    eb.lineH.XData = [eb.x, eb.x];
+            for k = 1:obj.EBulletPoolSize
+                if ~obj.EBulletActive(k); continue; end
+                obj.EBulletY(k) = obj.EBulletY(k) + eBulletSpeed;
+                ebx = obj.EBulletX(k);
+                eby = obj.EBulletY(k);
+                ebLineH = obj.EBulletPoolLine{k};
+                if ~isempty(ebLineH) && isvalid(ebLineH)
+                    ebLineH.YData = [eby, eby + 4];
+                    ebLineH.XData = [ebx, ebx];
                 end
-                if eb.y > dy(2) + 10
-                    if ~isempty(eb.lineH) && isvalid(eb.lineH); delete(eb.lineH); end
-                    obj.EnemyBullets(k) = [];
+                if eby > dy(2) + 10
+                    obj.deactivateEBullet(k);
                     continue;
                 end
                 % Shield intercept (at shield radius, before reaching ship)
                 if obj.ShieldActive
                     sr = obj.ShipW * 0.8;
-                    if (eb.x - obj.ShipX)^2 + (eb.y - obj.ShipY)^2 < sr^2
-                        obj.spawnBounceEffect([eb.x, eb.y], [0, -1], 0, 6);
-                        if ~isempty(eb.lineH) && isvalid(eb.lineH); delete(eb.lineH); end
-                        obj.EnemyBullets(k) = [];
+                    if (ebx - obj.ShipX)^2 + (eby - obj.ShipY)^2 < sr^2
+                        obj.spawnBounceEffect([ebx, eby], [0, -1], 0, 6);
+                        obj.deactivateEBullet(k);
                         continue;
                     end
                 end
                 % Hit player?
                 if obj.InvulnFrames <= 0 && ...
-                        abs(eb.x - obj.ShipX) < obj.ShipW / 2 && ...
-                        abs(eb.y - obj.ShipY) < obj.ShipH
+                        abs(ebx - obj.ShipX) < obj.ShipW / 2 && ...
+                        abs(eby - obj.ShipY) < obj.ShipH
                     obj.loseLife();
-                    if ~isempty(eb.lineH) && isvalid(eb.lineH); delete(eb.lineH); end
-                    obj.EnemyBullets(k) = [];
+                    obj.deactivateEBullet(k);
                     if obj.Lives <= 0; return; end
-                    continue;
                 end
-                k = k + 1;
             end
 
             % Invulnerability blink
@@ -371,38 +441,43 @@ classdef SpaceInvaders < GameBase
                 obj.showWaveName(obj.Wave);
             end
 
-            % Update power-ups (falling)
-            k = 1;
-            while k <= numel(obj.PowerUps)
-                obj.PowerUps(k).y = obj.PowerUps(k).y + 1;
-                pu = obj.PowerUps(k);
-                if ~isempty(pu.patchH) && isvalid(pu.patchH)
-                    pu.patchH.YData = pu.patchH.YData + 1;
+            % Update power-ups (falling) — pool-based
+            capR = 5;
+            thetaCap = obj.ThetaCircle24;
+            for k = 1:obj.PUPoolSize
+                if ~obj.PUActive(k); continue; end
+                obj.PUY(k) = obj.PUY(k) + 1;
+                puX = obj.PUX(k);
+                puY = obj.PUY(k);
+
+                % Update capsule body position
+                puPatchH = obj.PUPoolPatch{k};
+                if ~isempty(puPatchH) && isvalid(puPatchH)
+                    puPatchH.XData = puX + capR * cos(thetaCap);
+                    puPatchH.YData = puY + capR * sin(thetaCap);
                 end
-                if ~isempty(pu.glowH) && isvalid(pu.glowH)
-                    pu.glowH.YData = pu.y;
+                % Update glow dot position
+                puGlowH = obj.PUPoolGlow{k};
+                if ~isempty(puGlowH) && isvalid(puGlowH)
+                    puGlowH.XData = puX;
+                    puGlowH.YData = puY;
                 end
-                if ~isempty(pu.textH) && isvalid(pu.textH)
-                    pu.textH.Position(2) = pu.textH.Position(2) + 1;
+                % Update text label position
+                puTextH = obj.PUPoolText{k};
+                if ~isempty(puTextH) && isvalid(puTextH)
+                    puTextH.Position = [puX, puY, 0];
                 end
+
                 % Catch by ship
-                if abs(pu.x - obj.ShipX) < obj.ShipW && ...
-                        abs(pu.y - obj.ShipY) < obj.ShipH
-                    obj.applyPowerUp(pu.type);
-                    if ~isempty(pu.patchH) && isvalid(pu.patchH); delete(pu.patchH); end
-                    if ~isempty(pu.glowH) && isvalid(pu.glowH); delete(pu.glowH); end
-                    if ~isempty(pu.textH) && isvalid(pu.textH); delete(pu.textH); end
-                    obj.PowerUps(k) = [];
+                if abs(puX - obj.ShipX) < obj.ShipW && ...
+                        abs(puY - obj.ShipY) < obj.ShipH
+                    obj.applyPowerUp(obj.PUType(k));
+                    obj.deactivatePU(k);
                     continue;
                 end
-                if pu.y > dy(2) + 20
-                    if ~isempty(pu.patchH) && isvalid(pu.patchH); delete(pu.patchH); end
-                    if ~isempty(pu.glowH) && isvalid(pu.glowH); delete(pu.glowH); end
-                    if ~isempty(pu.textH) && isvalid(pu.textH); delete(pu.textH); end
-                    obj.PowerUps(k) = [];
-                    continue;
+                if puY > dy(2) + 20
+                    obj.deactivatePU(k);
                 end
-                k = k + 1;
             end
 
             % Expire power-ups
@@ -412,9 +487,8 @@ classdef SpaceInvaders < GameBase
             if obj.ShieldActive && ~isempty(obj.ShieldExpiry) && toc(obj.ShieldExpiry) > 10
                 obj.ShieldActive = false;
                 if ~isempty(obj.ShieldPatchH) && isvalid(obj.ShieldPatchH)
-                    delete(obj.ShieldPatchH);
+                    obj.ShieldPatchH.Visible = "off";
                 end
-                obj.ShieldPatchH = [];
             end
 
             % --- Lives flash (0.6s visible, then 0.4s fade out) ---
@@ -480,39 +554,56 @@ classdef SpaceInvaders < GameBase
             obj.Aliens = struct("x", {}, "y", {}, "hp", {}, "maxHp", {}, ...
                 "type", {}, "shapeX", {}, "shapeY", {}, "patchH", {}, "glowH", {});
 
-            % Player bullets
-            for k = 1:numel(obj.Bullets)
-                if ~isempty(obj.Bullets(k).lineH) && isvalid(obj.Bullets(k).lineH)
-                    delete(obj.Bullets(k).lineH);
-                end
-                if ~isempty(obj.Bullets(k).glowH) && isvalid(obj.Bullets(k).glowH)
-                    delete(obj.Bullets(k).glowH);
+            % Player bullet pool
+            if ~isempty(obj.BulletPoolLine)
+                for k = 1:numel(obj.BulletPoolLine)
+                    h = obj.BulletPoolLine{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.Bullets = struct("x", {}, "y", {}, "lineH", {}, "glowH", {});
+            if ~isempty(obj.BulletPoolGlow)
+                for k = 1:numel(obj.BulletPoolGlow)
+                    h = obj.BulletPoolGlow{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+            end
+            obj.BulletPoolLine = {};
+            obj.BulletPoolGlow = {};
+            obj.BulletActive = false(1, 0);
 
-            % Enemy bullets
-            for k = 1:numel(obj.EnemyBullets)
-                if ~isempty(obj.EnemyBullets(k).lineH) && isvalid(obj.EnemyBullets(k).lineH)
-                    delete(obj.EnemyBullets(k).lineH);
+            % Enemy bullet pool
+            if ~isempty(obj.EBulletPoolLine)
+                for k = 1:numel(obj.EBulletPoolLine)
+                    h = obj.EBulletPoolLine{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.EnemyBullets = struct("x", {}, "y", {}, "lineH", {});
+            obj.EBulletPoolLine = {};
+            obj.EBulletActive = false(1, 0);
 
-            % Power-ups
-            for k = 1:numel(obj.PowerUps)
-                if ~isempty(obj.PowerUps(k).patchH) && isvalid(obj.PowerUps(k).patchH)
-                    delete(obj.PowerUps(k).patchH);
-                end
-                if ~isempty(obj.PowerUps(k).glowH) && isvalid(obj.PowerUps(k).glowH)
-                    delete(obj.PowerUps(k).glowH);
-                end
-                if ~isempty(obj.PowerUps(k).textH) && isvalid(obj.PowerUps(k).textH)
-                    delete(obj.PowerUps(k).textH);
+            % Power-up pool
+            if ~isempty(obj.PUPoolPatch)
+                for k = 1:numel(obj.PUPoolPatch)
+                    h = obj.PUPoolPatch{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
                 end
             end
-            obj.PowerUps = struct("type", {}, "x", {}, "y", {}, ...
-                "patchH", {}, "glowH", {}, "textH", {});
+            if ~isempty(obj.PUPoolGlow)
+                for k = 1:numel(obj.PUPoolGlow)
+                    h = obj.PUPoolGlow{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+            end
+            if ~isempty(obj.PUPoolText)
+                for k = 1:numel(obj.PUPoolText)
+                    h = obj.PUPoolText{k};
+                    if ~isempty(h) && isvalid(h); delete(h); end
+                end
+            end
+            obj.PUPoolPatch = {};
+            obj.PUPoolGlow = {};
+            obj.PUPoolText = {};
+            obj.PUActive = false(1, 0);
 
             % Orphan guard
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_spaceinvaders");
@@ -620,23 +711,80 @@ classdef SpaceInvaders < GameBase
         end
 
         function fireBullet(obj)
-            %fireBullet  Fire a bullet from the ship.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
+            %fireBullet  Fire a bullet from the ship using the pre-allocated pool.
             dy = obj.DisplayRange.Y;
             bLen = max(3, diff(dy) * 0.02);
             bColor = obj.ColorCyan;
             if obj.LaserActive; bColor = obj.ColorRed; end
 
-            glowH = line(ax, [obj.ShipX, obj.ShipX], ...
-                [obj.ShipY - obj.ShipH - 1, obj.ShipY - obj.ShipH - bLen - 1], ...
-                "Color", [bColor, 0.3], "LineWidth", 4, "Tag", "GT_spaceinvaders");
-            lineH = line(ax, [obj.ShipX, obj.ShipX], ...
-                [obj.ShipY - obj.ShipH, obj.ShipY - obj.ShipH - bLen], ...
-                "Color", bColor, "LineWidth", 1.5, "Tag", "GT_spaceinvaders");
+            % Find first inactive slot
+            slot = find(~obj.BulletActive, 1);
+            if isempty(slot); return; end  % pool full, skip shot
 
-            obj.Bullets(end + 1) = struct("x", obj.ShipX, ...
-                "y", obj.ShipY - obj.ShipH, "lineH", lineH, "glowH", glowH);
+            bx = obj.ShipX;
+            by = obj.ShipY - obj.ShipH;
+            obj.BulletX(slot) = bx;
+            obj.BulletY(slot) = by;
+            obj.BulletActive(slot) = true;
+
+            glowH = obj.BulletPoolGlow{slot};
+            if ~isempty(glowH) && isvalid(glowH)
+                glowH.XData = [bx, bx];
+                glowH.YData = [by - 1, by - bLen - 1];
+                glowH.Color = [bColor, 0.3];
+                glowH.Visible = "on";
+            end
+            lineH = obj.BulletPoolLine{slot};
+            if ~isempty(lineH) && isvalid(lineH)
+                lineH.XData = [bx, bx];
+                lineH.YData = [by, by - bLen];
+                lineH.Color = bColor;
+                lineH.Visible = "on";
+            end
+        end
+
+        function deactivateBullet(obj, k)
+            %deactivateBullet  Hide a player bullet and mark slot as inactive.
+            obj.BulletActive(k) = false;
+            h = obj.BulletPoolLine{k};
+            if ~isempty(h) && isvalid(h); h.Visible = "off"; end
+            h = obj.BulletPoolGlow{k};
+            if ~isempty(h) && isvalid(h); h.Visible = "off"; end
+        end
+
+        function activateEBullet(obj, x, y)
+            %activateEBullet  Activate an enemy bullet from the pool.
+            slot = find(~obj.EBulletActive, 1);
+            if isempty(slot); return; end  % pool full, skip shot
+
+            obj.EBulletX(slot) = x;
+            obj.EBulletY(slot) = y;
+            obj.EBulletActive(slot) = true;
+
+            h = obj.EBulletPoolLine{slot};
+            if ~isempty(h) && isvalid(h)
+                h.XData = [x, x];
+                h.YData = [y, y + 4];
+                h.Visible = "on";
+            end
+        end
+
+        function deactivateEBullet(obj, k)
+            %deactivateEBullet  Hide an enemy bullet and mark slot as inactive.
+            obj.EBulletActive(k) = false;
+            h = obj.EBulletPoolLine{k};
+            if ~isempty(h) && isvalid(h); h.Visible = "off"; end
+        end
+
+        function deactivatePU(obj, k)
+            %deactivatePU  Hide a power-up and mark slot as inactive.
+            obj.PUActive(k) = false;
+            h = obj.PUPoolPatch{k};
+            if ~isempty(h) && isvalid(h); h.Visible = "off"; end
+            h = obj.PUPoolGlow{k};
+            if ~isempty(h) && isvalid(h); h.Visible = "off"; end
+            h = obj.PUPoolText{k};
+            if ~isempty(h) && isvalid(h); h.Visible = "off"; end
         end
 
         function loseLife(obj)
@@ -683,35 +831,51 @@ classdef SpaceInvaders < GameBase
         end
 
         function spawnPowerUp(obj, x, y)
-            %spawnPowerUp  Spawn a falling power-up capsule.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
+            %spawnPowerUp  Activate a falling power-up capsule from the pool.
             types = ["L", "S", "+"];  % Laser, Shield, Extra Life
             colors = {obj.ColorRed, obj.ColorCyan, obj.ColorGold};
             idx = randi(numel(types));
             pType = types(idx);
             pColor = colors{idx};
 
-            % Glow aura (dot marker)
-            glowH = line(ax, x, y, "Color", [pColor, 0.2], ...
-                "Marker", ".", "MarkerSize", 20, ...
-                "LineStyle", "none", "Tag", "GT_spaceinvaders");
+            % Find first inactive slot
+            slot = find(~obj.PUActive, 1);
+            if isempty(slot); return; end  % pool full, skip spawn
 
-            % Capsule body (24-point circle)
             capR = 5;
-            theta = linspace(0, 2*pi, 24);
-            patchH = patch(ax, "XData", x + capR*cos(theta), "YData", y + capR*sin(theta), ...
-                "FaceColor", pColor, "FaceAlpha", 0.6, ...
-                "EdgeColor", pColor, "LineWidth", 1.5, "Tag", "GT_spaceinvaders");
+            thetaCap = obj.ThetaCircle24;
 
-            % Label
-            textH = text(ax, x, y, char(pType), ...
-                "Color", [1, 1, 1], "FontSize", 15, "FontWeight", "bold", ...
-                "HorizontalAlignment", "center", "VerticalAlignment", "middle", ...
-                "Tag", "GT_spaceinvaders");
+            obj.PUX(slot) = x;
+            obj.PUY(slot) = y;
+            obj.PUType(slot) = pType;
+            obj.PUActive(slot) = true;
 
-            obj.PowerUps(end + 1) = struct("type", pType, "x", x, "y", y, ...
-                "patchH", patchH, "glowH", glowH, "textH", textH);
+            % Update capsule body
+            puPatchH = obj.PUPoolPatch{slot};
+            if ~isempty(puPatchH) && isvalid(puPatchH)
+                puPatchH.XData = x + capR * cos(thetaCap);
+                puPatchH.YData = y + capR * sin(thetaCap);
+                puPatchH.FaceColor = pColor;
+                puPatchH.EdgeColor = pColor;
+                puPatchH.Visible = "on";
+            end
+
+            % Update glow dot
+            puGlowH = obj.PUPoolGlow{slot};
+            if ~isempty(puGlowH) && isvalid(puGlowH)
+                puGlowH.XData = x;
+                puGlowH.YData = y;
+                puGlowH.Color = [pColor, 0.2];
+                puGlowH.Visible = "on";
+            end
+
+            % Update label
+            puTextH = obj.PUPoolText{slot};
+            if ~isempty(puTextH) && isvalid(puTextH)
+                puTextH.Position = [x, y, 0];
+                puTextH.String = char(pType);
+                puTextH.Visible = "on";
+            end
         end
 
         function applyPowerUp(obj, puType)
@@ -723,19 +887,13 @@ classdef SpaceInvaders < GameBase
                 case "S"
                     obj.ShieldActive = true;
                     obj.ShieldExpiry = tic;
-                    ax = obj.Ax;
-                    if ~isempty(ax) && isvalid(ax)
-                        if ~isempty(obj.ShieldPatchH) && isvalid(obj.ShieldPatchH)
-                            delete(obj.ShieldPatchH);
-                        end
-                        theta = linspace(0, 2*pi, 32);
+                    % Show pre-allocated shield patch at current ship position
+                    if ~isempty(obj.ShieldPatchH) && isvalid(obj.ShieldPatchH)
                         sr = obj.ShipW * 0.8;
-                        obj.ShieldPatchH = patch(ax, ...
-                            "XData", obj.ShipX + sr * cos(theta), ...
-                            "YData", obj.ShipY + sr * sin(theta), ...
-                            "FaceColor", obj.ColorCyan, "FaceAlpha", 0.08, ...
-                            "EdgeColor", obj.ColorCyan, "LineWidth", 1, ...
-                            "Tag", "GT_spaceinvaders");
+                        thetaShield = obj.ThetaCircle32;
+                        obj.ShieldPatchH.XData = obj.ShipX + sr * cos(thetaShield);
+                        obj.ShieldPatchH.YData = obj.ShipY + sr * sin(thetaShield);
+                        obj.ShieldPatchH.Visible = "on";
                     end
                 case "+"
                     obj.Lives = min(obj.Lives + 1, 5);
