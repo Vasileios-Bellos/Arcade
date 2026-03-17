@@ -672,7 +672,9 @@ classdef Pong < GameBase
             by = obj.BallPos(2);
             ballSpeed = norm(obj.BallVel);
             r = obj.BallRadius;
-            clr = obj.flickSpeedColor(ballSpeed);
+            % Normalize speed to standard scale so color ramp works at any display size
+            normalizedSpeed = (ballSpeed / max(obj.BallBaseSpeed, 1)) * 4.5;
+            clr = obj.flickSpeedColor(normalizedSpeed);
 
             % Ball core
             if ~isempty(obj.BallCoreH) && isvalid(obj.BallCoreH)
