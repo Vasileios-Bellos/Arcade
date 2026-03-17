@@ -786,9 +786,9 @@ classdef Breakout < GameBase
 
                     % Scoring
                     basePoints = brk.hp * 100 + 100;
-                    obj.incrementCombo();
                     totalPoints = round(basePoints * obj.comboMultiplier());
                     obj.addScore(totalPoints);
+                    obj.incrementCombo();
                 else
                     % Indestructible — bounce even in fireball mode
                     if isFireball
