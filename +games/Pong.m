@@ -220,6 +220,7 @@ classdef Pong < GameBase
 
         function onUpdate(obj, pos)
             %onUpdate  Per-frame pong game loop.
+            if ~obj.IsRunning; return; end
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 

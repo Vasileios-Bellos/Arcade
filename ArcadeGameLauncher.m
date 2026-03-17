@@ -66,6 +66,11 @@ classdef (Sealed) ArcadeGameLauncher < handle
         ScrollOffset    (1,1) double = 0        % first visible game index (0-based)
         ScrollTrackH                            % line — scroll track (right side)
         ScrollThumbH                            % patch — scroll thumb
+
+        % Scroll drag state
+        ScrollDragging  (1,1) logical = false   % true while dragging thumb
+        ScrollDragStartY (1,1) double = 0       % mouse Y at drag start
+        ScrollDragStartOffset (1,1) double = 0  % ScrollOffset at drag start
     end
 
     % =================================================================
@@ -212,7 +217,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "Name", "Arcade", ...
                 "CloseRequestFcn", @(~, ~) obj.close(), ...
                 "WindowButtonMotionFcn", @(~, ~) obj.onMouseMove(), ...
-                "WindowButtonDownFcn", @(~, ~) obj.onMouseClick(), ...
+                "WindowButtonDownFcn", @(~, ~) obj.onMouseDown(), ...
+                "WindowButtonUpFcn", @(~, ~) obj.onMouseUp(), ...
+                "WindowScrollWheelFcn", @(~, e) obj.onScrollWheel(e), ...
                 "KeyPressFcn", @(~, e) obj.onKeyPress(e));
 
             drawnow;  % force layout so Position reflects maximized size
@@ -250,18 +257,30 @@ classdef (Sealed) ArcadeGameLauncher < handle
         end
 
         function onMouseMove(obj)
-            %onMouseMove  Update mouse position from axes CurrentPoint.
+            %onMouseMove  Update mouse position; handle scroll thumb drag.
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
             cp = get(obj.Ax, "CurrentPoint");
             obj.MousePos = cp(1, 1:2);
+
+            if obj.ScrollDragging && obj.State == "menu"
+                obj.handleScrollDrag();
+            end
         end
 
-        function onMouseClick(obj)
-            %onMouseClick  Click on a game item to launch it.
+        function onMouseDown(obj)
+            %onMouseDown  Click on game item or start scroll thumb drag.
             if obj.State ~= "menu"; return; end
             if any(isnan(obj.MousePos)); return; end
             nGames = numel(obj.RegistryOrder);
             if nGames == 0; return; end
+
+            % Check scroll thumb hit first
+            if nGames > obj.MaxVisibleItems && obj.hitTestScrollThumb()
+                obj.ScrollDragging = true;
+                obj.ScrollDragStartY = obj.MousePos(2);
+                obj.ScrollDragStartOffset = obj.ScrollOffset;
+                return;
+            end
 
             mx = obj.MousePos(1);
             my = obj.MousePos(2);
@@ -287,6 +306,93 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     obj.enterCountdown();
                     return;
                 end
+            end
+        end
+
+        function onMouseUp(obj)
+            %onMouseUp  End scroll thumb drag.
+            obj.ScrollDragging = false;
+        end
+
+        function onScrollWheel(obj, evnt)
+            %onScrollWheel  Scroll game list with mouse wheel.
+            if obj.State ~= "menu"; return; end
+            nGames = numel(obj.RegistryOrder);
+            maxVis = obj.MaxVisibleItems;
+            if nGames <= maxVis; return; end
+
+            delta = round(evnt.VerticalScrollCount);
+            obj.ScrollOffset = max(0, min(obj.ScrollOffset + delta, ...
+                nGames - maxVis));
+
+            % Keep selection in visible window
+            if obj.SelectedIdx <= obj.ScrollOffset
+                obj.SelectedIdx = obj.ScrollOffset + 1;
+            elseif obj.SelectedIdx > obj.ScrollOffset + maxVis
+                obj.SelectedIdx = obj.ScrollOffset + maxVis;
+            end
+
+            obj.updateSlotContent();
+            obj.updateSlotHighlight();
+            obj.updateScrollThumb();
+        end
+
+        function hit = hitTestScrollThumb(obj)
+            %hitTestScrollThumb  Check if mouse is over the scroll thumb.
+            hit = false;
+            if isempty(obj.ScrollThumbH) || ~isvalid(obj.ScrollThumbH); return; end
+            if obj.ScrollThumbH.Visible == "off"; return; end
+
+            mx = obj.MousePos(1);
+            my = obj.MousePos(2);
+            tx = obj.ScrollThumbH.XData;
+            ty = obj.ScrollThumbH.YData;
+
+            if mx >= min(tx) - 5 && mx <= max(tx) + 5 ...
+                    && my >= min(ty) && my <= max(ty)
+                hit = true;
+            end
+        end
+
+        function handleScrollDrag(obj)
+            %handleScrollDrag  Update scroll offset from thumb drag motion.
+            nGames = numel(obj.RegistryOrder);
+            maxVis = obj.MaxVisibleItems;
+            maxOff = nGames - maxVis;
+            if maxOff <= 0; return; end
+
+            % Compute track geometry
+            dy = obj.DisplayRange.Y;
+            rangeH = diff(dy);
+            listTop = dy(1) + rangeH * obj.ItemListTopFrac;
+            iH = obj.ItemHeight;
+            iGap = obj.ItemGap;
+            trackTop = listTop + 4;
+            trackBot = listTop + obj.NumSlots * (iH + iGap) - iGap - 4;
+            trackH = trackBot - trackTop;
+            thumbH = max(15, trackH * maxVis / nGames);
+            scrollableH = trackH - thumbH;
+            if scrollableH <= 0; return; end
+
+            % Map mouse delta to scroll offset
+            deltaY = obj.MousePos(2) - obj.ScrollDragStartY;
+            deltaFrac = deltaY / scrollableH;
+            newOffset = round(obj.ScrollDragStartOffset + deltaFrac * maxOff);
+            newOffset = max(0, min(newOffset, maxOff));
+
+            if newOffset ~= obj.ScrollOffset
+                obj.ScrollOffset = newOffset;
+
+                % Keep selection in visible window
+                if obj.SelectedIdx <= obj.ScrollOffset
+                    obj.SelectedIdx = obj.ScrollOffset + 1;
+                elseif obj.SelectedIdx > obj.ScrollOffset + maxVis
+                    obj.SelectedIdx = obj.ScrollOffset + maxVis;
+                end
+
+                obj.updateSlotContent();
+                obj.updateSlotHighlight();
+                obj.updateScrollThumb();
             end
         end
 
@@ -428,6 +534,12 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
+
+            % Game signalled completion (e.g., Pong win condition)
+            if ~obj.ActiveGame.IsRunning
+                obj.enterResults();
+                return;
+            end
 
             obj.Score = obj.ActiveGame.Score;
             obj.Combo = obj.ActiveGame.Combo;
