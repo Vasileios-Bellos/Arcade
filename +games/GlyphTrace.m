@@ -108,8 +108,10 @@ classdef GlyphTrace < GameBase
             % --- Obtain glyph cache from host or build locally ---
             if isfield(caps, "glyphCache") && ~isempty(caps.glyphCache)
                 obj.GlyphCache = caps.glyphCache;
-            else
+            elseif exist("GestureMouse", "class")
                 obj.GlyphCache = GestureMouse.buildGlyphCache();
+            else
+                obj.GlyphCache = struct();
             end
 
             % --- Hook into host recognition if available ---
@@ -405,7 +407,12 @@ classdef GlyphTrace < GameBase
 
             ch = obj.Sequence(obj.SeqIndex);
             obj.CurrentChar = ch;
-            glyphKey = GestureMouse.glyphKey(ch);
+            chStr = upper(string(ch));
+            if chStr >= "0" && chStr <= "9"
+                glyphKey = "D" + chStr;
+            else
+                glyphKey = chStr;
+            end
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             ax = obj.Ax;
@@ -436,7 +443,11 @@ classdef GlyphTrace < GameBase
             % Build polyshape and store
             obj.PathX = fullX;
             obj.PathY = fullY;
-            obj.LetterPs = GestureMouse.buildPolyFromNaN(fullX, fullY);
+            if exist("GestureMouse", "class")
+                obj.LetterPs = GestureMouse.buildPolyFromNaN(fullX, fullY);
+            else
+                obj.LetterPs = polyshape();
+            end
             obj.LetterArea = area(obj.LetterPs);
 
             % Compute fill width from stroke width: 2*area/perimeter

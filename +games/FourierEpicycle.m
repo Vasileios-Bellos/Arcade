@@ -159,8 +159,10 @@ classdef FourierEpicycle < GameBase
             % Glyph cache for letter shapes
             if isfield(caps, "glyphCache") && ~isempty(caps.glyphCache)
                 obj.GlyphCacheData = caps.glyphCache;
-            else
+            elseif exist("GestureMouse", "class")
                 obj.GlyphCacheData = GestureMouse.buildGlyphCache();
+            else
+                obj.GlyphCacheData = struct();
             end
 
             % Recognition hooks
@@ -427,12 +429,13 @@ classdef FourierEpicycle < GameBase
                     end
                 end
 
-                % Pause detection (skip for letters — handled by recognition)
+                % Pause detection (letters: host recognition if available, else shape match)
                 if obj.HasMoved ...
                         && obj.PauseFrames >= obj.PauseThresh ...
                         && nTrace >= 10 ...
-                        && obj.SubMode ~= "letters"
-                    if obj.SubMode == "presets"
+                        && (obj.SubMode ~= "letters" || ~obj.HasHostRecog)
+                    if obj.SubMode == "presets" ...
+                            || (obj.SubMode == "letters" && ~obj.HasHostRecog)
                         [shapeOk, matchPct] = obj.checkShapeMatch();
                         obj.showMatchPct(matchPct, ...
                             [traceX(end), traceY(end)]);
@@ -461,8 +464,8 @@ classdef FourierEpicycle < GameBase
                     if ~isempty(obj.PromptH) && isvalid(obj.PromptH)
                         obj.PromptH.Visible = "off";
                     end
-                    % Score for presets
-                    if obj.SubMode == "presets"
+                    % Score for presets and letters (pause-detected)
+                    if obj.SubMode ~= "draw"
                         obj.incrementCombo();
                         pts = round(100 * obj.comboMultiplier());
                         obj.addScore(pts);
@@ -1127,7 +1130,12 @@ classdef FourierEpicycle < GameBase
                 chars = ['A':'Z', '0':'9'];
                 idx = mod(obj.LetterIdx - 1, numel(chars)) + 1;
                 ch = string(chars(idx));
-                glyphKey = GestureMouse.glyphKey(ch);
+                chUp = upper(ch);
+                if chUp >= "0" && chUp <= "9"
+                    glyphKey = "D" + chUp;
+                else
+                    glyphKey = chUp;
+                end
                 axH = obj.Ax;
 
                 if ~isempty(obj.GlyphCacheData) && isfield(obj.GlyphCacheData, glyphKey)
@@ -1151,7 +1159,11 @@ classdef FourierEpicycle < GameBase
                 fullX = fullX * sf + cx;
                 fullY = fullY * sf + cy;
 
-                letterPs = GestureMouse.buildPolyFromNaN(fullX, fullY);
+                if exist("GestureMouse", "class")
+                    letterPs = GestureMouse.buildPolyFromNaN(fullX, fullY);
+                else
+                    letterPs = polyshape();
+                end
                 if area(letterPs) > 0
                     bgT = triangulation(letterPs);
                     obj.LetterPatchH = patch(axH, ...
@@ -1162,6 +1174,11 @@ classdef FourierEpicycle < GameBase
                     uistack(obj.LetterPatchH, "bottom");
                     uistack(obj.LetterPatchH, "up");
                 end
+
+                % Store target path for shape matching (NaN-filtered)
+                validPts = ~isnan(fullX) & ~isnan(fullY);
+                obj.TargetPathX = fullX(validPts)';
+                obj.TargetPathY = fullY(validPts)';
 
                 if ~isempty(obj.OrigGlowH) && isvalid(obj.OrigGlowH)
                     obj.OrigGlowH.XData = fullX;
