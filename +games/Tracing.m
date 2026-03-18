@@ -606,13 +606,18 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Wide search for deviation (is finger inside corridor?)
+            % 1a. Full path check — never lose while inside corridor
+            allDists = hypot(pathData.X - fingerPos(1), ...
+                             pathData.Y - fingerPos(2));
+            deviation = min(allDists);
+
+            % 1b. Local search for progress advancement (GestureTrainer original)
             searchStart = max(1, progIdx - 5);
             searchEnd = min(nPts, progIdx + 80);
             searchRange = searchStart:searchEnd;
             localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
                                pathData.Y(searchRange) - fingerPos(2));
-            [deviation, localMinIdx] = min(localDists);
+            [~, localMinIdx] = min(localDists);
             nearestIdx = searchRange(localMinIdx);
 
             % 2. Check corridor (15% tolerance)
