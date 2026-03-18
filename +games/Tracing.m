@@ -52,8 +52,9 @@ classdef Tracing < GameBase
         % Gap phase
         GapFrames           (1,1) double = 0
 
-        % Progress tracking (forward-only)
+        % Progress tracking
         TracingProgressIdx  (1,1) double = 0
+        Covered             logical             % per-point coverage mask
 
         % Session stats
         PathsCompleted      (1,1) double = 0
@@ -531,6 +532,7 @@ classdef Tracing < GameBase
             %enterTracing  Begin active tracing — reset accumulators.
             obj.TracingPhase = "tracing";
             obj.TracingProgressIdx = 1;
+            obj.Covered = false(1, numel(obj.CurrentPath.X));
 
             % Hide preview handles
             if ~isempty(obj.PathPreviewGlow) && isvalid(obj.PathPreviewGlow)
@@ -604,16 +606,15 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Full path search for deviation (corridor membership —
-            %    never lose when inside the corridor, regardless of
-            %    progress or direction of movement)
+            % 1. Mark all path points within corridor as covered
             allDists = hypot(pathData.X - fingerPos(1), ...
                              pathData.Y - fingerPos(2));
+            obj.Covered = obj.Covered | (allDists <= halfCorridor)';
             deviation = min(allDists);
 
-            % 2. Check corridor (15% tolerance)
+            % 2. Check corridor (15% tolerance — don't lose inside shape)
             insideCorridor = deviation <= halfCorridor * 1.15;
-            hasStarted = progIdx > 1;
+            hasStarted = any(obj.Covered);
             if ~insideCorridor
                 if hasStarted
                     obj.hideTarget();
@@ -629,34 +630,20 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Step-by-step progress: advance while each next point is
-            %    closer AND within corridor distance of the finger.
-            %    The corridor check ensures we only advance through points
-            %    the finger is actually near (not across a closed shape).
-            %    10% cap prevents crossing figure-8 junctions in one frame.
-            maxSteps = max(15, round(nPts * 0.10));
-            advIdx = progIdx;
-            advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
-                            pathData.Y(progIdx) - fingerPos(2));
-            stepsLeft = maxSteps;
-            while advIdx < nPts && stepsLeft > 0
-                dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
-                              pathData.Y(advIdx + 1) - fingerPos(2));
-                if dNext < advDist && dNext <= halfCorridor * 2
-                    advIdx = advIdx + 1;
-                    advDist = dNext;
-                    stepsLeft = stepsLeft - 1;
-                else
-                    break;
-                end
-            end
-            if advIdx > progIdx
-                obj.TracingProgressIdx = advIdx;
+            % 3. Progress = furthest contiguous covered region from start
+            uncovIdx = find(~obj.Covered, 1, "first");
+            if isempty(uncovIdx)
+                obj.TracingProgressIdx = nPts;
+            else
+                obj.TracingProgressIdx = max(1, uncovIdx - 1);
             end
             nearestIdx = obj.TracingProgressIdx;
 
-            % 3b. Target circle at progress frontier
-            frontIdx = obj.TracingProgressIdx;
+            % 3b. Target circle at nearest uncovered point to finger
+            uncoveredDists = allDists;
+            uncoveredDists(obj.Covered) = Inf;
+            [~, nearestUncov] = min(uncoveredDists);
+            frontIdx = nearestUncov;
             obj.TargetPos = [pathData.X(frontIdx), pathData.Y(frontIdx)];
             obj.PulsePhase = obj.PulsePhase + 0.12;
             theta = linspace(0, 2*pi, 48);
@@ -699,7 +686,7 @@ classdef Tracing < GameBase
             end
 
             % 6. Update visuals
-            progress = obj.TracingProgressIdx / nPts;
+            progress = sum(obj.Covered) / nPts;
             obj.updateTracingVisuals(fingerPos, nearestIdx, deviation, progress);
 
             % 6b. Move arrow with progress target
@@ -719,8 +706,8 @@ classdef Tracing < GameBase
             elapsed = toc(obj.PathSpawnTic);
             obj.updateTimeBar(elapsed / obj.PathTimeLimit);
 
-            % 8. Check completion (100% — full path traversal)
-            if obj.TracingProgressIdx >= nPts
+            % 8. Check completion (95% coverage)
+            if progress >= 0.95
                 obj.onPathComplete();
                 return
             end
