@@ -35,7 +35,7 @@ classdef CrystalGrowth < GameBase
         SubMode         (1,1) string = "dendrite"  % dendrite/snowflake/coral/competition
         SeedType        (1,1) uint8 = 1         % current seed type (1-4, cycle with N)
         BrushSize       (1,1) double = 2        % seed brush radius in cells
-        SeedNames       (1,4) string = ["blue", "red", "green", "gold"]
+        SeedNames       (1,4) string = ["blue", "red", "green", "golden"]
         TotalGrown      (1,1) double = 0        % total cells grown (for results)
         FrameCount      (1,1) double = 0
         SimAccum        (1,1) double = 0      % FPS accumulator for fixed-rate physics
