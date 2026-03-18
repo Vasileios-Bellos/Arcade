@@ -629,24 +629,29 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Step-by-step progress: advance while each next point is
-            %    closer to the finger than the current one. Per-frame cap
-            %    at 10% of path prevents jumping across figure-8 crossings
-            %    (~50% of path away). At 25 FPS, full path in ~0.4s.
-            maxSteps = max(15, round(nPts * 0.10));
+            % 3. Step-by-step progress: only advance when the finger is
+            %    near the current progress point (within 3x corridor).
+            %    This prevents "rushing" on closed shapes when the finger
+            %    reaches the far side by going the wrong direction —
+            %    the path curves toward the finger but the finger never
+            %    actually traced it.
+            distToProgress = hypot(pathData.X(progIdx) - fingerPos(1), ...
+                                   pathData.Y(progIdx) - fingerPos(2));
             advIdx = progIdx;
-            advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
-                            pathData.Y(progIdx) - fingerPos(2));
-            stepsLeft = maxSteps;
-            while advIdx < nPts && stepsLeft > 0
-                dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
-                              pathData.Y(advIdx + 1) - fingerPos(2));
-                if dNext < advDist
-                    advIdx = advIdx + 1;
-                    advDist = dNext;
-                    stepsLeft = stepsLeft - 1;
-                else
-                    break;
+            if distToProgress <= halfCorridor * 3
+                maxSteps = max(15, round(nPts * 0.10));
+                advDist = distToProgress;
+                stepsLeft = maxSteps;
+                while advIdx < nPts && stepsLeft > 0
+                    dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
+                                  pathData.Y(advIdx + 1) - fingerPos(2));
+                    if dNext < advDist
+                        advIdx = advIdx + 1;
+                        advDist = dNext;
+                        stepsLeft = stepsLeft - 1;
+                    else
+                        break;
+                    end
                 end
             end
             if advIdx > progIdx
