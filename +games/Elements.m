@@ -1236,10 +1236,10 @@ classdef Elements < GameBase
                         obj.CellLife(:) = 0;
                     end
                 case "rightarrow"
-                    obj.SimRate = min(60, obj.SimRate + 5);
+                    obj.SimRate = min(60, obj.SimRate + 10);
                     obj.refreshHud();
                 case "leftarrow"
-                    obj.SimRate = max(5, obj.SimRate - 5);
+                    obj.SimRate = max(20, obj.SimRate - 10);
                     obj.refreshHud();
                 otherwise
                     if strlength(key) == 1 && key >= "0" && key <= "9"
@@ -1323,7 +1323,7 @@ classdef Elements < GameBase
                 " [N]  |  " + upper(obj.WaterFlowMode) + ...
                 " [B]  |  Brush " + obj.BrushSize + ...
                 " [" + char(8593) + char(8595) + "]  |  " + ...
-                obj.SimRate + " Hz [" + char(8592) + char(8594) + ...
+                "Speed " + obj.SimRate + " [" + char(8592) + char(8594) + ...
                 "]  |  Grid " + obj.GridW + char(215) + obj.GridH;
         end
 
