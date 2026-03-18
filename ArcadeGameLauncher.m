@@ -511,7 +511,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 case "active"
                     if key == "p"
                         obj.enterPaused();
-                    elseif key == "r" || key == "0"
+                    elseif key == "r"
                         obj.restartGame();
                     elseif key == "escape"
                         obj.enterResults();
@@ -529,7 +529,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 case "paused"
                     if key == "p"
                         obj.enterActive();
-                    elseif key == "r" || key == "0"
+                    elseif key == "r"
                         obj.restartGame();
                     elseif key == "escape"
                         obj.enterResults();
