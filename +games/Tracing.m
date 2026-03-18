@@ -606,9 +606,9 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Wide search for deviation (is finger inside corridor?)
+            % 1. Find nearest path point to finger (full forward search)
             searchStart = max(1, progIdx - 5);
-            searchEnd = min(nPts, progIdx + 80);
+            searchEnd = nPts;  % search ALL remaining path points
             searchRange = searchStart:searchEnd;
             localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
                                pathData.Y(searchRange) - fingerPos(2));
@@ -633,13 +633,13 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Advance progress toward nearest point (rate-limited, forward only)
+            % 3. Progress = wherever the finger is (no rate limit)
             if nearestIdx > progIdx
-                obj.TracingProgressIdx = min(nearestIdx, progIdx + 8);
+                obj.TracingProgressIdx = nearestIdx;
             end
 
-            % 3b. Move progress target to frontier
-            frontIdx = obj.TracingProgressIdx;
+            % 3b. Target circle follows finger position on path
+            frontIdx = nearestIdx;
             obj.TargetPos = [pathData.X(frontIdx), pathData.Y(frontIdx)];
             obj.PulsePhase = obj.PulsePhase + 0.12;
             theta = linspace(0, 2*pi, 48);
@@ -728,9 +728,8 @@ classdef Tracing < GameBase
                 zoneColor = obj.ColorGold;
             end
 
-            % --- Traced band: from path start to current progress only ---
-            progIdx = obj.TracingProgressIdx;
-            segEnd = min(progIdx, numel(pathData.X));
+            % --- Traced band: from path start to where finger is ---
+            segEnd = min(nearestIdx, numel(pathData.X));
             if segEnd >= 2
                 try
                     tps = games.PathUtils.buildBandPolyshape( ...
