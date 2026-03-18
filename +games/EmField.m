@@ -624,6 +624,16 @@ classdef EmField < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_emfield");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles sub-modes.
+            modes = ["monopole", "dipole", "quadrupole", "random", "cyclotron"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+            obj.applySubMode();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle EM field mode-specific keys.
             handled = true;
@@ -830,7 +840,7 @@ classdef EmField < GameBase
             eps2 = obj.Softening^2;
 
             ds = obj.DtScale;
-            nSub  = max(1, round(obj.CycNSub * ds));
+            nSub  = max(1, round(obj.CycNSub * obj.DtScale));
             nSub  = min(nSub, obj.CycNSub * 4);  % safety cap
             dtSub = obj.CycDtSub;
             simT  = obj.CycSimTime;

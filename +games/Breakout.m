@@ -1051,7 +1051,7 @@ classdef Breakout < GameBase
 
             for k = 1:numel(obj.PowerUps)
                 pu = obj.PowerUps(k);
-                pu.y = pu.y + pu.speed * ds;
+                pu.y = pu.y + pu.speed * obj.DtScale;
                 obj.PowerUps(k).y = pu.y;
 
                 % Update graphics position
@@ -1222,11 +1222,11 @@ classdef Breakout < GameBase
 
         function updateExtraBalls(obj, dx, dy, px, pw, py, ph)
             %updateExtraBalls  Physics, collision, rendering for extra balls.
-            ds = obj.DtScale;
+            obj.DtScale = obj.DtScale;
             extraToRemove = [];
             for k = 1:numel(obj.ExtraBalls)
                 eb = obj.ExtraBalls(k);
-                eb.pos = eb.pos + eb.vel * ds;
+                eb.pos = eb.pos + eb.vel * obj.DtScale;
 
                 % Wall bounces
                 if eb.pos(2) < dy(1)
