@@ -70,7 +70,7 @@ classdef Voronoi < GameBase
             nSeeds = obj.SeedCount;
 
             % Scale display-space constants for actual display size
-            sc = min(areaW, areaH) / 240;
+            sc = min(areaW, areaH) / 180;
             obj.RepelRadius = 80 * sc;
             obj.SpeedCap = 3.0 * sc;
 

@@ -19,7 +19,7 @@ classdef Cloth < GameBase
     % =================================================================
     properties (Access = private)
         Gravity         (1,1) double = 0.08
-        Sc              (1,1) double = 1    % display scale (1.0 at 240px)
+        Sc              (1,1) double = 1    % display scale (1.0 at ~180px)
         Damping         (1,1) double = 0.995
         SubSteps        (1,1) double = 8
         ConstraintPasses (1,1) double = 3
@@ -428,7 +428,7 @@ classdef Cloth < GameBase
             lvl = max(1, min(10, obj.GridLevel));
             areaW = diff(dx);
             areaH = diff(dy);
-            obj.Sc = min(areaW, areaH) / 240;
+            obj.Sc = min(areaW, areaH) / 180;
             obj.Gravity = 0.08 * obj.Sc;
             baseN = obj.GridSizes(lvl);
             if areaW >= areaH

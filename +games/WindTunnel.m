@@ -558,9 +558,8 @@ classdef WindTunnel < GameBase
             rNx = obj.RenderNx;
             rNy = obj.RenderNy;
             if rNy > Ny
-                R = imresize(R, [rNy rNx], "bilinear");
-                G = imresize(G, [rNy rNx], "bilinear");
-                B = imresize(B, [rNy rNx], "bilinear");
+                RGB3 = imresize(cat(3, R, G, B), [rNy rNx], "bilinear");
+                R = RGB3(:,:,1);  G = RGB3(:,:,2);  B = RGB3(:,:,3);
             end
             if obj.SubMode ~= "paint"
                 cb = obj.ObstBlend;

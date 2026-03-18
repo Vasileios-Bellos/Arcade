@@ -28,7 +28,7 @@ classdef Pointing < GameBase
         PathSinceSpawn  (1,1) double = 0
         PrevPos         (1,2) double = [NaN, NaN]
 
-        % Display scale factor (1.0 at 240px, ~3.5 at 853px)
+        % Display scale factor (1.0 at ~180px GestureTrainer height)
         Sc              (1,1) double = 1
 
         % Stats
@@ -84,7 +84,7 @@ classdef Pointing < GameBase
             dy = displayRange.Y;
             areaW = diff(dx);
             areaH = diff(dy);
-            obj.Sc = min(areaW, areaH) / 240;
+            obj.Sc = min(areaW, areaH) / 180;
 
             % --- Target rings ---
             obj.TargetGlow = line(ax, NaN, NaN, ...

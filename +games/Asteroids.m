@@ -77,8 +77,8 @@ classdef Asteroids < GameBase
             obj.FireCooldown = 0;
             obj.InvulnFrames = 0;
 
-            % Scale asteroid radii to display (original tuned for ~240px)
-            sc = min(diff(dx), diff(dy)) / 240;
+            % Scale asteroid radii to display (original tuned for ~180px minDim)
+            sc = min(diff(dx), diff(dy)) / 180;
             obj.TierRadii = round([15, 10, 5] * sc);
 
             obj.Bullets = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...

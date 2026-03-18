@@ -80,7 +80,7 @@ classdef FruitNinja < GameBase
         SliceHistory    struct = struct("centrality", {}, "speed", {}, ...
                                         "angle", {}, "position", {}, "time", {})
 
-        % Display scale factor (1.0 at 240px reference)
+        % Display scale factor (1.0 at ~180px reference)
         Sc              (1,1) double = 1
 
         % Trace buffer (own shifting buffer or host-provided)
@@ -117,8 +117,8 @@ classdef FruitNinja < GameBase
             areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
 
-            % Display scale factor (1.0 at 240px reference)
-            obj.Sc = min(areaW, areaH) / 240;
+            % Display scale factor (1.0 at ~180px reference)
+            obj.Sc = min(areaW, areaH) / 180;
 
             obj.Gravity = max(0.06, areaH * 0.001);
             obj.SpawnTimer = 0;

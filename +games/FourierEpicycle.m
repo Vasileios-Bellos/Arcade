@@ -57,7 +57,7 @@ classdef FourierEpicycle < GameBase
         PauseDispThresh (1,1) double = 18            % total displacement threshold (raised from 10 for finger jitter ~2px/frame)
         HasMoved        (1,1) logical = false
         DrawFrames      (1,1) double = 0             % frames since drawing started
-        DispScale       (1,1) double = 1             % min(areaW,areaH)/240 scaling factor
+        DispScale       (1,1) double = 1             % min(areaW,areaH)/180 scaling factor
 
         % Bridge (end-to-start closure)
         BridgeX         (:,1) double
@@ -186,7 +186,7 @@ classdef FourierEpicycle < GameBase
             % Scale display-space constants for actual display size
             areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
-            sc = min(areaW, areaH) / 240;
+            sc = min(areaW, areaH) / 180;
             obj.DispScale = sc;
             obj.CloseDist = 20 * sc;
             obj.PauseDispThresh = 18 * sc;

@@ -225,8 +225,8 @@ classdef DoublePendulum < GameBase
                 if fMode == "repel"; fSign = -1; end
                 fingerX = pos(1);
                 fingerY = pos(2);
-                % Scale finger force to display size (tuned for ~240px)
-                dispSc = min(diff(obj.DisplayRange.X), diff(obj.DisplayRange.Y)) / 240;
+                % Scale finger force to display size (tuned for ~180px minDim)
+                dispSc = min(diff(obj.DisplayRange.X), diff(obj.DisplayRange.Y)) / 180;
                 fingerG = 300 * dispSc^2;       % force strength
                 softening2 = (20 * dispSc)^2;   % prevents blowup at zero distance
             end

@@ -30,7 +30,7 @@ classdef OrbitalDefense < GameBase
         BasePos         (1,2) double = [0, 0]
         BaseRadius      (1,1) double = 12
         FireCD          (1,1) double = 0
-        Sc              (1,1) double = 1       % display scale (1.0 at 240px)
+        Sc              (1,1) double = 1       % display scale (1.0 at ~180px)
         TierRadii       (1,3) double = [15, 10, 5]
     end
 
@@ -124,7 +124,7 @@ classdef OrbitalDefense < GameBase
 
             areaW = diff(dx);
             areaH = diff(dy);
-            obj.Sc = min(areaW, areaH) / 240;
+            obj.Sc = min(areaW, areaH) / 180;
             obj.TierRadii = round([15, 10, 5] * obj.Sc);
 
             obj.Wave = 1;

@@ -82,7 +82,7 @@ classdef SpaceInvaders < GameBase
         ThetaCircle24               % 24-point circle for capsule
         ThetaCircle32               % 32-point circle for shield
 
-        % Display scale factor (1.0 at 240px reference)
+        % Display scale factor (1.0 at ~180px reference)
         Sc              (1,1) double = 1
     end
 
@@ -122,8 +122,8 @@ classdef SpaceInvaders < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
-            % Display scale factor (1.0 at 240px reference)
-            obj.Sc = min(areaW, areaH) / 240;
+            % Display scale factor (1.0 at ~180px reference)
+            obj.Sc = min(areaW, areaH) / 180;
 
             % Pre-compute theta arrays once
             obj.ThetaCircle24 = linspace(0, 2*pi, 24);

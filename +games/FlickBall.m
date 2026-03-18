@@ -56,7 +56,7 @@ classdef FlickBall < GameBase
         ComboShowTic        uint64                        % tic when combo text appeared
 
         % Display scaling
-        SpeedScale          (1,1) double = 1               % visual speed normalization: 240/minDim
+        SpeedScale          (1,1) double = 1               % visual speed normalization: 180/minDim
 
         % Cached constants
         ThetaCircle48       (1,48) double                 % pre-computed linspace(0,2pi,48)
@@ -107,7 +107,7 @@ classdef FlickBall < GameBase
             obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
 
             % Visual speed normalization (like Pong's SpeedScale pattern)
-            obj.SpeedScale = 240 / minDim;
+            obj.SpeedScale = 180 / minDim;
 
             % Ball state
             obj.BallPos = [cx, cy];

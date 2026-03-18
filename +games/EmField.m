@@ -136,7 +136,7 @@ classdef EmField < GameBase
             isCyc = obj.SubMode == "cyclotron";
 
             % Scale display-space constants for actual display size
-            sc = min(diff(dxR), diff(dyR)) / 240;
+            sc = min(diff(dxR), diff(dyR)) / 180;
             obj.Softening = 15.0 * sc;
             obj.FlowSpeed = 2.5 * sc;
 

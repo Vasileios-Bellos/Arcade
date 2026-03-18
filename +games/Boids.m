@@ -37,7 +37,7 @@ classdef Boids < GameBase
         RandPhase       (:,4) double
         ColorScheme     (1,1) double = 1
         FrameCount      (1,1) double = 0
-        DisplayScale    (1,1) double = 1       % min(areaW,areaH)/240
+        DisplayScale    (1,1) double = 1       % min(areaW,areaH)/180
 
         % Trail circular buffer
         TrailX          (:,:) double
@@ -81,8 +81,8 @@ classdef Boids < GameBase
             areaH = diff(dyRange);
             nBoids = obj.Count;
 
-            % Scale physics constants to display size (tuned for ~240px)
-            sc = min(areaW, areaH) / 240;
+            % Scale physics constants to display size (tuned for ~180px minDim)
+            sc = min(areaW, areaH) / 180;
             obj.DisplayScale = sc;
             obj.MaxSpeed = 4 * sc;
             obj.PerceptRadius = 60 * sc;

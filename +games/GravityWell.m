@@ -43,7 +43,7 @@ classdef GravityWell < GameBase
         ScaledVelocityCap   (1,1) double = 4
         ScaledRepelRadius   (1,1) double = 60
         ScaledOffScreenMargin (1,1) double = 40
-        DisplayScale        (1,1) double = 1       % min(areaW,areaH)/240
+        DisplayScale        (1,1) double = 1       % min(areaW,areaH)/180
     end
 
     % =================================================================
@@ -104,10 +104,10 @@ classdef GravityWell < GameBase
             obj.FrameCount = 0;
             obj.SubMode = "attract";
 
-            % Scale physics constants to display size (tuned for ~240px)
+            % Scale physics constants to display size (tuned for ~180px minDim)
             areaW = displayRange.X(2) - displayRange.X(1);
             areaH = displayRange.Y(2) - displayRange.Y(1);
-            sc = min(areaW, areaH) / 240;
+            sc = min(areaW, areaH) / 180;
             obj.DisplayScale          = sc;
             obj.ScaledGravConst       = obj.GravConst * sc^2;
             obj.ScaledSoftening       = obj.Softening * sc^2;   % (15*sc)^2

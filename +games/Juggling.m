@@ -41,7 +41,7 @@ classdef Juggling < GameBase
         TrailLen        (1,1) double = 30
 
         % Display scaling
-        SpeedScale      (1,1) double = 1               % visual speed normalization: 240/minDim
+        SpeedScale      (1,1) double = 1               % visual speed normalization: 180/minDim
 
         % Stats
         Bounces         (1,1) double = 0
@@ -104,7 +104,7 @@ classdef Juggling < GameBase
             cx = mean(dx);
             cy = mean(dy);
 
-            % Scale to display area (tuned for ~240px height)
+            % Scale to display area (tuned for ~180px minDim)
             areaH = diff(dy);
             areaW = diff(dx);
             obj.Gravity = max(0.05, areaH * 0.001);
@@ -112,7 +112,7 @@ classdef Juggling < GameBase
             obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
 
             % Visual speed normalization (like Pong's SpeedScale pattern)
-            obj.SpeedScale = 240 / min(areaW, areaH);
+            obj.SpeedScale = 180 / min(areaW, areaH);
 
             % Initialize state
             obj.BallPos = [cx, cy * 0.7];

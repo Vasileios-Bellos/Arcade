@@ -24,7 +24,7 @@ classdef Catching < GameBase
         SpawnCooldown   (1,1) double = 0         % frames until next spawn
         CatchRadiusBonus (1,1) double = 0        % extra catch radius for mouse input
 
-        % Display scale factor (1.0 at 240px, ~3.5 at 853px)
+        % Display scale factor (1.0 at ~180px GestureTrainer height)
         Sc              (1,1) double = 1
 
         % Timing
@@ -87,7 +87,7 @@ classdef Catching < GameBase
 
             areaW = diff(displayRange.X);
             areaH = diff(displayRange.Y);
-            obj.Sc = min(areaW, areaH) / 240;
+            obj.Sc = min(areaW, areaH) / 180;
 
             obj.Fireflies = [];
             obj.SpawnCooldown = 40;
@@ -559,7 +559,7 @@ classdef Catching < GameBase
             if nargin < 5; applyRotation = true; end
             if nargin < 4; corridorWidth = 20; end
 
-            localSc = min(diff(displayRangeX), diff(displayRangeY)) / 240;
+            localSc = min(diff(displayRangeX), diff(displayRangeY)) / 180;
             margin = round(25 * localSc);
             xMin = displayRangeX(1) + margin;
             xMax = displayRangeX(2) - margin;

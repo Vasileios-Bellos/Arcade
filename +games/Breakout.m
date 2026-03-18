@@ -86,7 +86,7 @@ classdef Breakout < GameBase
         LevelPhase      (1,1) string = "play"
         LevelTransFrames (1,1) double = 0
 
-        % Display scale factor (1.0 at 240px reference)
+        % Display scale factor (1.0 at ~180px reference)
         Sc              (1,1) double = 1
     end
 
@@ -133,8 +133,8 @@ classdef Breakout < GameBase
             areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
 
-            % Display scale factor (1.0 at 240px reference)
-            obj.Sc = min(areaW, areaH) / 240;
+            % Display scale factor (1.0 at ~180px reference)
+            obj.Sc = min(areaW, areaH) / 180;
 
             % Scale sizes to display area
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
