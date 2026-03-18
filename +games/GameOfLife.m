@@ -22,14 +22,13 @@ classdef GameOfLife < GameBase
         GridH           (1,1) double = 90
         GridLevel       (1,1) double = 6
         Generation      (1,1) double = 0
-        FramesPerGen    (1,1) double = 3
-        FrameAccum      (1,1) double = 0
         SubMode         (1,1) string = "random"
         PopHistory      (1,200) double = zeros(1, 200)
         PopIdx          (1,1) double = 0
         FrameCount      (1,1) double = 0
         PeakPop         (1,1) double = 0
         SimAccum        (1,1) double = 0   % FPS accumulator for fixed-rate physics
+        SimRate         (1,1) double = 30  % target sim rate in Hz (10:10:60)
     end
 
     % =================================================================
@@ -75,7 +74,6 @@ classdef GameOfLife < GameBase
             obj.seedPattern();
 
             obj.Generation = 0;
-            obj.FrameAccum = 0;
             obj.FrameCount = 0;
             obj.PeakPop = nnz(obj.Grid);
             obj.PopHistory = zeros(1, 200);
@@ -125,6 +123,14 @@ classdef GameOfLife < GameBase
             %onUpdate  Per-frame generation step + age rendering.
             if isempty(obj.Grid); return; end
 
+            % Tunable sim rate: accumulate real dt, skip entire frame if
+            % not enough time has passed.  Speed 1-6 (SimRate 10-60 Hz).
+            realDt = obj.DtScale * GameBase.RefDt;
+            obj.SimAccum = obj.SimAccum + realDt;
+            stepPeriod = 1.0 / obj.SimRate;
+            if obj.SimAccum < stepPeriod; return; end
+            obj.SimAccum = obj.SimAccum - stepPeriod;
+
             Ny = obj.GridH;
             Nx = obj.GridW;
             dx = obj.DisplayRange.X;
@@ -154,45 +160,32 @@ classdef GameOfLife < GameBase
                 end
             end
 
-            % FPS normalization: run physics at design rate
-            obj.SimAccum = obj.SimAccum + obj.DtScale;
-            if obj.SimAccum < 1.0
-                % Skip physics this frame, still render below
-            else
-            obj.SimAccum = obj.SimAccum - 1.0;
-
             % Advance generation
-            obj.FrameAccum = obj.FrameAccum + 1;
-            if obj.FrameAccum >= obj.FramesPerGen
-                obj.FrameAccum = 0;
-                obj.Generation = obj.Generation + 1;
+            obj.Generation = obj.Generation + 1;
 
-                gridNow = obj.Grid;
-                ageNow = double(obj.Age);
+            gridNow = obj.Grid;
+            ageNow = double(obj.Age);
 
-                % B3/S23 via conv2
-                kernel = ones(3, 3);
-                kernel(2, 2) = 0;
-                neighbors = conv2(double(gridNow), kernel, "same");
+            % B3/S23 via conv2
+            kernel = ones(3, 3);
+            kernel(2, 2) = 0;
+            neighbors = conv2(double(gridNow), kernel, "same");
 
-                newGrid = (neighbors == 3) | (gridNow & neighbors == 2);
+            newGrid = (neighbors == 3) | (gridNow & neighbors == 2);
 
-                survived = newGrid & gridNow;
-                born = newGrid & ~gridNow;
-                ageNow(survived) = ageNow(survived) + 1;
-                ageNow(born) = 1;
-                ageNow(~newGrid) = 0;
+            survived = newGrid & gridNow;
+            born = newGrid & ~gridNow;
+            ageNow(survived) = ageNow(survived) + 1;
+            ageNow(born) = 1;
+            ageNow(~newGrid) = 0;
 
-                obj.Grid = newGrid;
-                obj.Age = uint16(ageNow);
+            obj.Grid = newGrid;
+            obj.Age = uint16(ageNow);
 
-                pop = nnz(newGrid);
-                obj.PeakPop = max(obj.PeakPop, pop);
-                obj.PopIdx = mod(obj.PopIdx, 200) + 1;
-                obj.PopHistory(obj.PopIdx) = pop;
-            end
-
-            end  % SimAccum gate
+            pop = nnz(newGrid);
+            obj.PeakPop = max(obj.PeakPop, pop);
+            obj.PopIdx = mod(obj.PopIdx, 200) + 1;
+            obj.PopHistory(obj.PopIdx) = pop;
 
             % Render: neon age-based coloring
             % Newborn = bright cyan, young = green, mature = gold, elder = magenta
@@ -279,8 +272,16 @@ classdef GameOfLife < GameBase
                     obj.applySubMode();
                 case {"uparrow", "downarrow"}
                     obj.changeGridLevel(key);
-                case {"leftarrow", "rightarrow"}
-                    obj.changeSpeed(key);
+                case "rightarrow"
+                    obj.SimRate = min(60, obj.SimRate + 10);
+                    if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
+                        obj.ModeTextH.String = obj.hudString();
+                    end
+                case "leftarrow"
+                    obj.SimRate = max(10, obj.SimRate - 10);
+                    if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
+                        obj.ModeTextH.String = obj.hudString();
+                    end
                 case "0"
                     obj.applySubMode();
                 otherwise
@@ -401,24 +402,12 @@ classdef GameOfLife < GameBase
             obj.onInit(obj.Ax, obj.DisplayRange, struct());
         end
 
-        function changeSpeed(obj, key)
-            %changeSpeed  Adjust frames per generation.
-            if key == "rightarrow"
-                obj.FramesPerGen = max(1, obj.FramesPerGen - 1);
-            else
-                obj.FramesPerGen = min(10, obj.FramesPerGen + 1);
-            end
-            if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
-                obj.ModeTextH.String = obj.hudString();
-            end
-        end
-
         function s = hudString(obj)
             %hudString  Build HUD label string for Game of Life.
             s = upper(obj.SubMode) + " [M]  |  Grid " + ...
                 obj.GridW + char(215) + obj.GridH + ...
                 " [" + char(8593) + char(8595) + "]  |  Speed " + ...
-                obj.FramesPerGen + " [" + char(8592) + char(8594) + "]";
+                round(obj.SimRate / 10) + " [" + char(8592) + char(8594) + "]";
         end
     end
 

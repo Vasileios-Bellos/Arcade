@@ -10,6 +10,7 @@ classdef Ecosystem < GameBase
     %     M     — cycle sub-mode (balanced/bloom/plague/extinction)
     %     N     — cycle spawn type (plant/herbivore/predator/decomposer/toxin)
     %     Up/Dn — adjust brush size
+    %     L/R   — adjust sim speed (1-6)
     %     0     — reset grid (re-seed current sub-mode)
     %
     %   Standalone: games.Ecosystem().play()
@@ -36,6 +37,7 @@ classdef Ecosystem < GameBase
         PeakPop         (1,1) double = 0        % peak total population
         FrameCount      (1,1) double = 0
         SimAccum        (1,1) double = 0      % FPS accumulator for fixed-rate physics
+        SimRate         (1,1) double = 30     % target sim rate in Hz (10:10:60)
     end
 
     % =================================================================
@@ -96,6 +98,15 @@ classdef Ecosystem < GameBase
             %onUpdate  Per-frame ecosystem cellular automaton update + render.
             grid = obj.Grid;
             if isempty(grid); return; end
+
+            % Tunable sim rate: accumulate real dt, skip entire frame if
+            % not enough time has passed.  Speed 1-6 (SimRate 10-60 Hz).
+            realDt = obj.DtScale * GameBase.RefDt;
+            obj.SimAccum = obj.SimAccum + realDt;
+            stepPeriod = 1.0 / obj.SimRate;
+            if obj.SimAccum < stepPeriod; return; end
+            obj.SimAccum = obj.SimAccum - stepPeriod;
+
             Ny = obj.GridH;
             Nx = obj.GridW;
             obj.FrameCount = obj.FrameCount + 1;
@@ -150,13 +161,6 @@ classdef Ecosystem < GameBase
             end
 
             % === CELLULAR AUTOMATON UPDATE ===
-            % FPS normalization: run physics at design rate
-            obj.SimAccum = obj.SimAccum + obj.DtScale;
-            if obj.SimAccum < 1.0
-                % Skip physics this frame, still render below
-                obj.Grid = grid;  obj.Energy = energy;
-            else
-            obj.SimAccum = obj.SimAccum - 1.0;
 
             randMat = rand(Ny, Nx);
             newGrid = grid;
@@ -461,8 +465,6 @@ classdef Ecosystem < GameBase
                 obj.PeakPop = totalPop;
             end
 
-            end  % SimAccum gate
-
             % === RENDER ===
             obj.renderGrid();
             obj.Score = nnz(obj.Grid > 0 & obj.Grid < 5);
@@ -503,6 +505,12 @@ classdef Ecosystem < GameBase
                     obj.updateHud();
                 case "downarrow"
                     obj.BrushSize = max(1, obj.BrushSize - 1);
+                    obj.updateHud();
+                case "rightarrow"
+                    obj.SimRate = min(60, obj.SimRate + 10);
+                    obj.updateHud();
+                case "leftarrow"
+                    obj.SimRate = max(10, obj.SimRate - 10);
                     obj.updateHud();
                 case "0"
                     obj.Grid = zeros(obj.GridH, obj.GridW, "uint8");
@@ -609,7 +617,9 @@ classdef Ecosystem < GameBase
                 obj.HudTextH.String = upper(obj.SubMode) + ...
                     " [M]  |  Spawn: " + upper(spawnName) + ...
                     " [N]  |  Brush " + obj.BrushSize + ...
-                    " [" + char(8593) + char(8595) + "]";
+                    " [" + char(8593) + char(8595) + "]  |  " + ...
+                    "Speed " + round(obj.SimRate / 10) + ...
+                    " [" + char(8592) + char(8594) + "]";
                 switch obj.SpawnType
                     case 1; obj.HudTextH.Color = [0.3, 1.0, 0.4, 0.8];
                     case 2; obj.HudTextH.Color = [1.0, 0.85, 0.2, 0.8];

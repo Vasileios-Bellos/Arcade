@@ -7,8 +7,8 @@ classdef CrystalGrowth < GameBase
     %   Controls:
     %     M     — cycle sub-mode (dendrite/snowflake/coral/competition)
     %     N     — cycle seed type (blue/red/green/gold)
-    %     Up/Dn — adjust growth probability
-    %     L/R   — adjust brush size
+    %     Up/Dn — adjust brush size
+    %     L/R   — adjust sim speed (1-6)
     %     0     — reset grid
     %
     %   Standalone: games.CrystalGrowth().play()
@@ -39,6 +39,7 @@ classdef CrystalGrowth < GameBase
         TotalGrown      (1,1) double = 0        % total cells grown (for results)
         FrameCount      (1,1) double = 0
         SimAccum        (1,1) double = 0      % FPS accumulator for fixed-rate physics
+        SimRate         (1,1) double = 30     % target sim rate in Hz (10:10:60)
     end
 
     % =================================================================
@@ -102,6 +103,15 @@ classdef CrystalGrowth < GameBase
             %onUpdate  Per-frame crystal growth update + render.
             grid = obj.Grid;
             if isempty(grid); return; end
+
+            % Tunable sim rate: accumulate real dt, skip entire frame if
+            % not enough time has passed.  Speed 1-6 (SimRate 10-60 Hz).
+            realDt = obj.DtScale * GameBase.RefDt;
+            obj.SimAccum = obj.SimAccum + realDt;
+            stepPeriod = 1.0 / obj.SimRate;
+            if obj.SimAccum < stepPeriod; return; end
+            obj.SimAccum = obj.SimAccum - stepPeriod;
+
             Ny = obj.GridH;
             Nx = obj.GridW;
             obj.FrameCount = obj.FrameCount + 1;
@@ -137,13 +147,6 @@ classdef CrystalGrowth < GameBase
             end
 
             % === CRYSTAL GROWTH UPDATE ===
-            % FPS normalization: run physics at design rate
-            obj.SimAccum = obj.SimAccum + obj.DtScale;
-            if obj.SimAccum < 1.0
-                % Skip physics this frame, still render below
-                obj.Grid = grid;  obj.Age = age;  obj.Dir = dirField;
-            else
-            obj.SimAccum = obj.SimAccum - 1.0;
 
             isXtal = (grid > 0);
             if ~any(isXtal, "all")
@@ -250,7 +253,6 @@ classdef CrystalGrowth < GameBase
             obj.Dir = newDir;
 
             end  % no-crystals guard
-            end  % SimAccum gate
 
             % === RENDER ===
             obj.renderGrid();
@@ -288,16 +290,16 @@ classdef CrystalGrowth < GameBase
                     obj.SeedType = uint8(mod(double(obj.SeedType), 4) + 1);
                     obj.updateHud();
                 case "uparrow"
-                    obj.GrowthProb = min(0.5, obj.GrowthProb + 0.02);
-                    obj.updateHud();
-                case "downarrow"
-                    obj.GrowthProb = max(0.01, obj.GrowthProb - 0.02);
-                    obj.updateHud();
-                case "rightarrow"
                     obj.BrushSize = min(8, obj.BrushSize + 1);
                     obj.updateHud();
-                case "leftarrow"
+                case "downarrow"
                     obj.BrushSize = max(1, obj.BrushSize - 1);
+                    obj.updateHud();
+                case "rightarrow"
+                    obj.SimRate = min(60, obj.SimRate + 10);
+                    obj.updateHud();
+                case "leftarrow"
+                    obj.SimRate = max(10, obj.SimRate - 10);
                     obj.updateHud();
                 case "0"
                     obj.applySubMode();
@@ -412,9 +414,9 @@ classdef CrystalGrowth < GameBase
                 seedName = obj.SeedNames(obj.SeedType);
                 obj.HudTextH.String = upper(obj.SubMode) + ...
                     " [M]  |  Seed: " + upper(seedName) + ...
-                    " [N]  |  Growth " + sprintf("%.0f%%", obj.GrowthProb * 100) + ...
-                    " [" + char(8593) + char(8595) + "]" + ...
-                    "  |  Brush " + obj.BrushSize + ...
+                    " [N]  |  Brush " + obj.BrushSize + ...
+                    " [" + char(8593) + char(8595) + "]  |  " + ...
+                    "Speed " + round(obj.SimRate / 10) + ...
                     " [" + char(8592) + char(8594) + "]";
                 switch obj.SeedType
                     case 1; obj.HudTextH.Color = [0.4, 0.8, 1.0, 0.8];
