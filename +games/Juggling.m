@@ -545,6 +545,7 @@ classdef Juggling < GameBase
             %updateExtraBalls  Physics, contact, and rendering for extra balls.
             nExtra = size(obj.ExtraBallPos, 1);
             if nExtra == 0; return; end
+            ds = obj.DtScale;
 
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
