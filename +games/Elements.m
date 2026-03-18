@@ -39,6 +39,8 @@ classdef Elements < GameBase
         SpawnPattern    (1,1) string = "flow"
         FrameCount      (1,1) double = 0
         SimAccum        (1,1) double = 0   % FPS accumulator for fixed-rate physics
+        SimRate         (1,1) double = 30  % target sim rate in Hz (tunable, 5:5:60)
+        SimDtRef        (1,1) double       % 1/SimRate, recomputed on rate change
     end
 
     % =================================================================
@@ -105,13 +107,14 @@ classdef Elements < GameBase
         end
 
         function onUpdate(obj, fingerPos)
-            %onUpdate  Per-frame cellular automaton update + render.
-            %   FPS normalization: entire sim step (brush + physics + grid
-            %   writeback) runs at ~25 Hz. On skipped frames, only the
-            %   existing rendered image persists — no state changes.
-            obj.SimAccum = obj.SimAccum + obj.DtScale;
-            if obj.SimAccum < 1.0; return; end
-            obj.SimAccum = obj.SimAccum - 1.0;
+            %onUpdate  Per-frame update at tunable sim rate.
+            %   SimRate (default 30 Hz, left/right arrows 5:5:60).
+            %   Accumulates real dt; fires one step per 1/SimRate seconds.
+            realDt = obj.DtScale * GameBase.RefDt;  % actual frame time in seconds
+            obj.SimAccum = obj.SimAccum + realDt;
+            stepPeriod = 1.0 / obj.SimRate;
+            if obj.SimAccum < stepPeriod; return; end
+            obj.SimAccum = obj.SimAccum - stepPeriod;
 
             cellGrid = obj.CellGrid;
             if isempty(cellGrid); return; end
@@ -1232,6 +1235,12 @@ classdef Elements < GameBase
                         obj.CellGrid(:) = 0;
                         obj.CellLife(:) = 0;
                     end
+                case "rightarrow"
+                    obj.SimRate = min(60, obj.SimRate + 5);
+                    obj.refreshHud();
+                case "leftarrow"
+                    obj.SimRate = max(5, obj.SimRate - 5);
+                    obj.refreshHud();
                 otherwise
                     if strlength(key) == 1 && key >= "0" && key <= "9"
                         d = str2double(key);
@@ -1313,8 +1322,9 @@ classdef Elements < GameBase
                 " [M]  |  " + upper(dispPattern) + ...
                 " [N]  |  " + upper(obj.WaterFlowMode) + ...
                 " [B]  |  Brush " + obj.BrushSize + ...
-                " [" + char(8593) + char(8595) + "]  |  Grid " + ...
-                obj.GridW + char(215) + obj.GridH;
+                " [" + char(8593) + char(8595) + "]  |  " + ...
+                obj.SimRate + " Hz [" + char(8592) + char(8594) + ...
+                "]  |  Grid " + obj.GridW + char(215) + obj.GridH;
         end
 
         function eMask = buildEmitMask(obj, emitCols, nCols, ~)
