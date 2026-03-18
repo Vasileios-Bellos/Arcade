@@ -206,9 +206,10 @@ classdef Voronoi < GameBase
                 end
             end
 
-            % --- Move seeds: integrate velocity, apply damping ---
-            vx = vx * obj.Damping;
-            vy = vy * obj.Damping;
+            % --- Move seeds: integrate velocity, apply damping (frame-rate scaled) ---
+            dsV = obj.DtScale;
+            vx = vx * obj.Damping^dsV;
+            vy = vy * obj.Damping^dsV;
 
             % Speed cap
             spd = sqrt(vx.^2 + vy.^2);
@@ -219,8 +220,8 @@ classdef Voronoi < GameBase
                 vy(tooFast) = vy(tooFast) .* scaleFactor;
             end
 
-            sx = sx + vx;
-            sy = sy + vy;
+            sx = sx + vx * dsV;
+            sy = sy + vy * dsV;
 
             % Wrap around edges
             sx = dx(1) + mod(sx - dx(1), areaW);

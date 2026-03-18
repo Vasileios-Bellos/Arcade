@@ -191,8 +191,8 @@ classdef Lissajous < GameBase
 
             obj.FrameCount = obj.FrameCount + 1;
 
-            % Increment time parameter
-            obj.T = obj.T + 0.02;
+            % Increment time parameter (frame-rate scaled)
+            obj.T = obj.T + 0.02 * obj.DtScale;
             tNow = obj.T;
 
             % Finger interaction: X/Y position control phase offsets
@@ -200,8 +200,9 @@ classdef Lissajous < GameBase
                 relX = (pos(1) - dx(1)) / areaW;  % 0..1
                 relY = (pos(2) - dy(1)) / areaH;  % 0..1
                 % Phase drift proportional to finger offset from center
-                obj.PhaseX = obj.PhaseX + (relX - 0.5) * 0.02;
-                obj.PhaseY = obj.PhaseY + (relY - 0.5) * 0.02;
+                dsL = obj.DtScale;
+                obj.PhaseX = obj.PhaseX + (relX - 0.5) * 0.02 * dsL;
+                obj.PhaseY = obj.PhaseY + (relY - 0.5) * 0.02 * dsL;
                 % In morph/spiral, finger also controls morph/rotation speed
                 if obj.SubMode == "morph"
                     obj.MorphRate = 0.002 + relX * 0.008;
@@ -220,16 +221,17 @@ classdef Lissajous < GameBase
             dotX = zeros(1, nCells);
             dotY = zeros(1, nCells);
 
-            % Sub-mode specific frequency computation
+            % Sub-mode specific frequency computation (frame-rate scaled)
+            dsL2 = obj.DtScale;
             switch obj.SubMode
                 case "morph"
                     % Smoothly interpolate frequency ratios
-                    obj.MorphA = obj.MorphA + obj.MorphRate;
-                    obj.MorphB = obj.MorphB + obj.MorphRate * 0.7;
+                    obj.MorphA = obj.MorphA + obj.MorphRate * dsL2;
+                    obj.MorphB = obj.MorphB + obj.MorphRate * 0.7 * dsL2;
                     if obj.MorphA > 8; obj.MorphA = 1; end
                     if obj.MorphB > 8; obj.MorphB = 1; end
                 case "spiral"
-                    obj.SpiralRot = obj.SpiralRot + 0.01;
+                    obj.SpiralRot = obj.SpiralRot + 0.01 * dsL2;
             end
 
             topMX = zeros(1, nGrid);

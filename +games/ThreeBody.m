@@ -171,7 +171,9 @@ classdef ThreeBody < GameBase
 
             G = obj.GravConst;
             dt = obj.Dt;
-            nSub = obj.SubSteps;
+            ds = obj.DtScale;
+            nSub = max(1, round(obj.SubSteps * ds));
+            nSub = min(nSub, obj.SubSteps * 4);  % safety cap
             softening = 0.01;
             tLen = obj.TrailLen;
 

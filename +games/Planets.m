@@ -134,7 +134,8 @@ classdef Planets < GameBase
             gravG = obj.GravConst;
             sunM = obj.SunMass;
             dt = obj.BaseDt;
-            nSub = max(1, round(obj.SubSteps * obj.TimeScale));
+            ds = obj.DtScale;
+            nSub = max(1, round(obj.SubSteps * obj.TimeScale * ds));
             nP = 9;
             nBodies = nP;
             softening2 = 0.0001^2;

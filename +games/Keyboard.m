@@ -81,7 +81,7 @@ classdef Keyboard < GameBase
             end
 
             if hoveredKey > 0
-                obj.DwellFrames = obj.DwellFrames + 1;
+                obj.DwellFrames = obj.DwellFrames + obj.DtScale;
 
                 % Hover highlight — progressive fill
                 if hoveredKey <= numel(obj.KeyPatches) ...

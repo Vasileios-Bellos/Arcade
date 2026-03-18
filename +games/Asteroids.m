@@ -123,6 +123,8 @@ classdef Asteroids < GameBase
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -140,7 +142,7 @@ classdef Asteroids < GameBase
             end
 
             % Auto-fire toward nearest asteroid
-            obj.FireCooldown = obj.FireCooldown + 1;
+            obj.FireCooldown = obj.FireCooldown + ds;
             if obj.FireCooldown >= 10 && ~isempty(obj.Rocks)
                 obj.FireCooldown = 0;
                 obj.fireAtNearest(ax, dx, dy);
@@ -323,11 +325,12 @@ classdef Asteroids < GameBase
 
         function updateBullets(obj, ax, dx, dy)
             %updateBullets  Move bullets, check off-screen and collisions.
+            ds = obj.DtScale;
             k = 1;
             while k <= numel(obj.Bullets)
                 bul = obj.Bullets(k);
-                bul.x = bul.x + bul.vx;
-                bul.y = bul.y + bul.vy;
+                bul.x = bul.x + bul.vx * ds;
+                bul.y = bul.y + bul.vy * ds;
                 obj.Bullets(k) = bul;
 
                 if ~isempty(bul.lineH) && isvalid(bul.lineH)
@@ -402,11 +405,12 @@ classdef Asteroids < GameBase
 
         function updateRocks(obj, dx, dy)
             %updateRocks  Move asteroids and wrap around screen edges.
+            ds = obj.DtScale;
             for a = 1:numel(obj.Rocks)
                 rock = obj.Rocks(a);
-                rock.x = rock.x + rock.vx;
-                rock.y = rock.y + rock.vy;
-                rock.angle = rock.angle + rock.spin;
+                rock.x = rock.x + rock.vx * ds;
+                rock.y = rock.y + rock.vy * ds;
+                rock.angle = rock.angle + rock.spin * ds;
 
                 % Wrap
                 margin = rock.radius;
@@ -430,7 +434,7 @@ classdef Asteroids < GameBase
         function checkShipCollision(obj)
             %checkShipCollision  Handle asteroid-ship collision and invulnerability.
             if obj.InvulnFrames > 0
-                obj.InvulnFrames = obj.InvulnFrames - 1;
+                obj.InvulnFrames = obj.InvulnFrames - obj.DtScale;
                 vis = "off";
                 if mod(obj.InvulnFrames, 8) < 4; vis = "on"; end
                 if ~isempty(obj.ShipCoreH) && isvalid(obj.ShipCoreH)

@@ -251,6 +251,8 @@ classdef SpaceInvaders < GameBase
             %onUpdate  Per-frame space invaders update.
             if obj.GameOver; return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -271,7 +273,7 @@ classdef SpaceInvaders < GameBase
             end
 
             % Auto-fire
-            obj.FireCD = obj.FireCD + 1;
+            obj.FireCD = obj.FireCD + ds;
             currentFireRate = obj.FireRate;
             if obj.LaserActive; currentFireRate = max(4, currentFireRate / 2); end
             if obj.FireCD >= currentFireRate
@@ -284,7 +286,7 @@ classdef SpaceInvaders < GameBase
             bLen = max(3, diff(dy) * 0.02);
             for k = 1:obj.BulletPoolSize
                 if ~obj.BulletActive(k); continue; end
-                obj.BulletY(k) = obj.BulletY(k) - bulletSpeed;
+                obj.BulletY(k) = obj.BulletY(k) - bulletSpeed * ds;
                 by = obj.BulletY(k);
                 bx = obj.BulletX(k);
 
@@ -345,7 +347,7 @@ classdef SpaceInvaders < GameBase
             % Move aliens
             edgeHit = false;
             for a = 1:numel(obj.Aliens)
-                obj.Aliens(a).x = obj.Aliens(a).x + obj.AlienDir * obj.AlienSpeed;
+                obj.Aliens(a).x = obj.Aliens(a).x + obj.AlienDir * obj.AlienSpeed * ds;
                 if obj.Aliens(a).x > dx(2) - 10 || obj.Aliens(a).x < dx(1) + 10
                     edgeHit = true;
                 end
@@ -381,7 +383,7 @@ classdef SpaceInvaders < GameBase
             eBulletSpeed = max(1.5, diff(dy) * 0.015);
             for k = 1:obj.EBulletPoolSize
                 if ~obj.EBulletActive(k); continue; end
-                obj.EBulletY(k) = obj.EBulletY(k) + eBulletSpeed;
+                obj.EBulletY(k) = obj.EBulletY(k) + eBulletSpeed * ds;
                 ebx = obj.EBulletX(k);
                 eby = obj.EBulletY(k);
                 ebLineH = obj.EBulletPoolLine{k};
@@ -414,7 +416,7 @@ classdef SpaceInvaders < GameBase
 
             % Invulnerability blink
             if obj.InvulnFrames > 0
-                obj.InvulnFrames = obj.InvulnFrames - 1;
+                obj.InvulnFrames = obj.InvulnFrames - ds;
                 vis = "off";
                 if mod(obj.InvulnFrames, 8) < 4; vis = "on"; end
                 if ~isempty(obj.ShipPatchH) && isvalid(obj.ShipPatchH)
@@ -452,7 +454,7 @@ classdef SpaceInvaders < GameBase
             thetaCap = obj.ThetaCircle24;
             for k = 1:obj.PUPoolSize
                 if ~obj.PUActive(k); continue; end
-                obj.PUY(k) = obj.PUY(k) + 1;
+                obj.PUY(k) = obj.PUY(k) + ds;
                 puX = obj.PUX(k);
                 puY = obj.PUY(k);
 

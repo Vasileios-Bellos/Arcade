@@ -236,16 +236,17 @@ classdef FluidSim < GameBase
             % === STEP 5: Free-slip boundary + velocity damping ===
             u(:, 1) = 0; u(:, end) = 0;
             v(1, :) = 0; v(end, :) = 0;
-            u = u * 0.998;
-            v = v * 0.998;
+            dsF = obj.DtScale;
+            u = u * 0.998^dsF;
+            v = v * 0.998^dsF;
 
             % === STEP 6: Advect dye ===
             dyeR = games.FluidUtils.fldAdvect(dyeR, u, v, dt, gX, gY, Ny, Nx);
             dyeG = games.FluidUtils.fldAdvect(dyeG, u, v, dt, gX, gY, Ny, Nx);
             dyeB = games.FluidUtils.fldAdvect(dyeB, u, v, dt, gX, gY, Ny, Nx);
 
-            % Dye decay
-            decayFactor = 1 - obj.DyeDecay;
+            % Dye decay (frame-rate scaled)
+            decayFactor = (1 - obj.DyeDecay)^dsF;
             dyeR = dyeR * decayFactor;
             dyeG = dyeG * decayFactor;
             dyeB = dyeB * decayFactor;

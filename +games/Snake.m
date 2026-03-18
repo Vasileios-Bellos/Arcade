@@ -171,8 +171,10 @@ classdef Snake < GameBase
                 end
             end
 
+            ds = obj.DtScale;
+
             % Accumulate movement
-            obj.MoveAccum = obj.MoveAccum + obj.Speed;
+            obj.MoveAccum = obj.MoveAccum + obj.Speed * ds;
             if obj.MoveAccum < cs
                 obj.updateHitEffects();
                 return;  % Not enough movement for a step

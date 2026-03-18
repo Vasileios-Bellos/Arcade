@@ -245,12 +245,14 @@ classdef Breakout < GameBase
 
         function onUpdate(obj, pos)
             %onUpdate  Per-frame breakout game logic.
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
             % --- Level transition phase ---
             if obj.LevelPhase == "transition"
-                obj.LevelTransFrames = obj.LevelTransFrames - 1;
+                obj.LevelTransFrames = obj.LevelTransFrames - ds;
                 tProgress = 1 - obj.LevelTransFrames / 40;
 
                 % Fade out old bricks
@@ -304,7 +306,7 @@ classdef Breakout < GameBase
             if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
                 set(obj.PaddleGlowH, "XData", xv, "YData", yv);
                 % Breathing glow
-                obj.BallPhase = obj.BallPhase + 0.08;
+                obj.BallPhase = obj.BallPhase + 0.08 * ds;
                 glowAlpha = 0.08 + 0.04 * sin(obj.BallPhase);
                 obj.PaddleGlowH.FaceAlpha = glowAlpha;
             end
@@ -312,7 +314,7 @@ classdef Breakout < GameBase
             % --- Serve mode ---
             if obj.Serving
                 obj.BallPos = [obj.PaddleX, py - obj.BallRadius - 2];
-                obj.ServeCountdown = obj.ServeCountdown - 1;
+                obj.ServeCountdown = obj.ServeCountdown - ds;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
                 end
@@ -323,7 +325,7 @@ classdef Breakout < GameBase
 
             % --- Ball physics ---
             prePos = obj.BallPos;
-            obj.BallPos = obj.BallPos + obj.BallVel;
+            obj.BallPos = obj.BallPos + obj.BallVel * ds;
 
             % Wall collisions (top, left, right)
             bounced = false;
@@ -1049,7 +1051,7 @@ classdef Breakout < GameBase
 
             for k = 1:numel(obj.PowerUps)
                 pu = obj.PowerUps(k);
-                pu.y = pu.y + pu.speed;
+                pu.y = pu.y + pu.speed * ds;
                 obj.PowerUps(k).y = pu.y;
 
                 % Update graphics position
@@ -1220,10 +1222,11 @@ classdef Breakout < GameBase
 
         function updateExtraBalls(obj, dx, dy, px, pw, py, ph)
             %updateExtraBalls  Physics, collision, rendering for extra balls.
+            ds = obj.DtScale;
             extraToRemove = [];
             for k = 1:numel(obj.ExtraBalls)
                 eb = obj.ExtraBalls(k);
-                eb.pos = eb.pos + eb.vel;
+                eb.pos = eb.pos + eb.vel * ds;
 
                 % Wall bounces
                 if eb.pos(2) < dy(1)

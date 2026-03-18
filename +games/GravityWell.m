@@ -142,6 +142,7 @@ classdef GravityWell < GameBase
 
         function onUpdate(obj, pos)
             %onUpdate  Per-frame N-body gravity simulation.
+            ds = obj.DtScale;
             obj.FrameCount = obj.FrameCount + 1;
 
             dx = obj.DisplayRange.X;
@@ -161,7 +162,7 @@ classdef GravityWell < GameBase
             end
 
             % Spawn particles on timer
-            obj.SpawnTimer = obj.SpawnTimer + 1;
+            obj.SpawnTimer = obj.SpawnTimer + ds;
             if obj.SpawnTimer >= obj.SpawnInterval ...
                     && numel(obj.Particles) < obj.MaxParticles
                 obj.SpawnTimer = 0;
@@ -208,16 +209,16 @@ classdef GravityWell < GameBase
                 end
 
                 % Leapfrog integration (half-step velocity)
-                p.vx = p.vx + accelX * 0.5;
-                p.vy = p.vy + accelY * 0.5;
-                p.x = p.x + p.vx;
-                p.y = p.y + p.vy;
-                p.vx = p.vx + accelX * 0.5;
-                p.vy = p.vy + accelY * 0.5;
+                p.vx = p.vx + accelX * 0.5 * ds;
+                p.vy = p.vy + accelY * 0.5 * ds;
+                p.x = p.x + p.vx * ds;
+                p.y = p.y + p.vy * ds;
+                p.vx = p.vx + accelX * 0.5 * ds;
+                p.vy = p.vy + accelY * 0.5 * ds;
 
                 % Gentle damping + velocity cap
-                p.vx = p.vx * obj.Damping;
-                p.vy = p.vy * obj.Damping;
+                p.vx = p.vx * obj.Damping ^ ds;
+                p.vy = p.vy * obj.Damping ^ ds;
                 spd = sqrt(p.vx^2 + p.vy^2);
                 if spd > obj.ScaledVelocityCap
                     scaleFactor = obj.ScaledVelocityCap / spd;

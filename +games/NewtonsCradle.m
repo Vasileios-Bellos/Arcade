@@ -334,7 +334,10 @@ classdef NewtonsCradle < GameBase
 
             % --- Physics: RK4 integration + collision resolution ---
             gL = grav / armLen;
-            for ss = 1:obj.SubSteps
+            ds = obj.DtScale;
+            nSubScaled = max(1, round(obj.SubSteps * ds));
+            nSubScaled = min(nSubScaled, obj.SubSteps * 4);  % safety cap
+            for ss = 1:nSubScaled
                 % RK4 for each ball (simple pendulum: theta'' = -(g/L)*sin(theta))
                 for k = 1:numBalls
                     th0 = theta(k); om0 = omega(k);

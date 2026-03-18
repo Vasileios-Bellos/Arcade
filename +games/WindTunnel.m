@@ -272,8 +272,11 @@ classdef WindTunnel < GameBase
                 end
             end
 
-            % --- LBM sub-steps ---
-            for stepIdx = 1:obj.SubSteps
+            % --- LBM sub-steps (frame-rate scaled) ---
+            ds = obj.DtScale;
+            nSubScaled = max(1, round(obj.SubSteps * ds));
+            nSubScaled = min(nSubScaled, obj.SubSteps * 4);  % safety cap
+            for stepIdx = 1:nSubScaled
                 % 1. Macroscopic quantities
                 rho = sum(fDist, 3);
                 rho = max(rho, 0.5);
@@ -389,9 +392,8 @@ classdef WindTunnel < GameBase
 
             % --- Dye advection (semi-Lagrangian using LBM velocity) ---
             gx = obj.Gx; gy = obj.Gy;
-            nSub = obj.SubSteps;
-            Xb = max(1, min(Nx, gx - nSub * ux));
-            Yb = max(1, min(Ny, gy - nSub * uy));
+            Xb = max(1, min(Nx, gx - nSubScaled * ux));
+            Yb = max(1, min(Ny, gy - nSubScaled * uy));
 
             dyeR = games.FluidUtils.fastBilerp(obj.DyeR, Xb, Yb, Ny, Nx);
             dyeG = games.FluidUtils.fastBilerp(obj.DyeG, Xb, Yb, Ny, Nx);
@@ -437,11 +439,11 @@ classdef WindTunnel < GameBase
                 end
             end
 
-            % Decay and clamp
+            % Decay and clamp (frame-rate scaled)
             if obj.InjMode == "smoke"
-                decayMult = 1 - obj.DyeDecay * 2.0;
+                decayMult = (1 - obj.DyeDecay * 2.0)^ds;
             else
-                decayMult = 1 - obj.DyeDecay;
+                decayMult = (1 - obj.DyeDecay)^ds;
             end
             dyeR = min(1.0, dyeR * decayMult);
             dyeG = min(1.0, dyeG * decayMult);

@@ -221,13 +221,15 @@ classdef FlickBall < GameBase
                 obj.FlickLocked = false;
             end
 
+            ds = obj.DtScale;
+
             % --- 3. Ball physics (if moving) ---
             if obj.BallMoving
-                obj.stepBallPhysics();
+                obj.stepBallPhysics(ds);
             end
 
             % --- 4. Animation phase ---
-            obj.BallPhase = obj.BallPhase + 0.08;
+            obj.BallPhase = obj.BallPhase + 0.08 * ds;
 
             % --- 5. Combo decay (2s after last flick) ---
             obj.updateComboDecay();
@@ -342,18 +344,18 @@ classdef FlickBall < GameBase
             obj.FingerVelIdx = 0;
         end
 
-        function stepBallPhysics(obj)
+        function stepBallPhysics(obj, ds)
             %stepBallPhysics  Advance ball position, apply friction, handle wall bounces.
 
             % Save pre-move position for parametric wall intersection
             prePos = obj.BallPos;
-            stepVel = obj.BallVel;
+            stepVel = obj.BallVel * ds;
 
             % Apply velocity
-            obj.BallPos = obj.BallPos + obj.BallVel;
+            obj.BallPos = obj.BallPos + stepVel;
 
             % Apply air friction
-            obj.BallVel = obj.BallVel * obj.Friction;
+            obj.BallVel = obj.BallVel * obj.Friction ^ ds;
 
             % Wall collision — parametric intersection so both X and Y
             % are at the exact contact point (preserves approach angle)

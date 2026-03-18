@@ -242,8 +242,9 @@ classdef Fire < GameBase
                 v(bi, :) = v(bi, :) * fac;
                 v(end - bi + 1, :) = v(end - bi + 1, :) * fac;
             end
-            u = u * 0.995;
-            v = v * 0.995;
+            dsF = obj.DtScale;
+            u = u * 0.995^dsF;
+            v = v * 0.995^dsF;
             % Kill heat and fuel at all boundaries
             temp(1:ghost, :) = 0; temp(end-ghost+1:end, :) = 0;
             temp(:, 1:ghost) = 0; temp(:, end-ghost+1:end) = 0;
@@ -268,8 +269,8 @@ classdef Fire < GameBase
             temp = games.FluidUtils.fldAdvect(temp, u, v, dt, gX, gY, Ny, Nx);
             fuel = games.FluidUtils.fldAdvect(fuel, u, v, dt, gX, gY, Ny, Nx);
 
-            % === STEP 9: Cooling ===
-            temp = max(0, temp * (1 - obj.Cooling));
+            % === STEP 9: Cooling (frame-rate scaled) ===
+            temp = max(0, temp * (1 - obj.Cooling)^dsF);
             fuel = max(0, fuel);
 
             % Store fields

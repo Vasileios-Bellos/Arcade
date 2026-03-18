@@ -296,7 +296,7 @@ classdef GlyphTrace < GameBase
             end
 
             % Every 3 frames: polybuffer recent path, union with fill
-            obj.FillUpdateCD = obj.FillUpdateCD + 1;
+            obj.FillUpdateCD = obj.FillUpdateCD + obj.DtScale;
             if obj.FillUpdateCD >= 3 && numel(obj.RecentX) >= 2
                 obj.FillUpdateCD = 0;
                 obj.updateProximityFill();
@@ -331,7 +331,7 @@ classdef GlyphTrace < GameBase
 
         function updateScored(obj)
             %updateScored  Animate scored phase (fade + expand).
-            obj.ScoredFrames = obj.ScoredFrames - 1;
+            obj.ScoredFrames = obj.ScoredFrames - obj.DtScale;
             t = 1 - obj.ScoredFrames / 20;  % 0 -> 1
 
             % Fade all elements (quadratic for fast drop-off)
@@ -394,7 +394,7 @@ classdef GlyphTrace < GameBase
 
         function updateGap(obj)
             %updateGap  Wait between letters.
-            obj.GapFrames = obj.GapFrames - 1;
+            obj.GapFrames = obj.GapFrames - obj.DtScale;
             if obj.GapFrames <= 0
                 obj.spawnNextLetter();
             end

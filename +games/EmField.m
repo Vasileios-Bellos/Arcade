@@ -415,7 +415,8 @@ classdef EmField < GameBase
                     Epmag = max(sqrt(Epx.^2 + Epy.^2), 1e-12);
 
                     % Flow along E: speed ~ |E|^0.3, capped
-                    spd = obj.FlowSpeed * min(Epmag.^0.3 * 20, 4.0);
+                    dsE = obj.DtScale;
+                    spd = obj.FlowSpeed * min(Epmag.^0.3 * 20, 4.0) * dsE;
                     px = px + spd .* Epx ./ Epmag;
                     py = py + spd .* Epy ./ Epmag;
 
@@ -828,7 +829,9 @@ classdef EmField < GameBase
             R    = obj.CycRadius;
             eps2 = obj.Softening^2;
 
-            nSub  = obj.CycNSub;
+            ds = obj.DtScale;
+            nSub  = max(1, round(obj.CycNSub * ds));
+            nSub  = min(nSub, obj.CycNSub * 4);  % safety cap
             dtSub = obj.CycDtSub;
             simT  = obj.CycSimTime;
 

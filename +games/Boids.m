@@ -337,9 +337,10 @@ classdef Boids < GameBase
                     formForceY = (targetY - py) * 0.15 + 0.08 * scLocal * randn(nBoids, 1);
             end
 
-            % Integrate: damp then apply forces
-            vx = vx * 0.92 + formForceX;
-            vy = vy * 0.92 + formForceY;
+            % Integrate: damp then apply forces (frame-rate scaled)
+            ds = obj.DtScale;
+            vx = vx * 0.92^ds + formForceX * ds;
+            vy = vy * 0.92^ds + formForceY * ds;
 
             spd = sqrt(vx.^2 + vy.^2);
             tooFast = spd > spdCap;
@@ -355,11 +356,11 @@ classdef Boids < GameBase
             rPen = max(px - (dxRange(2) - margin), 0);
             tPen = max(dyRange(1) + margin - py, 0);
             bPen = max(py - (dyRange(2) - margin), 0);
-            vx = vx + wallStr * lPen - wallStr * rPen;
-            vy = vy + wallStr * tPen - wallStr * bPen;
+            vx = vx + wallStr * ds * lPen - wallStr * ds * rPen;
+            vy = vy + wallStr * ds * tPen - wallStr * ds * bPen;
 
-            px = px + vx;
-            py = py + vy;
+            px = px + vx * ds;
+            py = py + vy * ds;
 
             % Hard clamp — never more than 15px past screen edge
             px = max(dxRange(1) - 15, min(dxRange(2) + 15, px));

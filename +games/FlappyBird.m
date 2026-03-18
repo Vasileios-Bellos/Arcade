@@ -147,6 +147,8 @@ classdef FlappyBird < GameBase
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             cr = obj.CollisionR;
@@ -167,7 +169,7 @@ classdef FlappyBird < GameBase
 
             % ---- Smooth speed toward target (ramp up and decay down) ----
             if obj.PipeSpeed ~= obj.PipeTargetSpeed
-                step = obj.PipeSpeedDecay * obj.PipeSpeed;
+                step = obj.PipeSpeedDecay * obj.PipeSpeed * ds;
                 if obj.PipeSpeed < obj.PipeTargetSpeed
                     obj.PipeSpeed = min(obj.PipeTargetSpeed, obj.PipeSpeed + step);
                 else
@@ -176,7 +178,7 @@ classdef FlappyBird < GameBase
             end
 
             % ---- Move active pipes left ----
-            spd = obj.PipeSpeed;
+            spd = obj.PipeSpeed * ds;
             for j = 1:numel(active)
                 s = active(j);
                 obj.PipeX(s) = obj.PipeX(s) - spd;
@@ -206,7 +208,7 @@ classdef FlappyBird < GameBase
 
             % ---- Invulnerability blink ----
             if obj.InvulnFrames > 0
-                obj.InvulnFrames = obj.InvulnFrames - 1;
+                obj.InvulnFrames = obj.InvulnFrames - ds;
                 vis = "off";
                 if mod(obj.InvulnFrames, 8) < 4; vis = "on"; end
                 if ~isempty(obj.BirdCoreH) && isvalid(obj.BirdCoreH)

@@ -174,6 +174,8 @@ classdef ShieldGuardian < GameBase
             %onUpdate  Per-frame shield guardian logic.
             if obj.GameOver; return; end
 
+            ds = obj.DtScale;
+
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
@@ -207,7 +209,7 @@ classdef ShieldGuardian < GameBase
             end
 
             % --- Spawn projectiles ---
-            obj.SpawnTimer = obj.SpawnTimer + 1;
+            obj.SpawnTimer = obj.SpawnTimer + ds;
             spawnRate = max(8, 30 - obj.Wave * 2);
             if obj.SpawnTimer >= spawnRate
                 obj.SpawnTimer = 0;
@@ -222,8 +224,8 @@ classdef ShieldGuardian < GameBase
                 k = activeIdx(ii);
 
                 % Move
-                obj.ProjX(k) = obj.ProjX(k) + obj.ProjVx(k);
-                obj.ProjY(k) = obj.ProjY(k) + obj.ProjVy(k);
+                obj.ProjX(k) = obj.ProjX(k) + obj.ProjVx(k) * ds;
+                obj.ProjY(k) = obj.ProjY(k) + obj.ProjVy(k) * ds;
                 px = obj.ProjX(k);
                 py = obj.ProjY(k);
 

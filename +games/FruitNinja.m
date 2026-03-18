@@ -211,6 +211,8 @@ classdef FruitNinja < GameBase
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             areaW = dx(2) - dx(1);
@@ -229,7 +231,7 @@ classdef FruitNinja < GameBase
             slashThresh = max(1.5, min(areaW, areaH) * 0.008);
 
             % --- Spawn fruits ---
-            obj.SpawnTimer = obj.SpawnTimer + 1;
+            obj.SpawnTimer = obj.SpawnTimer + ds;
             spawnInterval = max(15, 45 - obj.FruitsSliced * 0.3);
             if obj.SpawnTimer >= spawnInterval
                 obj.SpawnTimer = 0;
@@ -242,9 +244,9 @@ classdef FruitNinja < GameBase
             for kk = 1:8
                 if ~obj.FruitActive(kk); continue; end
 
-                fx = obj.FruitX(kk) + obj.FruitVx(kk);
-                fy = obj.FruitY(kk) + obj.FruitVy(kk);
-                fvy = obj.FruitVy(kk) + obj.Gravity;
+                fx = obj.FruitX(kk) + obj.FruitVx(kk) * ds;
+                fy = obj.FruitY(kk) + obj.FruitVy(kk) * ds;
+                fvy = obj.FruitVy(kk) + obj.Gravity * ds;
                 fvx = obj.FruitVx(kk);
                 fRadius = obj.FruitRadius(kk);
 
@@ -310,16 +312,16 @@ classdef FruitNinja < GameBase
             for kk = 1:16
                 if ~obj.HalfActive(kk); continue; end
 
-                obj.HalfFrames(kk) = obj.HalfFrames(kk) + 1;
-                obj.HalfVx(kk) = obj.HalfVx(kk) * 0.97;
-                obj.HalfVy(kk) = obj.HalfVy(kk) + obj.Gravity;
-                obj.HalfAlpha(kk) = max(0, obj.HalfAlpha(kk) - 0.04);
+                obj.HalfFrames(kk) = obj.HalfFrames(kk) + ds;
+                obj.HalfVx(kk) = obj.HalfVx(kk) * 0.97 ^ ds;
+                obj.HalfVy(kk) = obj.HalfVy(kk) + obj.Gravity * ds;
+                obj.HalfAlpha(kk) = max(0, obj.HalfAlpha(kk) - 0.04 * ds);
 
                 verts = obj.HalfVerts{kk};
 
                 % Move vertices
-                verts(:,1) = verts(:,1) + obj.HalfVx(kk);
-                verts(:,2) = verts(:,2) + obj.HalfVy(kk);
+                verts(:,1) = verts(:,1) + obj.HalfVx(kk) * ds;
+                verts(:,2) = verts(:,2) + obj.HalfVy(kk) * ds;
 
                 % Rotate
                 centX = mean(verts(:,1));
@@ -349,7 +351,7 @@ classdef FruitNinja < GameBase
             for kk = 1:6
                 if ~obj.SlashActive(kk); continue; end
 
-                obj.SlashFrames(kk) = obj.SlashFrames(kk) + 1;
+                obj.SlashFrames(kk) = obj.SlashFrames(kk) + ds;
 
                 if obj.SlashFrames(kk) > obj.SlashFadeFrames(kk)
                     obj.deactivateSlash(kk);

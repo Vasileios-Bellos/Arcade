@@ -326,9 +326,10 @@ classdef StringHarmonics < GameBase
                 obj.PrevFingerY = 0;
             end
 
-            % Decay pluck flash intensity
+            % Decay pluck flash intensity (frame-rate scaled)
+            ds = obj.DtScale;
             if obj.PluckFlashAmp > 0.01
-                obj.PluckFlashAmp = obj.PluckFlashAmp * 0.85;
+                obj.PluckFlashAmp = obj.PluckFlashAmp * 0.85^ds;
             else
                 obj.PluckFlashAmp = 0;
             end
@@ -336,8 +337,10 @@ classdef StringHarmonics < GameBase
             % --- Physics: finite difference wave equation (sub-stepped) ---
             r2 = obj.WaveSpeed^2;
             dampVal = obj.Damping;
+            nSubScaled = max(1, round(obj.SubSteps * ds));
+            nSubScaled = min(nSubScaled, obj.SubSteps * 4);  % safety cap
 
-            for ss = 1:obj.SubSteps
+            for ss = 1:nSubScaled
                 uNew = zeros(N, 1);
                 uNew(2:N-1) = 2 * uVec(2:N-1) - uPrevVec(2:N-1) + ...
                     r2 * (uVec(3:N) - 2 * uVec(2:N-1) + uVec(1:N-2));
@@ -362,7 +365,7 @@ classdef StringHarmonics < GameBase
                 if obj.SubMode == "harmonics"
                     obj.EnvelopeMax = max(obj.EnvelopeMax, absU);
                 else
-                    obj.EnvelopeMax = max(obj.EnvelopeMax * 0.995, absU);
+                    obj.EnvelopeMax = max(obj.EnvelopeMax * 0.995^ds, absU);
                 end
             end
 

@@ -826,7 +826,7 @@ classdef FourierEpicycle < GameBase
                 dt = obj.AnimSpeed;
             end
             dt = min(dt, obj.AnimSpeed * 5);
-            obj.AnimT = obj.AnimT + dt;
+            obj.AnimT = obj.AnimT + dt * obj.DtScale;
 
             % Score: increment per frame based on circle count
             if mod(obj.FrameCount, 30) == 0
@@ -933,7 +933,7 @@ classdef FourierEpicycle < GameBase
 
         function updateCompletion(obj)
             %updateCompletion  Per-frame expand+fade effect.
-            obj.CompletingFrames = obj.CompletingFrames - 1;
+            obj.CompletingFrames = obj.CompletingFrames - obj.DtScale;
             t = 1 - obj.CompletingFrames / obj.CompletingMax;
             fade = max(0, 1 - t)^2;
             scaleFactor = 1 + t * 0.4;

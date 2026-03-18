@@ -226,6 +226,8 @@ classdef FpsRailShooter < GameBase
             if isempty(ax) || ~isvalid(ax); return; end
             if obj.GameOver; return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             areaW = dx(2) - dx(1);
@@ -237,7 +239,7 @@ classdef FpsRailShooter < GameBase
 
             % --- Screen shake recovery ---
             if obj.DamageShakeFrames > 0
-                obj.DamageShakeFrames = obj.DamageShakeFrames - 1;
+                obj.DamageShakeFrames = obj.DamageShakeFrames - ds;
                 if obj.DamageShakeFrames <= 0
                     ax.XLim = obj.OrigXLim;
                     ax.YLim = obj.OrigYLim;
@@ -264,7 +266,7 @@ classdef FpsRailShooter < GameBase
                 if obj.CrossHitFlash > 0
                     crossCol = obj.ColorRed;
                     crossGlowCol = [obj.ColorRed, 0.5];
-                    obj.CrossHitFlash = obj.CrossHitFlash - 1;
+                    obj.CrossHitFlash = obj.CrossHitFlash - ds;
                 else
                     crossCol = obj.ColorGold;
                     crossGlowCol = [obj.ColorGold, 0.25];
@@ -292,7 +294,7 @@ classdef FpsRailShooter < GameBase
 
             % --- Muzzle flash decay ---
             if obj.MuzzleFlashFrames > 0
-                obj.MuzzleFlashFrames = obj.MuzzleFlashFrames - 1;
+                obj.MuzzleFlashFrames = obj.MuzzleFlashFrames - ds;
                 if ~isempty(obj.MuzzleFlashH) && isvalid(obj.MuzzleFlashH)
                     t = obj.MuzzleFlashFrames / 4;
                     obj.MuzzleFlashH.FaceAlpha = max(0, t * 0.7);
@@ -301,7 +303,7 @@ classdef FpsRailShooter < GameBase
 
             % --- Wave pause (between waves) ---
             if obj.WavePause > 0
-                obj.WavePause = obj.WavePause - 1;
+                obj.WavePause = obj.WavePause - ds;
                 if obj.WavePause == 0
                     obj.Wave = obj.Wave + 1;
                     obj.buildSpawnWave(obj.Wave);
@@ -326,7 +328,7 @@ classdef FpsRailShooter < GameBase
 
             % --- Spawn from queue (skip during wave pause) ---
             if obj.WavePause <= 0
-                obj.SpawnTimer = obj.SpawnTimer + 1;
+                obj.SpawnTimer = obj.SpawnTimer + ds;
                 if obj.SpawnTimer >= obj.SpawnInterval && ~isempty(obj.SpawnQueue)
                     obj.SpawnTimer = 0;
                     mType = obj.SpawnQueue(1);
@@ -343,7 +345,7 @@ classdef FpsRailShooter < GameBase
 
                 % Death animation
                 if m.dying
-                    m.deathFrame = m.deathFrame + 1;
+                    m.deathFrame = m.deathFrame + ds;
                     progress = m.deathFrame / m.deathMaxFrames;
                     if progress >= 1
                         obj.deleteMonsterGraphics(k);
@@ -409,8 +411,8 @@ classdef FpsRailShooter < GameBase
                 anyAlive = true;
 
                 % Advance depth (approach player)
-                m.depth = m.depth - m.speed;
-                m.phase = m.phase + 0.08;
+                m.depth = m.depth - m.speed * ds;
+                m.phase = m.phase + 0.08 * ds;
 
                 % Compute screen position (perspective projection)
                 scaleVal = obj.depthScale(m.depth);
@@ -484,7 +486,7 @@ classdef FpsRailShooter < GameBase
 
                 % Hit flash decay (white flash on damage)
                 if m.hitFlash > 0
-                    m.hitFlash = m.hitFlash - 1;
+                    m.hitFlash = m.hitFlash - ds;
                     if ~isempty(m.bodyPatchH) && isvalid(m.bodyPatchH)
                         if m.hitFlash > 0
                             m.bodyPatchH.FaceColor = obj.ColorWhite;
@@ -557,7 +559,7 @@ classdef FpsRailShooter < GameBase
 
             % --- DPS: auto-fire damage (skip during wave pause) ---
             if obj.WavePause <= 0 && ~any(isnan(pos))
-                obj.DamageCD = obj.DamageCD + 1;
+                obj.DamageCD = obj.DamageCD + ds;
                 if obj.DamageCD >= obj.DamageRate
                     obj.DamageCD = 0;
                     obj.applyDamage(pos);
@@ -566,7 +568,7 @@ classdef FpsRailShooter < GameBase
 
             % --- Damage flash decay ---
             if obj.DamageFlashFrames > 0
-                obj.DamageFlashFrames = obj.DamageFlashFrames - 1;
+                obj.DamageFlashFrames = obj.DamageFlashFrames - ds;
                 if ~isempty(obj.DamageFlashH) && isvalid(obj.DamageFlashH)
                     alphaVal = obj.DamageFlashFrames / 8;
                     obj.DamageFlashH.FaceAlpha = min(0.35, alphaVal * 0.35);

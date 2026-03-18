@@ -251,6 +251,8 @@ classdef Pong < GameBase
             %onUpdate  Per-frame pong game loop.
             if ~obj.IsRunning; return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -262,7 +264,7 @@ classdef Pong < GameBase
 
             % --- Serve countdown ---
             if obj.Serving
-                obj.ServeCountdown = obj.ServeCountdown - 1;
+                obj.ServeCountdown = obj.ServeCountdown - ds;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
                 else
@@ -277,7 +279,7 @@ classdef Pong < GameBase
                     end
                 end
                 obj.updateAIPaddle();
-                obj.BallPhase = obj.BallPhase + 0.08;
+                obj.BallPhase = obj.BallPhase + 0.08 * ds;
                 obj.updateGraphics();
                 obj.updateComboFade();
                 obj.updateHitEffects();
@@ -286,7 +288,7 @@ classdef Pong < GameBase
 
             % --- Ball physics ---
             prePos = obj.BallPos;
-            stepVel = obj.BallVel * obj.DtScale;
+            stepVel = obj.BallVel * ds;
             obj.BallPos = obj.BallPos + stepVel;
 
             % Top/bottom wall collision (parametric)
@@ -364,7 +366,7 @@ classdef Pong < GameBase
             obj.TrailIdx = tidx;
 
             % --- Animation + render ---
-            obj.BallPhase = obj.BallPhase + 0.08;
+            obj.BallPhase = obj.BallPhase + 0.08 * ds;
             obj.updateGraphics();
             obj.updateComboFade();
             obj.updateHitEffects();

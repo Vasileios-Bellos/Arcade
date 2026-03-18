@@ -272,16 +272,17 @@ classdef Dobryakov < GameBase
             % === STEP 5: Free-slip boundary + velocity damping ===
             u(:, 1) = 0; u(:, end) = 0;
             v(1, :) = 0; v(end, :) = 0;
-            u = u * 0.998;
-            v = v * 0.998;
+            dsF = obj.DtScale;
+            u = u * 0.998^dsF;
+            v = v * 0.998^dsF;
 
             % === STEP 6: Advect dye ===
             dyeR = games.FluidUtils.fldAdvect(dyeR, u, v, dt, X, Y, Ny, Nx);
             dyeG = games.FluidUtils.fldAdvect(dyeG, u, v, dt, X, Y, Ny, Nx);
             dyeB = games.FluidUtils.fldAdvect(dyeB, u, v, dt, X, Y, Ny, Nx);
 
-            % Slower decay for richer color buildup
-            decayFactor = 1 - obj.DyeDecay;
+            % Slower decay for richer color buildup (frame-rate scaled)
+            decayFactor = (1 - obj.DyeDecay)^dsF;
             dyeR = max(0, min(1, dyeR * decayFactor));
             dyeG = max(0, min(1, dyeG * decayFactor));
             dyeB = max(0, min(1, dyeB * decayFactor));

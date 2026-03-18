@@ -107,7 +107,9 @@ classdef Cloth < GameBase
             gw = obj.GridW;
             gh = obj.GridH;
             dampVal = obj.Damping;
-            nSub = obj.SubSteps;
+            ds = obj.DtScale;
+            nSub = max(1, round(obj.SubSteps * ds));
+            nSub = min(nSub, obj.SubSteps * 4);  % safety cap
             bI = double(obj.SpringI);
             bJ = double(obj.SpringJ);
             rLen = obj.RestLen;

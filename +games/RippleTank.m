@@ -126,7 +126,8 @@ classdef RippleTank < GameBase
             gy = obj.Gy;
 
             % --- Inject source at finger position ---
-            obj.Phase = obj.Phase + obj.Omega;
+            dsR = obj.DtScale;
+            obj.Phase = obj.Phase + obj.Omega * dsR;
             if ~any(isnan(pos))
                 fx = (pos(1) - dxRange(1)) / diff(dxRange) * Nx;
                 fy = (pos(2) - dyRange(1)) / diff(dyRange) * Ny;
@@ -179,8 +180,8 @@ classdef RippleTank < GameBase
 
             uNew = 2 * uField - uPrevField + c2 * lap + nu * lapVel;
 
-            % Uniform damping for background energy drain
-            uNew = uNew * 0.998;
+            % Uniform damping for background energy drain (frame-rate scaled)
+            uNew = uNew * 0.998^dsR;
 
             % Reflective (Neumann) boundaries: du/dn = 0 at walls
             uNew(1, :) = uNew(2, :);

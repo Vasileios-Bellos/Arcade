@@ -233,6 +233,8 @@ classdef OrbitalDefense < GameBase
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -258,7 +260,7 @@ classdef OrbitalDefense < GameBase
 
                 % Auto-fire interceptors from base toward crosshair
                 distToBase = norm(pos - obj.BasePos);
-                obj.FireCD = obj.FireCD + 1;
+                obj.FireCD = obj.FireCD + ds;
                 if obj.FireCD >= 15 && distToBase > obj.BaseRadius
                     obj.FireCD = 0;
                     launchX = obj.BasePos(1);
@@ -288,7 +290,7 @@ classdef OrbitalDefense < GameBase
                 k = activeInts(ki);
                 dirVec = [obj.IntTx(k) - obj.IntX(k), obj.IntTy(k) - obj.IntY(k)];
                 dirDist = norm(dirVec);
-                if dirDist < obj.IntSpeed(k)
+                if dirDist < obj.IntSpeed(k) * ds
                     % Reached target -- explode
                     obj.spawnExplosion(obj.IntTx(k), obj.IntTy(k));
                     obj.IntActive(k) = false;
@@ -296,8 +298,8 @@ classdef OrbitalDefense < GameBase
                     continue;
                 end
                 dirVec = dirVec / dirDist;
-                obj.IntX(k) = obj.IntX(k) + dirVec(1) * obj.IntSpeed(k);
-                obj.IntY(k) = obj.IntY(k) + dirVec(2) * obj.IntSpeed(k);
+                obj.IntX(k) = obj.IntX(k) + dirVec(1) * obj.IntSpeed(k) * ds;
+                obj.IntY(k) = obj.IntY(k) + dirVec(2) * obj.IntSpeed(k) * ds;
                 % Off-screen -- silently remove (no explosion)
                 if obj.IntX(k) < dx(1) - 20 || obj.IntX(k) > dx(2) + 20 || ...
                         obj.IntY(k) < dy(1) - 20 || obj.IntY(k) > dy(2) + 20
@@ -314,9 +316,9 @@ classdef OrbitalDefense < GameBase
             activeAsts = find(obj.AstActive);
             for ki = 1:numel(activeAsts)
                 a = activeAsts(ki);
-                obj.AstX(a) = obj.AstX(a) + obj.AstVx(a);
-                obj.AstY(a) = obj.AstY(a) + obj.AstVy(a);
-                obj.AstAngle(a) = obj.AstAngle(a) + obj.AstSpin(a);
+                obj.AstX(a) = obj.AstX(a) + obj.AstVx(a) * ds;
+                obj.AstY(a) = obj.AstY(a) + obj.AstVy(a) * ds;
+                obj.AstAngle(a) = obj.AstAngle(a) + obj.AstSpin(a) * ds;
 
                 margin = obj.AstRadius(a);
                 if obj.AstX(a) < dx(1) - margin; obj.AstX(a) = dx(2) + margin; end
@@ -337,12 +339,12 @@ classdef OrbitalDefense < GameBase
             for ki = numel(activeExps):-1:1
                 k = activeExps(ki);
                 if obj.ExpPhase(k) == 1
-                    obj.ExpRadius(k) = obj.ExpRadius(k) + obj.ExpMaxRadius(k) * 0.1;
+                    obj.ExpRadius(k) = obj.ExpRadius(k) + obj.ExpMaxRadius(k) * 0.1 * ds;
                     if obj.ExpRadius(k) >= obj.ExpMaxRadius(k)
                         obj.ExpPhase(k) = 2;
                     end
                 else
-                    obj.ExpRadius(k) = obj.ExpRadius(k) - obj.ExpMaxRadius(k) * 0.08;
+                    obj.ExpRadius(k) = obj.ExpRadius(k) - obj.ExpMaxRadius(k) * 0.08 * ds;
                 end
 
                 % Chain explosion: destroy asteroids caught in blast

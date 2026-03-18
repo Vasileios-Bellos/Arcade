@@ -143,7 +143,10 @@ classdef MoleculeGrid < GameBase
             end
 
             % --- Physics substeps (symplectic Euler, 4 substeps) ---
-            nSub = 4;
+            baseNSub = 4;
+            ds = obj.DtScale;
+            nSub = max(1, round(baseNSub * ds));
+            nSub = min(nSub, baseNSub * 4);  % safety cap
             subRetention = obj.Retention ^ (1 / nSub);
             for sub = 1:nSub %#ok<FXUP>
                 % Spring forces (vectorized via accumarray)

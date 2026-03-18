@@ -108,8 +108,12 @@ classdef ReactionDiffusion < GameBase
                 vField = min(1, vField + splat * 0.15);
             end
 
-            % 4 sub-steps per frame for stability
-            for substep = 1:4
+            % Sub-steps per frame for stability (frame-rate scaled)
+            baseNSub = 4;
+            ds = obj.DtScale;
+            nSubScaled = max(1, round(baseNSub * ds));
+            nSubScaled = min(nSubScaled, baseNSub * 4);  % safety cap
+            for substep = 1:nSubScaled
                 % Laplacian via circshift (periodic boundaries)
                 lapU = uField([2:end 1], :) + uField([end 1:end-1], :) + ...
                        uField(:, [2:end 1]) + uField(:, [end 1:end-1]) - 4 * uField;

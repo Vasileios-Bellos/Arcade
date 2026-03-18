@@ -225,16 +225,17 @@ classdef Smoke < GameBase
                 v(bi, :) = v(bi, :) * fac;
                 v(end - bi + 1, :) = v(end - bi + 1, :) * fac;
             end
-            u = u * 0.998;
-            v = v * 0.998;
+            dsF = obj.DtScale;
+            u = u * 0.998^dsF;
+            v = v * 0.998^dsF;
 
             % === STEP 8: Advect density and temperature ===
             dens = games.FluidUtils.fldAdvect(dens, u, v, dt, gX, gY, Ny, Nx);
             tmp = games.FluidUtils.fldAdvect(tmp, u, v, dt, gX, gY, Ny, Nx);
 
-            % === STEP 9: Dissipation and cooling ===
-            dens = max(0, dens * (1 - obj.Dissipation));
-            tmp = max(0, tmp * (1 - obj.Dissipation * 1.5));
+            % === STEP 9: Dissipation and cooling (frame-rate scaled) ===
+            dens = max(0, dens * (1 - obj.Dissipation)^dsF);
+            tmp = max(0, tmp * (1 - obj.Dissipation * 1.5)^dsF);
 
             % Store fields
             obj.Ux = u;

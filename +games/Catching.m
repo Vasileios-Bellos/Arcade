@@ -143,17 +143,19 @@ classdef Catching < GameBase
         function onUpdate(obj, pos)
             %onUpdate  Per-frame: advance fireflies, check catches, manage spawns.
 
+            ds = obj.DtScale;
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
             % Advance and check each firefly (reverse for safe deletion)
             for i = numel(obj.Fireflies):-1:1
                 ff = obj.Fireflies(i);
-                ff.phase = ff.phase + 0.15;
+                ff.phase = ff.phase + 0.15 * ds;
 
                 if ff.isSnitch
                     % Golden snitch: Lissajous base trajectory + evasion
-                    ff.theta = ff.theta + ff.speed * 0.004;
+                    ff.theta = ff.theta + ff.speed * 0.004 * ds;
 
                     cx = (dx(1) + dx(2)) / 2;
                     cy = (dy(1) + dy(2)) / 2;
@@ -178,8 +180,8 @@ classdef Catching < GameBase
                             evadeY = ddy / dFinger * push;
                         end
                     end
-                    ff.evadeX = ff.evadeX * 0.92 + evadeX;
-                    ff.evadeY = ff.evadeY * 0.92 + evadeY;
+                    ff.evadeX = ff.evadeX * 0.92 ^ ds + evadeX;
+                    ff.evadeY = ff.evadeY * 0.92 ^ ds + evadeY;
 
                     ff.posX = baseX + ff.evadeX;
                     ff.posY = baseY + ff.evadeY;
@@ -201,7 +203,7 @@ classdef Catching < GameBase
                     ty = ff.trailBufY(indices);
                 else
                     % Path-based firefly
-                    ff.idx = ff.idx + ff.speed;
+                    ff.idx = ff.idx + ff.speed * ds;
 
                     % Reached end of path — loop or reverse
                     if ff.idx >= numel(ff.pathX)
@@ -257,7 +259,7 @@ classdef Catching < GameBase
             end
 
             % Spawn on cooldown, max 3 on screen
-            obj.SpawnCooldown = obj.SpawnCooldown - 1;
+            obj.SpawnCooldown = obj.SpawnCooldown - ds;
             if obj.SpawnCooldown <= 0 && numel(obj.Fireflies) < 3
                 obj.spawnFirefly();
                 elapsed = toc(obj.CatchStartTic);

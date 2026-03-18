@@ -212,7 +212,9 @@ classdef DoublePendulum < GameBase
             m2 = obj.Mass2;
             grav = obj.Gravity;
             dt = obj.TimeStep;
-            nSub = obj.SubSteps;
+            ds = obj.DtScale;
+            nSub = max(1, round(obj.SubSteps * ds));
+            nSub = min(nSub, obj.SubSteps * 4);  % safety cap
             sc = obj.Scale;
             cx = obj.CenterX;
             cy = obj.CenterY;
