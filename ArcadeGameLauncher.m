@@ -61,8 +61,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
     % =================================================================
     properties (SetAccess = private)
         FpsLastTic      uint64                  % tic of previous frame
-        FpsEma          (1,1) double = 25       % EMA-smoothed FPS (init 25)
-        DtScale         (1,1) double = 1        % 25 / measuredFPS
+        SmoothedDt      (1,1) double = 0.040    % EMA-smoothed frame dt (init RefDt)
+        DtScale         (1,1) double = 1        % smoothedDt / RefDt — clamped [0.1, 3.0]
+        RefPixelSize    (1,2) double = [0, 0]   % axes pixel size at launch (for font scaling)
     end
 
     % =================================================================
@@ -214,6 +215,10 @@ classdef (Sealed) ArcadeGameLauncher < handle
             enableDefaultInteractivity(obj.Ax);
             obj.Fig.Pointer = "arrow";
             hold(obj.Ax, "on");
+
+            % Capture reference pixel size for font scaling
+            axPx = getpixelposition(obj.Ax);
+            obj.RefPixelSize = axPx(3:4);
         end
 
         function computeDisplayRange(obj)
@@ -289,16 +294,30 @@ classdef (Sealed) ArcadeGameLauncher < handle
         end
 
         function onFigResize(obj)
-            %onFigResize  Recompute display range and rebuild menu on resize.
+            %onFigResize  Handle figure resize — letterbox during gameplay.
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
+            % During gameplay: freeze coordinate system, letterbox only
+            if obj.State ~= "menu"
+                gameAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
+                GameBase.letterboxAxes(obj.Fig, obj.Ax, gameAR);
+                % Scale HUD fonts
+                if obj.RefPixelSize(1) > 0
+                    axPx = getpixelposition(obj.Ax);
+                    fs = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
+                    obj.scaleFonts(fs);
+                    if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
+                        obj.ActiveGame.FontScale = fs;
+                    end
+                end
+                return;
+            end
+
+            % Menu state: adapt coordinate system to new window size
             obj.computeDisplayRange();
             obj.Ax.XLim = obj.DisplayRange.X;
             obj.Ax.YLim = obj.DisplayRange.Y;
-
-            % Only rebuild menu graphics when in menu state
-            if obj.State ~= "menu"; return; end
 
             % Stop timer during rebuild to prevent re-entrant onFrame
             restartTimer = false;
@@ -343,13 +362,10 @@ classdef (Sealed) ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % Measure FPS (EMA, alpha=0.1) and compute speed scale
-            dt = toc(obj.FpsLastTic);
+            % Measure frame dt (EMA on dt, not FPS) and compute speed scale
+            rawDt = toc(obj.FpsLastTic);
             obj.FpsLastTic = tic;
-            dt = min(dt, 0.1);
-            instantFps = 1 / max(dt, 1e-6);
-            obj.FpsEma = 0.1 * instantFps + 0.9 * obj.FpsEma;
-            obj.DtScale = 25 / max(obj.FpsEma, 1);
+            [obj.DtScale, obj.SmoothedDt] = GameBase.computeDtScale(rawDt, obj.SmoothedDt);
 
             try
                 switch obj.State
@@ -527,7 +543,18 @@ classdef (Sealed) ArcadeGameLauncher < handle
             end
             obj.cleanupOrphans();
 
+            % Restore full-figure axes and recompute display range for menu
+            if ~isempty(obj.Ax) && isvalid(obj.Ax)
+                obj.Ax.Position = [0 0 1 1];
+            end
+            obj.computeDisplayRange();
+            if ~isempty(obj.Ax) && isvalid(obj.Ax)
+                obj.Ax.XLim = obj.DisplayRange.X;
+                obj.Ax.YLim = obj.DisplayRange.Y;
+            end
+
             if ~isempty(obj.Menu)
+                obj.Menu.resize(obj.DisplayRange);
                 obj.Menu.show();
             end
             obj.hideGameplayHUD();
@@ -792,6 +819,18 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Visible", "off", ...
                 "Tag", "GT_arcHud");
+        end
+
+        function scaleFonts(obj, fs)
+            %scaleFonts  Scale HUD font sizes by factor fs.
+            baseSizes = [14, 13, 28, 11];  % Score, Combo, Status, Hud
+            handles = {obj.ScoreTextH, obj.ComboTextH, obj.StatusTextH, obj.HudTextH};
+            for k = 1:4
+                h = handles{k};
+                if ~isempty(h) && isvalid(h)
+                    h.FontSize = max(6, round(baseSizes(k) * fs));
+                end
+            end
         end
 
         function hideGameplayHUD(obj)

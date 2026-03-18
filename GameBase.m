@@ -34,7 +34,12 @@ classdef (Abstract) GameBase < handle
     % FRAME-RATE INDEPENDENCE
     % =================================================================
     properties
-        DtScale         (1,1) double = 1   % 25/FPS — set by host each frame
+        DtScale         (1,1) double = 1   % smoothedDt / RefDt — set by host each frame
+        FontScale       (1,1) double = 1   % pixel scale for font/marker sizing — set by host on resize
+    end
+
+    properties (Constant)
+        RefDt           (1,1) double = 0.040   % reference frame time (25 Hz)
     end
 
     % =================================================================
@@ -117,6 +122,13 @@ classdef (Abstract) GameBase < handle
             %getHudText  Return mode-specific HUD string (bottom of screen).
             %   Override in subclasses. Return "" for no HUD.
             s = "";
+        end
+
+        function onResize(obj, displayRange)
+            %onResize  Called when the display range changes (figure resize).
+            %   Updates DisplayRange. Override in subclasses to recompute
+            %   cached scale factors, repositioned graphics, etc.
+            obj.DisplayRange = displayRange;
         end
 
         function onPause(~)
@@ -285,7 +297,7 @@ classdef (Abstract) GameBase < handle
             toRemove = [];
             for k = 1:numel(obj.HitEffects)
                 fx = obj.HitEffects(k);
-                fx.frames = fx.frames - 1;
+                fx.frames = fx.frames - obj.DtScale;
                 obj.HitEffects(k).frames = fx.frames;
 
                 if fx.frames <= 0
@@ -418,6 +430,47 @@ classdef (Abstract) GameBase < handle
             orphans = findall(ax, "-regexp", "Tag", tagPattern);
             if ~isempty(orphans); delete(orphans); end
         end
+
+        function [dtScale, newSmoothedDt] = computeDtScale(rawDt, prevSmoothedDt)
+            %computeDtScale  Compute frame-rate-independent speed scale.
+            %   Uses EMA on dt (not FPS) to smooth frame time, then divides
+            %   by RefDt (0.040s = 25 Hz) to get a dimensionless multiplier.
+            %   At 25 FPS: DtScale = 1.0. At 50 FPS: ~0.5. At 12.5 FPS: ~2.0.
+            %
+            %   rawDt          — toc() since last frame (seconds)
+            %   prevSmoothedDt — previous SmoothedDt value (for EMA continuity)
+            %
+            %   Returns:
+            %   dtScale        — clamped to [0.1, 3.0]
+            %   newSmoothedDt  — updated EMA value (pass back next frame)
+            clampedDt = max(0.004, min(rawDt, 0.100));
+            newSmoothedDt = 0.1 * clampedDt + 0.9 * prevSmoothedDt;
+            dtScale = max(0.1, min(newSmoothedDt / GameBase.RefDt, 3.0));
+        end
+
+        function letterboxAxes(fig, ax, gameAR)
+            %letterboxAxes  Adjust axes Position to maintain game aspect ratio.
+            %   Adds black bars (letterbox/pillarbox) when figure AR does not
+            %   match game AR. XLim/YLim are never changed.
+            %
+            %   fig    — figure handle
+            %   ax     — axes handle
+            %   gameAR — target aspect ratio (rangeX / rangeY)
+            if isempty(fig) || ~isvalid(fig); return; end
+            if isempty(ax) || ~isvalid(ax); return; end
+            figPos = fig.Position;
+            figW = figPos(3);
+            figH = max(figPos(4), 1);
+            if figW <= 0 || figH <= 0; return; end
+            figAR = figW / figH;
+            if figAR > gameAR
+                axW = gameAR / figAR;
+                ax.Position = [(1 - axW) / 2, 0, axW, 1];
+            else
+                axH = figAR / gameAR;
+                ax.Position = [0, (1 - axH) / 2, 1, axH];
+            end
+        end
     end
 
     % =================================================================
@@ -431,23 +484,42 @@ classdef (Abstract) GameBase < handle
             fig = figure("Color", "k", "WindowState", "maximized", ...
                 "MenuBar", "none", "ToolBar", "none", ...
                 "Name", obj.Name, "NumberTitle", "off");
+            drawnow;  % ensure Position reflects maximized dimensions
+
+            % Compute display range from figure aspect ratio (Y=480 fixed)
+            figPos = fig.Position;
+            figAR = figPos(3) / max(figPos(4), 1);
+            rangeY = 480;
+            rangeX = rangeY * figAR;
+
             ax = axes(fig, "Position", [0 0 1 1], "Color", "k", ...
-                "XLim", [0 640], "YLim", [0 480], "YDir", "reverse", ...
+                "XLim", [0 rangeX], "YLim", [0 rangeY], "YDir", "reverse", ...
                 "Visible", "off", "XTick", [], "YTick", []);
             hold(ax, "on");
-            range = struct("X", [0 640], "Y", [0 480]);
+            range = struct("X", [0 rangeX], "Y", [0 rangeY]);
 
             % Initialize game
             obj.onInit(ax, range, struct());
             obj.beginGame();
 
             % Mouse tracking state (closure variable)
-            mousePos = [320, 240];  % center default
+            mousePos = [rangeX / 2, rangeY / 2];
 
             fig.WindowButtonMotionFcn = @(~, ~) updateMouse();
             fig.KeyPressFcn = @(~, e) onKey(e);
 
+            % Capture reference pixel size for font scaling
+            gameAR = diff(range.X) / diff(range.Y);
+            refPixSize = getpixelposition(ax);
+            refPixW = refPixSize(3);
+            refPixH = refPixSize(4);
+            baseFontSize = 14;
+
+            fig.SizeChangedFcn = @(~, ~) onFigResize();
+
             % Timer for physics ticking
+            smoothedDt = GameBase.RefDt;
+            frameTic = tic;
             tmr = timer("ExecutionMode", "fixedSpacing", "Period", 0.02, ...
                 "TimerFcn", @(~, ~) tick(), ...
                 "ErrorFcn", @(~, ~) []);
@@ -457,9 +529,21 @@ classdef (Abstract) GameBase < handle
 
             % --- Score HUD ---
             scoreH = text(ax, range.X(1) + 2, range.Y(1) + 2, "Score: 0", ...
-                "Color", obj.ColorGreen * 0.9, "FontSize", 14, ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "left", ...
                 "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
+
+            function onFigResize()
+                if ~isvalid(fig) || ~isvalid(ax); return; end
+                GameBase.letterboxAxes(fig, ax, gameAR);
+                % Scale HUD font
+                axPx = getpixelposition(ax);
+                fs = min(axPx(3) / refPixW, axPx(4) / refPixH);
+                obj.FontScale = fs;
+                if isvalid(scoreH)
+                    scoreH.FontSize = max(6, round(baseFontSize * fs));
+                end
+            end
 
             function updateMouse()
                 cp = get(ax, "CurrentPoint");
@@ -469,6 +553,11 @@ classdef (Abstract) GameBase < handle
             function tick()
                 if ~obj.IsRunning; return; end
                 try
+                    % Measure dt and compute DtScale
+                    rawDt = toc(frameTic);
+                    frameTic = tic;
+                    [obj.DtScale, smoothedDt] = GameBase.computeDtScale(rawDt, smoothedDt);
+
                     obj.onUpdate(mousePos);
                     obj.updateHitEffects();
                     % Update score display
