@@ -604,12 +604,12 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Full search for deviation (corridor membership — never
-            %    lose when inside the corridor, regardless of progress)
-            searchRange = max(1, progIdx - 5):nPts;
-            localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
-                               pathData.Y(searchRange) - fingerPos(2));
-            deviation = min(localDists);
+            % 1. Full path search for deviation (corridor membership —
+            %    never lose when inside the corridor, regardless of
+            %    progress or direction of movement)
+            allDists = hypot(pathData.X - fingerPos(1), ...
+                             pathData.Y - fingerPos(2));
+            deviation = min(allDists);
 
             % 2. Check corridor (15% tolerance)
             insideCorridor = deviation <= halfCorridor * 1.15;
