@@ -115,8 +115,8 @@ classdef Ecosystem < GameBase
             % Sub-mode rate multipliers
             switch obj.SubMode
                 case "balanced"
-                    plantGrowProb = 0.03;  toxinSpreadProb = 0.05;
-                    predReproThresh = uint8(180);  toxinDecay = uint8(5);
+                    plantGrowProb = 0.03;  toxinSpreadProb = 0.02;
+                    predReproThresh = uint8(180);  toxinDecay = uint8(8);
                 case "bloom"
                     plantGrowProb = 0.09;  toxinSpreadProb = 0.05;
                     predReproThresh = uint8(180);  toxinDecay = uint8(5);
@@ -182,6 +182,7 @@ classdef Ecosystem < GameBase
                 liveToxin(toxIdx(deadV)) = false;
                 padToxKill = false(Ny + 2, Nx + 2);
                 padToxKill(2:end-1, 2:end-1) = liveToxin;
+                padKill = false(Ny + 2, Nx + 2);  % padded accumulator for killed victims
                 for dd = 1:4
                     switch dd
                         case 1; dr = 1; dc = 0;
@@ -194,6 +195,21 @@ classdef Ecosystem < GameBase
                     killHere = toxNeighbor & isLiving;
                     newGrid(killHere) = 0;
                     newEnergy(killHere) = 0;
+                    % Mark the toxin cell responsible: toxin at (r+dr,c+dc) killed (r,c)
+                    padKill((2:Ny+1) + dr, (2:Nx+1) + dc) = ...
+                        padKill((2:Ny+1) + dr, (2:Nx+1) + dc) | killHere;
+                end
+                killedSomething = padKill(2:end-1, 2:end-1) & liveToxin;
+
+                % Energy cost for killing — toxin cells that killed lose 10
+                killCostIdx = find(killedSomething);
+                if ~isempty(killCostIdx)
+                    eCost = newEnergy(killCostIdx);
+                    died = eCost <= 10;
+                    eCost(~died) = eCost(~died) - 10;
+                    eCost(died) = 0;
+                    newEnergy(killCostIdx) = eCost;
+                    newGrid(killCostIdx(died)) = 0;
                 end
 
                 % Spread to adjacent empty cells
@@ -373,8 +389,8 @@ classdef Ecosystem < GameBase
                         newGrid(hr, hc) = 0; newEnergy(hr, hc) = 0;
                         eP = min(255, eP + 80);
                         ate = true;
-                        % 20% chance: toxin spawns in adjacent empty cell
-                        if rand < 0.20
+                        % 5% chance: toxin spawns in adjacent empty cell
+                        if rand < 0.05
                             emptyN = find(neighbors(:, 3) == 0);
                             if ~isempty(emptyN)
                                 ti = emptyN(randi(numel(emptyN)));
