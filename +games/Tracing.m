@@ -633,27 +633,9 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Step-by-step progress advancement (prevents skipping
-            %    across self-intersecting paths like figure-8 / loops).
-            %    Progress only advances when finger is closer to the next
-            %    path point than the current one.
-            advIdx = progIdx;
-            advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
-                            pathData.Y(progIdx) - fingerPos(2));
-            stepsLeft = 8;
-            while stepsLeft > 0 && advIdx < nPts
-                dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
-                              pathData.Y(advIdx + 1) - fingerPos(2));
-                if dNext < advDist
-                    advIdx = advIdx + 1;
-                    advDist = dNext;
-                    stepsLeft = stepsLeft - 1;
-                else
-                    break;
-                end
-            end
-            if advIdx > progIdx
-                obj.TracingProgressIdx = advIdx;
+            % 3. Advance progress toward nearest point (rate-limited, forward only)
+            if nearestIdx > progIdx
+                obj.TracingProgressIdx = min(nearestIdx, progIdx + 8);
             end
 
             % 3b. Move progress target to frontier
@@ -746,10 +728,9 @@ classdef Tracing < GameBase
                 zoneColor = obj.ColorGold;
             end
 
-            % --- Traced band: from path start to current progress ---
+            % --- Traced band: from path start to current progress only ---
             progIdx = obj.TracingProgressIdx;
-            segEnd = max(progIdx, nearestIdx);
-            segEnd = min(segEnd, numel(pathData.X));
+            segEnd = min(progIdx, numel(pathData.X));
             if segEnd >= 2
                 try
                     tps = games.PathUtils.buildBandPolyshape( ...
