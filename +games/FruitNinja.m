@@ -226,7 +226,7 @@ classdef FruitNinja < GameBase
                 speeds = sqrt(diff(traceX).^2 + diff(traceY).^2);
                 slashSpeed = mean(speeds(max(1, end-2):end));
             end
-            slashThresh = max(1.5, min(areaW, areaH) * 0.004);
+            slashThresh = max(1.5, min(areaW, areaH) * 0.008);
 
             % --- Spawn fruits ---
             obj.SpawnTimer = obj.SpawnTimer + 1;

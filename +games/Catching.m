@@ -361,7 +361,7 @@ classdef Catching < GameBase
             else
                 % Gold — legendary, small and fast (5%)
                 clr = obj.ColorGold;
-                pts = 500; radius = round(10 * sc); spd = bs * 4;
+                pts = 500; radius = round(10 * sc); spd = bs * 5;
             end
 
             isGold = (tierRoll >= 0.95);
