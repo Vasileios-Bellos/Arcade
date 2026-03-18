@@ -606,10 +606,10 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Find nearest path point to finger (full forward search)
+            % 1. Find nearest path point to finger (full forward search
+            %    for corridor membership check — never lose inside corridor)
             searchStart = max(1, progIdx - 5);
-            searchEnd = nPts;  % search ALL remaining path points
-            searchRange = searchStart:searchEnd;
+            searchRange = searchStart:nPts;
             localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
                                pathData.Y(searchRange) - fingerPos(2));
             [deviation, localMinIdx] = min(localDists);
@@ -633,13 +633,16 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Progress = wherever the finger is (no rate limit)
+            % 3. Advance progress — capped per frame to prevent jumping
+            %    across self-intersecting paths (figure-8 crossing is ~50%
+            %    of path away; 15% cap keeps us on the correct loop)
+            maxAdvance = max(50, round(nPts * 0.15));
             if nearestIdx > progIdx
-                obj.TracingProgressIdx = nearestIdx;
+                obj.TracingProgressIdx = min(nearestIdx, progIdx + maxAdvance);
             end
 
-            % 3b. Target circle follows finger position on path
-            frontIdx = nearestIdx;
+            % 3b. Target circle at progress frontier
+            frontIdx = obj.TracingProgressIdx;
             obj.TargetPos = [pathData.X(frontIdx), pathData.Y(frontIdx)];
             obj.PulsePhase = obj.PulsePhase + 0.12;
             theta = linspace(0, 2*pi, 48);
@@ -728,8 +731,8 @@ classdef Tracing < GameBase
                 zoneColor = obj.ColorGold;
             end
 
-            % --- Traced band: from path start to where finger is ---
-            segEnd = min(nearestIdx, numel(pathData.X));
+            % --- Traced band: from path start to progress frontier ---
+            segEnd = min(obj.TracingProgressIdx, numel(pathData.X));
             if segEnd >= 2
                 try
                     tps = games.PathUtils.buildBandPolyshape( ...
@@ -752,17 +755,9 @@ classdef Tracing < GameBase
                 end
             end
 
-            % --- Deviation whisker ---
+            % --- Deviation whisker (hidden — not needed in tracing) ---
             if ~isempty(obj.DeviationWhisker) && isvalid(obj.DeviationWhisker)
-                if deviation > 3
-                    whiskerAlpha = min(0.35, deviation / halfCorridor * 0.3);
-                    set(obj.DeviationWhisker, ...
-                        "XData", [fingerPos(1), pathData.X(nearestIdx)], ...
-                        "YData", [fingerPos(2), pathData.Y(nearestIdx)], ...
-                        "Color", [zoneColor, whiskerAlpha], "Visible", "on");
-                else
-                    obj.DeviationWhisker.Visible = "off";
-                end
+                obj.DeviationWhisker.Visible = "off";
             end
 
             % --- Zone circle around finger ---
