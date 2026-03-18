@@ -640,7 +640,7 @@ classdef Tracing < GameBase
 
             % 3. Advance progress toward nearest point (rate-limited, forward only)
             if nearestIdx > progIdx
-                obj.TracingProgressIdx = min(nearestIdx, progIdx + 8);
+                obj.TracingProgressIdx = min(nearestIdx, progIdx + 30);
             end
 
             % 3b. Move progress target to frontier
