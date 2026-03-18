@@ -57,6 +57,7 @@ classdef FourierEpicycle < GameBase
         PauseDispThresh (1,1) double = 18            % total displacement threshold (raised from 10 for finger jitter ~2px/frame)
         HasMoved        (1,1) logical = false
         DrawFrames      (1,1) double = 0             % frames since drawing started
+        DispScale       (1,1) double = 1             % min(areaW,areaH)/240 scaling factor
 
         % Bridge (end-to-start closure)
         BridgeX         (:,1) double
@@ -181,6 +182,15 @@ classdef FourierEpicycle < GameBase
                     obj.SavedRecogMode = caps.getRecognitionMode();
                 end
             end
+
+            % Scale display-space constants for actual display size
+            areaW = dx(2) - dx(1);
+            areaH = dy(2) - dy(1);
+            sc = min(areaW, areaH) / 240;
+            obj.DispScale = sc;
+            obj.CloseDist = 20 * sc;
+            obj.PauseDispThresh = 18 * sc;
+            obj.TipSpeed = 4 * sc;
 
             % --- State ---
             obj.State = "waiting";
@@ -377,10 +387,6 @@ classdef FourierEpicycle < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string for display.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================
@@ -1338,10 +1344,11 @@ classdef FourierEpicycle < GameBase
 
         function changeSpeed(obj, key)
             %changeSpeed  Adjust tip speed via left/right arrows.
+            sc = obj.DispScale;
             if key == "rightarrow"
-                obj.TipSpeed = min(20, obj.TipSpeed * 1.3);
+                obj.TipSpeed = min(20 * sc, obj.TipSpeed * 1.3);
             else
-                obj.TipSpeed = max(0.5, obj.TipSpeed / 1.3);
+                obj.TipSpeed = max(0.5 * sc, obj.TipSpeed / 1.3);
             end
             obj.updateHud();
         end

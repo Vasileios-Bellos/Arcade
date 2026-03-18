@@ -113,7 +113,7 @@ classdef ShieldGuardian < GameBase
             coreR = max(18, round(min(areaW, areaH) * 0.12));
             obj.CoreRadius = coreR;
 
-            % Shield radius
+            % Shield radius (same as GestureTrainer original)
             shieldR = max(12, round(min(areaW, areaH) * 0.12));
 
             % Cache DPI/pixel conversion (expensive calls done once)
@@ -419,21 +419,28 @@ classdef ShieldGuardian < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
-            % Spawn from random edge
+            % Spawn from just beyond visible edge (direction-dependent)
             spawnAngle = rand * 2 * pi;
-            spawnR = max(areaW, areaH) * 0.6;
+            halfW = areaW / 2;
+            halfH = areaH / 2;
+            absCos = max(abs(cos(spawnAngle)), 1e-6);
+            absSin = max(abs(sin(spawnAngle)), 1e-6);
+            edgeDist = min(halfW / absCos, halfH / absSin);
+            spawnR = edgeDist + 15;  % 15 data-unit margin beyond edge
             x = obj.CorePos(1) + spawnR * cos(spawnAngle);
             y = obj.CorePos(2) + spawnR * sin(spawnAngle);
 
-            % Aim at core with some spread
+            % Aim at core with spread scaled to core size
             toCore = [obj.CorePos(1) - x, obj.CorePos(2) - y];
             toCore = toCore / norm(toCore);
-            spreadVal = (rand - 0.5) * 0.3;
+            maxMiss = obj.CoreRadius * 0.6;
+            spreadAngle = atan2(maxMiss, spawnR);
+            spreadVal = (rand - 0.5) * 2 * spreadAngle;
             ca = cos(spreadVal);
             sa = sin(spreadVal);
             aimed = [toCore(1)*ca - toCore(2)*sa, toCore(1)*sa + toCore(2)*ca];
 
-            baseSpeed = max(0.8, min(areaW, areaH) * 0.008) ...
+            baseSpeed = max(0.8, min(areaW, areaH) * 0.02) ...
                 * (1 + obj.Wave * 0.1);
 
             % Random type: fast (red), normal (magenta), heavy (orange)
@@ -442,15 +449,15 @@ classdef ShieldGuardian < GameBase
                 case 1  % Fast: small, red, 1.5x speed
                     clr = obj.ColorRed;
                     speedMult = 1.5;
-                    radiusVal = max(4, obj.CoreRadius * 0.6);
+                    radiusVal = max(4, obj.CoreRadius * 0.2);
                 case 2  % Normal: medium, magenta, 1x speed
                     clr = obj.ColorMagenta;
                     speedMult = 1.0;
-                    radiusVal = max(6, obj.CoreRadius * 0.8);
+                    radiusVal = max(6, obj.CoreRadius * 0.3);
                 case 3  % Heavy: large, orange, 0.6x speed
                     clr = obj.ColorOrange;
                     speedMult = 0.6;
-                    radiusVal = max(8, obj.CoreRadius * 1.0);
+                    radiusVal = max(8, obj.CoreRadius * 0.45);
             end
 
             speedVal = baseSpeed * speedMult;

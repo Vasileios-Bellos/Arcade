@@ -24,6 +24,7 @@ classdef Asteroids < GameBase
     % GAME STATE
     % =================================================================
     properties (Access = private)
+        TierRadii       (1,3) double = [15, 10, 5]  % scaled in onInit
         ShipPos         (1,2) double = [NaN, NaN]
         Rocks           struct = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                                         "radius", {}, "tier", {}, "angle", {}, ...
@@ -75,6 +76,10 @@ classdef Asteroids < GameBase
             obj.Wave = 1;
             obj.FireCooldown = 0;
             obj.InvulnFrames = 0;
+
+            % Scale asteroid radii to display (original tuned for ~240px)
+            sc = min(diff(dx), diff(dy)) / 240;
+            obj.TierRadii = round([15, 10, 5] * sc);
 
             obj.Bullets = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                 "lineH", {}, "glowH", {});
@@ -248,7 +253,7 @@ classdef Asteroids < GameBase
                 theta = rand * 2 * pi;
                 vx = spd * cos(theta);
                 vy = spd * sin(theta);
-                obj.createRock(ax, x, y, vx, vy, 15, 1);
+                obj.createRock(ax, x, y, vx, vy, obj.TierRadii(1), 1);
             end
         end
 
@@ -343,27 +348,39 @@ classdef Asteroids < GameBase
                     continue;
                 end
 
-                % Bullet-asteroid collision
+                % Bullet-asteroid collision (sweep test along bullet path)
                 hitDetected = false;
                 for a = numel(obj.Rocks):-1:1
                     rock = obj.Rocks(a);
-                    if norm([bul.x - rock.x, bul.y - rock.y]) < rock.radius
+                    % Closest point on bullet segment [prev, current] to rock center
+                    px = bul.x - bul.vx;  % previous position
+                    py = bul.y - bul.vy;
+                    segX = bul.vx;
+                    segY = bul.vy;
+                    segLen2 = segX^2 + segY^2;
+                    if segLen2 > 0
+                        t = max(0, min(1, ((rock.x - px) * segX + (rock.y - py) * segY) / segLen2));
+                    else
+                        t = 0;
+                    end
+                    closestX = px + t * segX;
+                    closestY = py + t * segY;
+                    if norm([closestX - rock.x, closestY - rock.y]) < rock.radius
                         hitDetected = true;
                         obj.spawnBounceEffect([rock.x, rock.y], [0, -1], 0, 8);
                         obj.addScore(round(300 / rock.radius * 10));
                         obj.incrementCombo();
 
-                        % Split into next tier (15 -> 10 -> 5 -> destroy)
-                        tierRadii = [15, 10, 5];
+                        % Split into next tier
                         nextTier = rock.tier + 1;
-                        if nextTier <= numel(tierRadii)
+                        if nextTier <= numel(obj.TierRadii)
                             for s = 1:2 %#ok<ALOC>
                                 sAngle = rand * 2 * pi;
                                 sSpeed = norm([rock.vx, rock.vy]) * (1.2 + rand * 0.5);
                                 svx = sSpeed * cos(sAngle);
                                 svy = sSpeed * sin(sAngle);
                                 obj.createRock(ax, rock.x, rock.y, svx, svy, ...
-                                    tierRadii(nextTier), nextTier);
+                                    obj.TierRadii(nextTier), nextTier);
                             end
                         end
                         if ~isempty(rock.patchH) && isvalid(rock.patchH)

@@ -1226,7 +1226,7 @@ classdef Elements < GameBase
                     end
                 otherwise
                     if strlength(key) == 1 && key >= "0" && key <= "9"
-                        d = double(key) - 48;
+                        d = str2double(key);
                         if d == 0
                             obj.SubMode = "glass";
                             obj.CurrentMaterial = uint8(12);
@@ -1260,11 +1260,6 @@ classdef Elements < GameBase
                 totalCells = nnz(obj.CellGrid > 0);
             end
             r.Lines = {sprintf("Cells: %d  |  Time: %.0fs", totalCells, elapsed)};
-        end
-
-        function s = getHudText(obj)
-            %getHudText  Return Elements HUD string.
-            s = obj.buildHudString();
         end
 
     end

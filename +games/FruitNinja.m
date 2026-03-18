@@ -80,6 +80,9 @@ classdef FruitNinja < GameBase
         SliceHistory    struct = struct("centrality", {}, "speed", {}, ...
                                         "angle", {}, "position", {}, "time", {})
 
+        % Display scale factor (1.0 at 240px reference)
+        Sc              (1,1) double = 1
+
         % Trace buffer (own shifting buffer or host-provided)
         GetSmoothedTrace    function_handle = function_handle.empty
         TraceBufferX    (:,1) double
@@ -111,7 +114,11 @@ classdef FruitNinja < GameBase
 
             dx = displayRange.X;
             dy = displayRange.Y;
+            areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
+
+            % Display scale factor (1.0 at 240px reference)
+            obj.Sc = min(areaW, areaH) / 240;
 
             obj.Gravity = max(0.06, areaH * 0.001);
             obj.SpawnTimer = 0;
@@ -657,8 +664,8 @@ classdef FruitNinja < GameBase
                 halfSlot = find(~obj.HalfActive, 1);
                 if isempty(halfSlot); continue; end  % pool full, skip
 
-                splitVx = fvx + splitNorm(1) * side * 1.5;
-                splitVy = fvy + splitNorm(2) * side * 1.5 - 0.5;
+                splitVx = fvx + splitNorm(1) * side * 1.5 * obj.Sc;
+                splitVy = fvy + splitNorm(2) * side * 1.5 * obj.Sc - 0.5 * obj.Sc;
 
                 obj.HalfVerts{halfSlot} = [hx(:), hy(:)];
                 obj.HalfColor{halfSlot} = fColor;

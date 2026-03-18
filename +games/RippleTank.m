@@ -43,6 +43,7 @@ classdef RippleTank < GameBase
     % =================================================================
     properties (Access = private)
         ImageH                                  % image object for surface
+        ModeTextH                               % text -- bottom-left HUD label
     end
 
     % =================================================================
@@ -98,6 +99,12 @@ classdef RippleTank < GameBase
                 "Tag", "GT_rippletank");
             uistack(obj.ImageH, "bottom");
             uistack(obj.ImageH, "up");
+
+            % Bottom-left HUD text
+            obj.ModeTextH = text(ax, dxRange(1) + 5, dyRange(2) - 5, ...
+                obj.buildHudString(), ...
+                "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
+                "VerticalAlignment", "bottom", "Tag", "GT_rippletank");
         end
 
         function onUpdate(obj, pos)
@@ -245,10 +252,13 @@ classdef RippleTank < GameBase
 
         function onCleanup(obj)
             %onCleanup  Delete ripple tank graphics and state.
-            if ~isempty(obj.ImageH) && isvalid(obj.ImageH)
-                delete(obj.ImageH);
+            handles = {obj.ImageH, obj.ModeTextH};
+            for k = 1:numel(handles)
+                h = handles{k};
+                if ~isempty(h) && isvalid(h); delete(h); end
             end
             obj.ImageH = [];
+            obj.ModeTextH = [];
             obj.U = [];
             obj.UPrev = [];
             obj.Gx = [];
@@ -283,6 +293,9 @@ classdef RippleTank < GameBase
                 otherwise
                     handled = false;
             end
+            if handled
+                obj.updateHud();
+            end
         end
 
         function r = getResults(obj)
@@ -298,12 +311,9 @@ classdef RippleTank < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string with sub-mode, grid level, frequency.
-            s = upper(obj.SubMode) + " [M]  |  Grid " + obj.GridLevel + ...
-                "/10 [" + char(8593) + char(8595) + "]" + ...
-                "  |  Freq " + sprintf("%.1f", obj.Omega) + ...
-                " [" + char(8592) + char(8594) + "]";
+        function s = getHudText(~)
+            %getHudText  HUD managed by ModeTextH; return empty for host.
+            s = "";
         end
     end
 
@@ -311,6 +321,21 @@ classdef RippleTank < GameBase
     % PRIVATE HELPERS
     % =================================================================
     methods (Access = private)
+        function s = buildHudString(obj)
+            %buildHudString  Build HUD string with sub-mode, grid level, frequency.
+            s = upper(obj.SubMode) + " [M]  |  Grid " + obj.GridLevel + ...
+                "/10 [" + char(8593) + char(8595) + "]" + ...
+                "  |  Freq " + sprintf("%.1f", obj.Omega) + ...
+                " [" + char(8592) + char(8594) + "]";
+        end
+
+        function updateHud(obj)
+            %updateHud  Refresh the bottom-left HUD text.
+            if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
+                obj.ModeTextH.String = obj.buildHudString();
+            end
+        end
+
         function changeGridLevel(obj, key)
             %changeGridLevel  Adjust grid resolution and reinitialize.
             if key == "uparrow"

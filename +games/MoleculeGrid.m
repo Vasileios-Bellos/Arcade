@@ -341,10 +341,6 @@ classdef MoleculeGrid < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return current HUD string for bottom of screen.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================
@@ -381,14 +377,33 @@ classdef MoleculeGrid < GameBase
             restX = cxGrid(:);
             restY = cyGrid(:);
             numNodes = numel(restX);
-            bondThreshold = max(actualSpX, actualSpY) * 1.15;
 
-            % Build bonds via pairwise distance
-            dMat = sqrt((restX - restX').^2 + (restY - restY').^2);
-            [bondI, bondJ] = find(dMat > 0 & dMat < bondThreshold);
-            keep2 = bondI < bondJ;
-            bondI = bondI(keep2);
-            bondJ = bondJ(keep2);
+            % Build structural bonds from grid topology (O(N), no N×N matrix)
+            nR = numel(yPos);
+            nC = numel(xPos);
+            idx = reshape(1:numNodes, nR, nC);
+
+            bI = zeros(0, 1);
+            bJ = zeros(0, 1);
+
+            % Right neighbors
+            if nC > 1
+                iR = idx(:, 1:end-1);
+                jR = idx(:, 2:end);
+                bI = iR(:);
+                bJ = jR(:);
+            end
+
+            % Down neighbors
+            if nR > 1
+                iD = idx(1:end-1, :);
+                jD = idx(2:end, :);
+                bI = [bI; iD(:)];
+                bJ = [bJ; jD(:)];
+            end
+
+            bondI = bI;
+            bondJ = bJ;
             numBonds = numel(bondI);
             bondRestLen = sqrt((restX(bondI) - restX(bondJ)).^2 + ...
                 (restY(bondI) - restY(bondJ)).^2);

@@ -614,10 +614,6 @@ classdef StringHarmonics < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string for display.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================

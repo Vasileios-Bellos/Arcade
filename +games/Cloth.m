@@ -19,6 +19,7 @@ classdef Cloth < GameBase
     % =================================================================
     properties (Access = private)
         Gravity         (1,1) double = 0.08
+        Sc              (1,1) double = 1    % display scale (1.0 at 240px)
         Damping         (1,1) double = 0.995
         SubSteps        (1,1) double = 8
         ConstraintPasses (1,1) double = 3
@@ -132,8 +133,8 @@ classdef Cloth < GameBase
             isCurtain = obj.SubMode == "curtain";
             if isFlag
                 windX = gravVal ...
-                    + 0.008 * sin(obj.FrameCount * 0.05) ...
-                    + 0.004 * sin(obj.FrameCount * 0.13);
+                    + 0.008 * obj.Sc * sin(obj.FrameCount * 0.05) ...
+                    + 0.004 * obj.Sc * sin(obj.FrameCount * 0.13);
                 gravVal = 0;  % no droop — wind is the only force
             end
 
@@ -406,10 +407,6 @@ classdef Cloth < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return cloth HUD string.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================
@@ -431,6 +428,8 @@ classdef Cloth < GameBase
             lvl = max(1, min(10, obj.GridLevel));
             areaW = diff(dx);
             areaH = diff(dy);
+            obj.Sc = min(areaW, areaH) / 240;
+            obj.Gravity = 0.08 * obj.Sc;
             baseN = obj.GridSizes(lvl);
             if areaW >= areaH
                 obj.GridH = baseN;

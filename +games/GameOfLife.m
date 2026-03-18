@@ -289,10 +289,6 @@ classdef GameOfLife < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string.
-            s = obj.hudString();
-        end
     end
 
     % =================================================================

@@ -301,6 +301,17 @@ classdef NewtonsCradle < GameBase
                 obj.PrevFingerX = pos(1);
                 obj.PrevFingerY = pos(2);
 
+                % Normalize finger velocity so force feels the same at any
+                % display size.  The multiplier 4.0 was tuned at ~240 data-
+                % unit width (GestureTrainer).  Scale velocity by 240/areaW
+                % so larger displays don't produce proportionally stronger
+                % pushes.
+                areaW = diff(obj.DisplayRange.X);
+                refWidth = 240;  % reference display width the gain was tuned for
+                velScale = refWidth / areaW;
+                fvx = fvx * velScale;
+                fvy = fvy * velScale;
+
                 fingerSpeed = sqrt(fvx^2 + fvy^2);
                 if fingerSpeed > 0.3
                     for k = 1:numBalls
@@ -600,12 +611,9 @@ classdef NewtonsCradle < GameBase
             };
         end
 
-        function s = getHudText(obj)
+        function s = getHudText(~)
             %getHudText  Return mode-specific HUD string.
-            bLabel = "HIDE FRAME";
-            if ~obj.ShowFrame; bLabel = "SHOW FRAME"; end
-            s = upper(obj.SubMode) + ...
-                " [1-6/M]  |  " + bLabel + " [N]  |  RESET [0]";
+            s = "";
         end
     end
 
@@ -613,6 +621,14 @@ classdef NewtonsCradle < GameBase
     % PRIVATE METHODS
     % =================================================================
     methods (Access = private)
+
+        function s = buildHudString(obj)
+            %buildHudString  Return mode-specific HUD string.
+            bLabel = "HIDE FRAME";
+            if ~obj.ShowFrame; bLabel = "SHOW FRAME"; end
+            s = upper(obj.SubMode) + ...
+                " [1-6/M]  |  " + bLabel + " [N]  |  RESET [0]";
+        end
 
         function applySubMode(obj)
             %applySubMode  Set initial conditions based on current sub-mode.
@@ -660,7 +676,7 @@ classdef NewtonsCradle < GameBase
         function refreshHud(obj)
             %refreshHud  Update HUD text display.
             if ~isempty(obj.HudTextH) && isvalid(obj.HudTextH)
-                obj.HudTextH.String = obj.getHudText();
+                obj.HudTextH.String = obj.buildHudString();
             end
         end
     end

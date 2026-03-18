@@ -28,6 +28,9 @@ classdef Pointing < GameBase
         PathSinceSpawn  (1,1) double = 0
         PrevPos         (1,2) double = [NaN, NaN]
 
+        % Display scale factor (1.0 at 240px, ~3.5 at 853px)
+        Sc              (1,1) double = 1
+
         % Stats
         TargetsHit      (1,1) double = 0
         TargetsMissed   (1,1) double = 0
@@ -79,6 +82,9 @@ classdef Pointing < GameBase
 
             dx = displayRange.X;
             dy = displayRange.Y;
+            areaW = diff(dx);
+            areaH = diff(dy);
+            obj.Sc = min(areaW, areaH) / 240;
 
             % --- Target rings ---
             obj.TargetGlow = line(ax, NaN, NaN, ...
@@ -207,7 +213,7 @@ classdef Pointing < GameBase
 
         function spawnTarget(obj)
             %spawnTarget  Place a new target at a random reachable position.
-            margin = 35;
+            margin = round(35 * obj.Sc);
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
             xMin = dx(1) + margin;
@@ -262,8 +268,8 @@ classdef Pointing < GameBase
             obj.PulsePhase = 0;
 
             % Difficulty scaling based on combo
-            baseRadius = 30;
-            minRadius = 3;
+            baseRadius = round(30 * obj.Sc);
+            minRadius = max(2, round(3 * obj.Sc));
             obj.TargetRadius = max(minRadius, baseRadius - obj.Combo * 0.5);
             baseTimeout = 4.0;
             minTimeout = 0.1;

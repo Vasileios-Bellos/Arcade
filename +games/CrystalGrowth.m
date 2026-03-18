@@ -153,8 +153,8 @@ classdef CrystalGrowth < GameBase
             subMode = obj.SubMode;
 
             % 8 neighbor offsets: 1=N, 2=NE, 3=E, 4=SE, 5=S, 6=SW, 7=W, 8=NW
-            dR = int32([-1, -1, 0, +1, +1, +1,  0, -1]);
-            dC = int32([ 0, +1,+1, +1,  0, -1, -1, -1]);
+            dR = [-1, -1, 0, +1, +1, +1,  0, -1];
+            dC = [ 0, +1,+1, +1,  0, -1, -1, -1];
 
             % Directional bias weights based on sub-mode
             switch subMode
@@ -233,7 +233,7 @@ classdef CrystalGrowth < GameBase
 
             % === SNOWFLAKE MODE: enforce 6-fold symmetry ===
             if subMode == "snowflake"
-                [newGrid, newAge] = CrystalGrowth.enforceSymmetry( ...
+                [newGrid, newAge] = games.CrystalGrowth.enforceSymmetry( ...
                     newGrid, newAge, grid, Ny, Nx);
             end
 

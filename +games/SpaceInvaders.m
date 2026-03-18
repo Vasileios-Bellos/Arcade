@@ -81,6 +81,9 @@ classdef SpaceInvaders < GameBase
         % Pre-computed theta arrays
         ThetaCircle24               % 24-point circle for capsule
         ThetaCircle32               % 32-point circle for shield
+
+        % Display scale factor (1.0 at 240px reference)
+        Sc              (1,1) double = 1
     end
 
     % =================================================================
@@ -118,6 +121,9 @@ classdef SpaceInvaders < GameBase
             dy = displayRange.Y;
             areaW = diff(dx);
             areaH = diff(dy);
+
+            % Display scale factor (1.0 at 240px reference)
+            obj.Sc = min(areaW, areaH) / 240;
 
             % Pre-compute theta arrays once
             obj.ThetaCircle24 = linspace(0, 2*pi, 24);
@@ -209,7 +215,7 @@ classdef SpaceInvaders < GameBase
             obj.PUY = zeros(1, nP);
             obj.PUType = repmat("", 1, nP);
             obj.PUActive = false(1, nP);
-            capR = 5;
+            capR = round(5 * obj.Sc);
             thetaCap = obj.ThetaCircle24;
             for k = 1:nP
                 obj.PUPoolGlow{k} = line(ax, 0, 0, "Color", [obj.ColorGold, 0.2], ...
@@ -380,7 +386,7 @@ classdef SpaceInvaders < GameBase
                 eby = obj.EBulletY(k);
                 ebLineH = obj.EBulletPoolLine{k};
                 if ~isempty(ebLineH) && isvalid(ebLineH)
-                    ebLineH.YData = [eby, eby + 4];
+                    ebLineH.YData = [eby, eby + round(4 * obj.Sc)];
                     ebLineH.XData = [ebx, ebx];
                 end
                 if eby > dy(2) + 10
@@ -442,7 +448,7 @@ classdef SpaceInvaders < GameBase
             end
 
             % Update power-ups (falling) — pool-based
-            capR = 5;
+            capR = round(5 * obj.Sc);
             thetaCap = obj.ThetaCircle24;
             for k = 1:obj.PUPoolSize
                 if ~obj.PUActive(k); continue; end
@@ -842,7 +848,7 @@ classdef SpaceInvaders < GameBase
             slot = find(~obj.PUActive, 1);
             if isempty(slot); return; end  % pool full, skip spawn
 
-            capR = 5;
+            capR = round(5 * obj.Sc);
             thetaCap = obj.ThetaCircle24;
 
             obj.PUX(slot) = x;

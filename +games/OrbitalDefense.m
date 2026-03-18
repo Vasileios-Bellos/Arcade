@@ -30,6 +30,8 @@ classdef OrbitalDefense < GameBase
         BasePos         (1,2) double = [0, 0]
         BaseRadius      (1,1) double = 12
         FireCD          (1,1) double = 0
+        Sc              (1,1) double = 1       % display scale (1.0 at 240px)
+        TierRadii       (1,3) double = [15, 10, 5]
     end
 
     % =================================================================
@@ -119,6 +121,11 @@ classdef OrbitalDefense < GameBase
 
             dx = displayRange.X;
             dy = displayRange.Y;
+
+            areaW = diff(dx);
+            areaH = diff(dy);
+            obj.Sc = min(areaW, areaH) / 240;
+            obj.TierRadii = round([15, 10, 5] * obj.Sc);
 
             obj.Wave = 1;
             obj.Lives = 3;
@@ -231,7 +238,7 @@ classdef OrbitalDefense < GameBase
 
             % --- Update crosshair ---
             if ~any(isnan(pos))
-                crSize = 5;
+                crSize = round(5 * obj.Sc);
                 crX = [pos(1)-crSize, pos(1)+crSize, NaN, ...
                        pos(1), pos(1)];
                 crY = [pos(2), pos(2), NaN, ...
@@ -325,7 +332,7 @@ classdef OrbitalDefense < GameBase
             % --- Update explosions + check explosion-asteroid intersection ---
             cosT = cos(obj.ThetaCircle24);
             sinT = sin(obj.ThetaCircle24);
-            tierRadii = [15, 10, 5];
+            tierRadii = obj.TierRadii;
             activeExps = find(obj.ExpActive);
             for ki = numel(activeExps):-1:1
                 k = activeExps(ki);
@@ -552,7 +559,7 @@ classdef OrbitalDefense < GameBase
             nLarge = 2 + wave;
             nMedium = 1 + floor(wave * 0.8);
             nSmall = floor(wave * 0.6);
-            tierRadii = [15, 10, 5];
+            tierRadii = obj.TierRadii;
             tierSpeedMult = [1.0, 1.5, 2.2];
             counts = [nLarge, nMedium, nSmall];
             baseSpeed = max(0.3, min(areaW, areaH) * 0.004) * (1 + wave * 0.08);

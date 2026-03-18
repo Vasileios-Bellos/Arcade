@@ -135,6 +135,11 @@ classdef EmField < GameBase
             nPart = obj.NodeCount;
             isCyc = obj.SubMode == "cyclotron";
 
+            % Scale display-space constants for actual display size
+            sc = min(diff(dxR), diff(dyR)) / 240;
+            obj.Softening = 15.0 * sc;
+            obj.FlowSpeed = 2.5 * sc;
+
             % Trail length depends on mode
             if isCyc
                 obj.TrailLen = 15;
@@ -712,10 +717,6 @@ classdef EmField < GameBase
             end
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string for host display.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================
@@ -1445,23 +1446,21 @@ classdef EmField < GameBase
                 nodeCol = hsv2rgb([obj.Hue(:), ...
                     ones(nPart, 1) * 0.9, ones(nPart, 1) * 0.95]);
             end
-            nanX = NaN; nanY = NaN; nanSz = 1; nanC = [0 0 0];
+            % Recreate scatter objects (particle count changes between modes)
             if ~isempty(obj.NodeGlowH) && isvalid(obj.NodeGlowH)
-                set(obj.NodeGlowH, "XData", nanX, "YData", nanY, ...
-                    "SizeData", nanSz, "CData", nanC);
-                set(obj.NodeGlowH, "XData", obj.PosX, ...
-                    "YData", obj.PosY, ...
-                    "SizeData", glowSize * ones(nPart, 1), ...
-                    "CData", nodeCol, "MarkerFaceAlpha", glowAlpha);
+                delete(obj.NodeGlowH);
             end
             if ~isempty(obj.NodeCoreH) && isvalid(obj.NodeCoreH)
-                set(obj.NodeCoreH, "XData", nanX, "YData", nanY, ...
-                    "SizeData", nanSz, "CData", nanC);
-                set(obj.NodeCoreH, "XData", obj.PosX, ...
-                    "YData", obj.PosY, ...
-                    "SizeData", coreSize * ones(nPart, 1), ...
-                    "CData", nodeCol, "MarkerFaceAlpha", coreAlpha);
+                delete(obj.NodeCoreH);
             end
+            szG = glowSize * ones(max(nPart, 1), 1);
+            szC = coreSize * ones(max(nPart, 1), 1);
+            pX = obj.PosX; pY = obj.PosY;
+            if nPart == 0; pX = NaN; pY = NaN; szG = 1; szC = 1; nodeCol = [0 0 0]; end
+            obj.NodeGlowH = scatter(ax, pX, pY, szG, nodeCol, "filled", ...
+                "MarkerFaceAlpha", glowAlpha, "Tag", "GT_emfield");
+            obj.NodeCoreH = scatter(ax, pX, pY, szC, nodeCol, "filled", ...
+                "MarkerFaceAlpha", coreAlpha, "Tag", "GT_emfield");
 
             % Per-particle trail patches for cyclotron
             if isCyc && ~isempty(ax) && isvalid(ax)

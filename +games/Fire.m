@@ -379,10 +379,9 @@ classdef Fire < GameBase
             };
         end
 
-        function s = getHudText(obj)
+        function s = getHudText(~)
             %getHudText  Return fire HUD string.
-            s = "FIRE: " + upper(obj.SubMode) + " [1-4/M]  |  Grid " ...
-                + obj.GridLevel + "/10 [" + char(8593) + char(8595) + "]";
+            s = "";
         end
     end
 
@@ -390,6 +389,12 @@ classdef Fire < GameBase
     % PRIVATE METHODS
     % =================================================================
     methods (Access = private)
+
+        function s = buildHudString(obj)
+            %buildHudString  Return fire HUD string.
+            s = "FIRE: " + upper(obj.SubMode) + " [1-4/M]  |  Grid " ...
+                + obj.GridLevel + "/10 [" + char(8593) + char(8595) + "]";
+        end
 
         function buildGrid(obj)
             %buildGrid  Allocate fluid fields, precompute eigenvalues and meshgrid.
@@ -472,7 +477,7 @@ classdef Fire < GameBase
 
             % Sub-mode HUD label
             obj.ModeTextH = text(ax, dxRange(1) + 5, dyRange(2) - 5, ...
-                obj.getHudText(), ...
+                obj.buildHudString(), ...
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_fire");
         end
@@ -718,7 +723,7 @@ classdef Fire < GameBase
         function updateModeLabel(obj)
             %updateModeLabel  Refresh the bottom-left HUD text.
             if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
-                obj.ModeTextH.String = obj.getHudText();
+                obj.ModeTextH.String = obj.buildHudString();
             end
         end
     end

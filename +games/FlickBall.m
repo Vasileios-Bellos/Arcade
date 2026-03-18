@@ -55,6 +55,9 @@ classdef FlickBall < GameBase
         ComboFadeColor      (1,3) double = [0.2, 1, 0.4] % fade color
         ComboShowTic        uint64                        % tic when combo text appeared
 
+        % Display scaling
+        SpeedScale          (1,1) double = 1               % visual speed normalization: 240/minDim
+
         % Cached constants
         ThetaCircle48       (1,48) double                 % pre-computed linspace(0,2pi,48)
     end
@@ -69,6 +72,7 @@ classdef FlickBall < GameBase
         TrailH                   % line — comet trail
         TrailGlowH               % line — trail soft glow
         SpeedTextH               % text — speed/bounces near ball
+        ModeTextH                % text — bottom-left HUD label
     end
 
     % =================================================================
@@ -96,9 +100,14 @@ classdef FlickBall < GameBase
             cy = mean(dy);
 
             % Scale ball size to display
-            minDim = min(diff(dy), diff(dx));
+            areaW = diff(dx);
+            areaH = diff(dy);
+            minDim = min(areaH, areaW);
             obj.BallRadius = max(5, round(minDim * 0.042));
             obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
+
+            % Visual speed normalization (like Pong's SpeedScale pattern)
+            obj.SpeedScale = 240 / minDim;
 
             % Ball state
             obj.BallPos = [cx, cy];
@@ -169,6 +178,12 @@ classdef FlickBall < GameBase
                 "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_flick");
+
+            % Bottom-left HUD text (static)
+            obj.ModeTextH = text(ax, dx(1) + 5, dy(2) - 5, ...
+                "FLICK [move through ball]  |  RESET [0]", ...
+                "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
+                "VerticalAlignment", "bottom", "Tag", "GT_flick");
         end
 
         function onUpdate(obj, pos)
@@ -192,7 +207,7 @@ classdef FlickBall < GameBase
                         if nFilled >= 2
                             avgVel = mean(obj.FingerVelBuf(1:nFilled, :), 1);
                             flickSpd = norm(avgVel);
-                            if flickSpd >= 3  % minimum flick threshold (px/frame)
+                            if flickSpd >= 3 / obj.SpeedScale  % scaled flick threshold
                                 obj.applyFlick(avgVel);
                                 obj.FlickLocked = true;
                             end
@@ -228,7 +243,7 @@ classdef FlickBall < GameBase
             %onCleanup  Delete all flick ball graphics.
             handles = {obj.CoreH, obj.GlowH, obj.AuraH, ...
                        obj.TrailH, obj.TrailGlowH, obj.SpeedTextH, ...
-                       obj.ComboTextH};
+                       obj.ComboTextH, obj.ModeTextH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
@@ -242,6 +257,7 @@ classdef FlickBall < GameBase
             obj.TrailGlowH = [];
             obj.SpeedTextH = [];
             obj.ComboTextH = [];
+            obj.ModeTextH = [];
 
             % Orphan guard
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_flick");
@@ -272,8 +288,8 @@ classdef FlickBall < GameBase
         end
 
         function s = getHudText(~)
-            %getHudText  Return HUD instructions.
-            s = "FLICK [move through ball]  |  RESET [0]";
+            %getHudText  HUD managed by ModeTextH; return empty for host.
+            s = "";
         end
     end
 
@@ -306,7 +322,7 @@ classdef FlickBall < GameBase
             end
 
             % Flick launch bonus: base points proportional to speed
-            launchPoints = round(spd * 5 * max(1, obj.Combo * 0.5));
+            launchPoints = round(spd * obj.SpeedScale * 5 * max(1, obj.Combo * 0.5));
             obj.addScore(launchPoints);
 
             % Reset trail for clean start
@@ -315,7 +331,7 @@ classdef FlickBall < GameBase
             obj.TrailIdx = 0;
 
             % Visual effects
-            clr = obj.flickSpeedColor(spd);
+            clr = obj.flickSpeedColor(spd * obj.SpeedScale);
             obj.spawnHitEffect(obj.BallPos, clr, launchPoints, obj.BallRadius + 5);
             if obj.Combo >= 2
                 obj.showComboText(obj.BallPos + [0, -20]);
@@ -394,11 +410,11 @@ classdef FlickBall < GameBase
 
                 % Score per bounce: base + speed bonus, scaled by combo
                 spd = norm(obj.BallVel);
-                bouncePoints = round((5 + spd * 2) * max(1, obj.Combo * 0.5));
+                bouncePoints = round((5 + spd * obj.SpeedScale * 2) * max(1, obj.Combo * 0.5));
                 obj.addScore(bouncePoints);
 
                 % Spawn wall spark effect with points display
-                obj.spawnBounceEffect(bouncePos, bounceNormal, bouncePoints, spd);
+                obj.spawnBounceEffect(bouncePos, bounceNormal, bouncePoints, spd * obj.SpeedScale);
             end
 
             % Track max speed
@@ -412,7 +428,7 @@ classdef FlickBall < GameBase
             obj.TrailIdx = tidx;
 
             % Check if ball stopped
-            if spd < 0.3
+            if spd < 0.3 / obj.SpeedScale
                 obj.BallVel = [0, 0];
                 obj.BallMoving = false;
                 obj.Bounces = 0;
@@ -457,7 +473,7 @@ classdef FlickBall < GameBase
             rr = obj.BallRadius;
 
             % Speed-based color
-            clr = obj.flickSpeedColor(spd);
+            clr = obj.flickSpeedColor(spd * obj.SpeedScale);
 
             % --- Idle breathing (ball not moving) ---
             if ~obj.BallMoving

@@ -40,6 +40,9 @@ classdef Juggling < GameBase
         TrailIdx        (1,1) double = 0
         TrailLen        (1,1) double = 30
 
+        % Display scaling
+        SpeedScale      (1,1) double = 1               % visual speed normalization: 240/minDim
+
         % Stats
         Bounces         (1,1) double = 0
         Flicks          (1,1) double = 0
@@ -107,6 +110,9 @@ classdef Juggling < GameBase
             obj.Gravity = max(0.05, areaH * 0.001);
             obj.BallRadius = max(5, round(min(areaH, areaW) * 0.042));
             obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
+
+            % Visual speed normalization (like Pong's SpeedScale pattern)
+            obj.SpeedScale = 240 / min(areaW, areaH);
 
             % Initialize state
             obj.BallPos = [cx, cy * 0.7];
@@ -240,7 +246,7 @@ classdef Juggling < GameBase
 
             if bounced
                 obj.Bounces = obj.Bounces + 1;
-                obj.spawnBounceEffect(bouncePos, bounceNormal, 0, norm(obj.BallVel));
+                obj.spawnBounceEffect(bouncePos, bounceNormal, 0, norm(obj.BallVel) * obj.SpeedScale);
             end
 
             % --- 7. Extra ball physics + contact ---
@@ -346,7 +352,7 @@ classdef Juggling < GameBase
         function flickBall(obj, fingerVel)
             %flickBall  Apply bounce velocity to main ball from finger contact.
             fingerSpeed = norm(fingerVel);
-            if fingerSpeed > 1.0
+            if fingerSpeed > 1.0 / obj.SpeedScale
                 % Active flick — finger velocity drives the ball
                 obj.BallVel = fingerVel * 1.3;
             else
@@ -386,7 +392,7 @@ classdef Juggling < GameBase
             flickPoints = round((20 + hitSpeed * 3) * max(1, obj.Combo * 0.5));
             obj.addScore(flickPoints);
 
-            clr = obj.flickSpeedColor(hitSpeed);
+            clr = obj.flickSpeedColor(hitSpeed * obj.SpeedScale);
             obj.spawnHitEffect(hitPos, clr, flickPoints, obj.BallRadius + 5);
         end
 
@@ -397,7 +403,7 @@ classdef Juggling < GameBase
             by = obj.BallPos(2);
             ballSpeed = norm(obj.BallVel);
             r = obj.BallRadius;
-            clr = obj.flickSpeedColor(ballSpeed);
+            clr = obj.flickSpeedColor(ballSpeed * obj.SpeedScale);
 
             % Core dot
             if ~isempty(obj.BallCoreH) && isvalid(obj.BallCoreH)
@@ -556,7 +562,7 @@ classdef Juggling < GameBase
                     if distToExtra <= obj.HitRadius
                         if ~obj.ExtraBallLocked(bi)
                             fspeed = norm(avgVel);
-                            if fspeed > 1.0
+                            if fspeed > 1.0 / obj.SpeedScale
                                 obj.ExtraBallVel(bi, :) = avgVel * 1.3;
                             else
                                 bounceVy = -abs(obj.ExtraBallVel(bi, 2)) * obj.Restitution;
@@ -619,7 +625,7 @@ classdef Juggling < GameBase
                 bx = obj.ExtraBallPos(bi, 1);
                 by = obj.ExtraBallPos(bi, 2);
                 extraSpeed = norm(obj.ExtraBallVel(bi, :));
-                clr = obj.flickSpeedColor(extraSpeed);
+                clr = obj.flickSpeedColor(extraSpeed * obj.SpeedScale);
 
                 % Core
                 h = obj.ExtraBallCoreH{bi};

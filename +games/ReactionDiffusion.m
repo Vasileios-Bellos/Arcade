@@ -255,11 +255,9 @@ classdef ReactionDiffusion < GameBase
             };
         end
 
-        function s = getHudText(obj)
+        function s = getHudText(~)
             %getHudText  Return mode-specific HUD text.
-            s = upper(obj.SubMode) + " [M]  |  " + ...
-                upper(obj.ColorScheme) + " [N]  |  Grid " + ...
-                obj.GridLevel + "/10 [" + char(8593) + char(8595) + "]";
+            s = "";
         end
     end
 
@@ -267,6 +265,13 @@ classdef ReactionDiffusion < GameBase
     % PRIVATE METHODS
     % =================================================================
     methods (Access = private)
+
+        function s = buildHudString(obj)
+            %buildHudString  Return mode-specific HUD text.
+            s = upper(obj.SubMode) + " [M]  |  " + ...
+                upper(obj.ColorScheme) + " [N]  |  Grid " + ...
+                obj.GridLevel + "/10 [" + char(8593) + char(8595) + "]";
+        end
 
         function initGrid(obj)
             %initGrid  Initialize concentration fields, image, and label.
@@ -318,7 +323,7 @@ classdef ReactionDiffusion < GameBase
 
             % Mode text label
             obj.ModeTextH = text(ax, dxR(1) + 5, dyR(2) - 5, ...
-                obj.getHudText(), ...
+                obj.buildHudString(), ...
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
                 "VerticalAlignment", "bottom", ...
                 "Tag", "GT_reactiondiffusion");
@@ -343,7 +348,7 @@ classdef ReactionDiffusion < GameBase
         function updateModeLabel(obj)
             %updateModeLabel  Refresh the on-screen HUD label.
             if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
-                obj.ModeTextH.String = obj.getHudText();
+                obj.ModeTextH.String = obj.buildHudString();
             end
         end
 

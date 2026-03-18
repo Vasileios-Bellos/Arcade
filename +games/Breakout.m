@@ -85,6 +85,9 @@ classdef Breakout < GameBase
         % Level transition
         LevelPhase      (1,1) string = "play"
         LevelTransFrames (1,1) double = 0
+
+        % Display scale factor (1.0 at 240px reference)
+        Sc              (1,1) double = 1
     end
 
     % =================================================================
@@ -103,6 +106,7 @@ classdef Breakout < GameBase
         LevelTextH
         DangerLineH
         PowerBarH           = {}
+        ModeTextH                           % text -- bottom-left HUD label
     end
 
     % =================================================================
@@ -128,6 +132,9 @@ classdef Breakout < GameBase
             cx = mean(dx);
             areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
+
+            % Display scale factor (1.0 at 240px reference)
+            obj.Sc = min(areaW, areaH) / 240;
 
             % Scale sizes to display area
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
@@ -224,6 +231,12 @@ classdef Breakout < GameBase
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Visible", "off", ...
                 "Tag", "GT_breakout");
+
+            % Bottom-left HUD text
+            obj.ModeTextH = text(ax, dx(1) + 5, dy(2) - 5, ...
+                obj.buildHudString(), ...
+                "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
+                "VerticalAlignment", "bottom", "Tag", "GT_breakout");
 
             % Place ball on paddle
             obj.PaddleX = cx;
@@ -473,7 +486,7 @@ classdef Breakout < GameBase
             handles = {obj.BallCoreH, obj.BallGlowH, obj.BallAuraH, ...
                        obj.BallTrailH, obj.BallTrailGlowH, ...
                        obj.PaddleH, obj.PaddleGlowH, ...
-                       obj.LevelTextH, obj.DangerLineH};
+                       obj.LevelTextH, obj.DangerLineH, obj.ModeTextH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
@@ -484,6 +497,7 @@ classdef Breakout < GameBase
             obj.BallTrailH = []; obj.BallTrailGlowH = [];
             obj.PaddleH = []; obj.PaddleGlowH = [];
             obj.LevelTextH = []; obj.DangerLineH = [];
+            obj.ModeTextH = [];
 
             % Bricks
             if isstruct(obj.Bricks)
@@ -557,10 +571,27 @@ classdef Breakout < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  HUD showing level and lives.
+        function s = getHudText(~)
+            %getHudText  HUD managed by ModeTextH; return empty for host.
+            s = "";
+        end
+    end
+
+    % =================================================================
+    % PRIVATE METHODS — HUD
+    % =================================================================
+    methods (Access = private)
+        function s = buildHudString(obj)
+            %buildHudString  Build HUD string with level and lives.
             s = sprintf("Level %d/%d  |  Lives %d", ...
                 min(obj.Level, obj.MaxLevel), obj.MaxLevel, obj.Lives);
+        end
+
+        function updateHud(obj)
+            %updateHud  Refresh the bottom-left HUD text.
+            if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
+                obj.ModeTextH.String = obj.buildHudString();
+            end
         end
     end
 
@@ -594,7 +625,7 @@ classdef Breakout < GameBase
             gridW = areaW - 2 * brickMargin;
             brickW = gridW / nCols;
             brickH = max(8, round(areaH * 0.035));
-            brickGap = 2;
+            brickGap = round(2 * obj.Sc);
             gridTop = dy(1) + round(areaH * 0.08);
 
             % Row colors (top to bottom: red, orange, gold, green, cyan, magenta)
@@ -856,6 +887,7 @@ classdef Breakout < GameBase
             %loseLife  Handle ball exiting bottom.
             obj.Lives = obj.Lives - 1;
             obj.updateLivesDisplay();
+            obj.updateHud();
             obj.resetCombo();
 
             % Clean up extra balls
@@ -893,6 +925,7 @@ classdef Breakout < GameBase
         function nextLevel(obj)
             %nextLevel  Advance to next level with transition effect.
             obj.Level = obj.Level + 1;
+            obj.updateHud();
             if obj.Level > obj.MaxLevel
                 % Won the game
                 obj.IsRunning = false;
@@ -947,7 +980,7 @@ classdef Breakout < GameBase
             typeIdx = randi(numel(types));
             pType = types(typeIdx);
             pColor = colors{typeIdx};
-            pSpeed = 1.5;
+            pSpeed = 1.5 * obj.Sc;
 
             % Glow aura
             glowH = line(ax, x, y, "Color", [pColor, 0.2], ...
@@ -956,7 +989,7 @@ classdef Breakout < GameBase
 
             % Capsule body
             theta = linspace(0, 2*pi, 24);
-            capR = 5;
+            capR = round(5 * obj.Sc);
             patchH = patch(ax, x + capR*cos(theta), y + capR*sin(theta), ...
                 pColor, "FaceAlpha", 0.6, "EdgeColor", pColor, ...
                 "LineWidth", 1.5, "Tag", "GT_breakout");
@@ -1001,6 +1034,7 @@ classdef Breakout < GameBase
                     if obj.Lives < obj.MaxLives
                         obj.Lives = obj.Lives + 1;
                         obj.updateLivesDisplay();
+                        obj.updateHud();
                     end
             end
 
@@ -1021,7 +1055,7 @@ classdef Breakout < GameBase
                 % Update graphics position
                 if ~isempty(pu.patchH) && isvalid(pu.patchH)
                     theta = linspace(0, 2*pi, 24);
-                    capR = 5;
+                    capR = round(5 * obj.Sc);
                     set(pu.patchH, "XData", pu.x + capR*cos(theta), ...
                         "YData", pu.y + capR*sin(theta));
                 end

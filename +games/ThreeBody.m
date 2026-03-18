@@ -441,10 +441,6 @@ classdef ThreeBody < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return current HUD string for bottom of screen.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================

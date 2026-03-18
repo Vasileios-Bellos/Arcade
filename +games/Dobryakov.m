@@ -422,10 +422,6 @@ classdef Dobryakov < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return current mode HUD string.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================

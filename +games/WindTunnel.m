@@ -95,6 +95,7 @@ classdef WindTunnel < GameBase
         ImageH                              % image overlay
         ObstLineH                           % line -- obstacle boundary glow
         QuiverH                             % quiver -- velocity field arrows
+        ModeTextH                           % text -- bottom-left HUD label
     end
 
     % =================================================================
@@ -206,6 +207,12 @@ classdef WindTunnel < GameBase
                 zeros(size(QX)), zeros(size(QY)), 0.8, ...
                 "Color", [0, 0.9, 1, 0.7], "LineWidth", 1.2, ...
                 "MaxHeadSize", 0.5, "Visible", "off", "Tag", "GT_windtunnel");
+
+            % Bottom-left HUD text
+            obj.ModeTextH = text(ax, dxRange(1) + 5, dyRange(2) - 5, ...
+                obj.buildHudString(), ...
+                "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
+                "VerticalAlignment", "bottom", "Tag", "GT_windtunnel");
         end
 
         function onUpdate(obj, pos)
@@ -609,7 +616,7 @@ classdef WindTunnel < GameBase
 
         function onCleanup(obj)
             %onCleanup  Delete all wind tunnel graphics and reset state.
-            handles = {obj.ImageH, obj.ObstLineH, obj.QuiverH};
+            handles = {obj.ImageH, obj.ObstLineH, obj.QuiverH, obj.ModeTextH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h); delete(h); end
@@ -617,6 +624,7 @@ classdef WindTunnel < GameBase
             obj.ImageH = [];
             obj.ObstLineH = [];
             obj.QuiverH = [];
+            obj.ModeTextH = [];
             obj.F = [];
             obj.Rho = [];
             obj.Ux = [];
@@ -693,6 +701,9 @@ classdef WindTunnel < GameBase
                 otherwise
                     handled = false;
             end
+            if handled
+                obj.updateHud();
+            end
         end
 
         function r = getResults(obj)
@@ -711,8 +722,19 @@ classdef WindTunnel < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string with sub-mode, injection, obstacle, etc.
+        function s = getHudText(~)
+            %getHudText  HUD managed by ModeTextH; return empty for host.
+            s = "";
+        end
+    end
+
+    % =================================================================
+    % PRIVATE METHODS
+    % =================================================================
+    methods (Access = private)
+
+        function s = buildHudString(obj)
+            %buildHudString  Build HUD string with sub-mode, injection, obstacle, etc.
             nu = (obj.Tau - 0.5) / 3;
             charLen = max(1, obj.ObstCharLen);
             uInVal = obj.UIn;
@@ -737,12 +759,13 @@ classdef WindTunnel < GameBase
                 obj.GridLevel, 10, char(8593), char(8595), ...
                 uInVal, char(8592), char(8594), char(8776), Re);
         end
-    end
 
-    % =================================================================
-    % PRIVATE METHODS
-    % =================================================================
-    methods (Access = private)
+        function updateHud(obj)
+            %updateHud  Refresh the bottom-left HUD text.
+            if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
+                obj.ModeTextH.String = obj.buildHudString();
+            end
+        end
 
         function updateBounceIndices(obj)
             %updateBounceIndices  Precompute linear index pairs for bounce-back.

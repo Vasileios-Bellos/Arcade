@@ -406,16 +406,6 @@ classdef Planets < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string for host display.
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
-            s = sprintf("Time: %.2f yr  |  %s %.0f M  |  %.0fs", ...
-                obj.SimTime, upper(obj.FingerMode), ...
-                obj.FingerMass, elapsed);
-        end
     end
 
     % =================================================================

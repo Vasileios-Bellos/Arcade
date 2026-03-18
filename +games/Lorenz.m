@@ -425,10 +425,6 @@ classdef Lorenz < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return current HUD string for host display.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================

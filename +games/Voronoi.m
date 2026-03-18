@@ -69,6 +69,11 @@ classdef Voronoi < GameBase
             areaH = dy(2) - dy(1);
             nSeeds = obj.SeedCount;
 
+            % Scale display-space constants for actual display size
+            sc = min(areaW, areaH) / 240;
+            obj.RepelRadius = 80 * sc;
+            obj.SpeedCap = 3.0 * sc;
+
             % Reset state
             obj.FrameCount = 0;
             obj.SubMode = "voronoi";
@@ -404,10 +409,6 @@ classdef Voronoi < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string.
-            s = upper(obj.SubMode) + " [M]";
-        end
     end
 
     % =================================================================

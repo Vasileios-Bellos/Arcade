@@ -24,6 +24,9 @@ classdef Catching < GameBase
         SpawnCooldown   (1,1) double = 0         % frames until next spawn
         CatchRadiusBonus (1,1) double = 0        % extra catch radius for mouse input
 
+        % Display scale factor (1.0 at 240px, ~3.5 at 853px)
+        Sc              (1,1) double = 1
+
         % Timing
         CatchStartTic   uint64                   % tic for difficulty ramp
         LastCatchTic     uint64                   % tic of last catch (combo decay)
@@ -82,6 +85,10 @@ classdef Catching < GameBase
             obj.MaxCombo = 0;
             obj.ShowHostCombo = false;
 
+            areaW = diff(displayRange.X);
+            areaH = diff(displayRange.Y);
+            obj.Sc = min(areaW, areaH) / 240;
+
             obj.Fireflies = [];
             obj.SpawnCooldown = 40;
             obj.CatchStartTic = tic;
@@ -124,7 +131,7 @@ classdef Catching < GameBase
             % a natural ~30px "fat finger" zone from scatter marker + wobble
             isMouseInput = ~isfield(caps, "smoothedTrace");
             if isMouseInput
-                obj.CatchRadiusBonus = 8;
+                obj.CatchRadiusBonus = round(8 * obj.Sc);
             else
                 obj.CatchRadiusBonus = 0;
             end
@@ -164,8 +171,9 @@ classdef Catching < GameBase
                         ddx = snitchX - pos(1);
                         ddy = snitchY - pos(2);
                         dFinger = hypot(ddx, ddy);
-                        if dFinger < 100 && dFinger > 0.1
-                            push = ((100 - dFinger) / 100)^2 * 8;
+                        evadeR = round(100 * obj.Sc);
+                        if dFinger < evadeR && dFinger > 0.1
+                            push = ((evadeR - dFinger) / evadeR)^2 * 8 * obj.Sc;
                             evadeX = ddx / dFinger * push;
                             evadeY = ddy / dFinger * push;
                         end
@@ -332,27 +340,28 @@ classdef Catching < GameBase
 
             % Tier selection (weighted random — 5 tiers, rarer = more points)
             bs = obj.BaseSpeed;
+            sc = obj.Sc;
             tierRoll = rand;
             if tierRoll < 0.35
                 % Cyan — common, large, slow (35%)
                 clr = obj.ColorCyan;
-                pts = 100; radius = 14; spd = bs * 1;
+                pts = 100; radius = round(14 * sc); spd = bs * 1;
             elseif tierRoll < 0.65
                 % Green — common (30%)
                 clr = obj.ColorGreen;
-                pts = 200; radius = 13; spd = bs * 2;
+                pts = 200; radius = round(13 * sc); spd = bs * 2;
             elseif tierRoll < 0.85
                 % Magenta — medium (20%)
                 clr = obj.ColorMagenta;
-                pts = 300; radius = 12; spd = bs * 3;
+                pts = 300; radius = round(12 * sc); spd = bs * 3;
             elseif tierRoll < 0.95
                 % Purple — uncommon (10%)
                 clr = obj.ColorPurple;
-                pts = 400; radius = 11; spd = bs * 4;
+                pts = 400; radius = round(11 * sc); spd = bs * 4;
             else
                 % Gold — legendary, small and fast (5%)
                 clr = obj.ColorGold;
-                pts = 500; radius = 10; spd = bs * 4;
+                pts = 500; radius = round(10 * sc); spd = bs * 4;
             end
 
             isGold = (tierRoll >= 0.95);
@@ -392,7 +401,7 @@ classdef Catching < GameBase
                 startX = ff.posX; startY = ff.posY;
             else
                 % Path-based firefly — closed orbits only (loop, figure8)
-                corridorW = 10;
+                corridorW = round(10 * obj.Sc);
                 for attempt = 1:50 %#ok<FXUP>
                     p = games.Catching.generatePath(3, drx, dry, corridorW, true);
                     if ismember(p.Type, ["loop", "figure8"])
@@ -550,7 +559,8 @@ classdef Catching < GameBase
             if nargin < 5; applyRotation = true; end
             if nargin < 4; corridorWidth = 20; end
 
-            margin = 25;
+            localSc = min(diff(displayRangeX), diff(displayRangeY)) / 240;
+            margin = round(25 * localSc);
             xMin = displayRangeX(1) + margin;
             xMax = displayRangeX(2) - margin;
             yMin = displayRangeY(1) + margin;

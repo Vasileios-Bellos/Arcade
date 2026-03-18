@@ -37,6 +37,7 @@ classdef Boids < GameBase
         RandPhase       (:,4) double
         ColorScheme     (1,1) double = 1
         FrameCount      (1,1) double = 0
+        DisplayScale    (1,1) double = 1       % min(areaW,areaH)/240
 
         % Trail circular buffer
         TrailX          (:,:) double
@@ -79,6 +80,13 @@ classdef Boids < GameBase
             areaW = diff(dxRange);
             areaH = diff(dyRange);
             nBoids = obj.Count;
+
+            % Scale physics constants to display size (tuned for ~240px)
+            sc = min(areaW, areaH) / 240;
+            obj.DisplayScale = sc;
+            obj.MaxSpeed = 4 * sc;
+            obj.PerceptRadius = 60 * sc;
+            obj.SepRadius = 25 * sc;
 
             % Circular spawn — uniform distribution inside ellipse
             spawnAngles = rand(nBoids, 1) * 2 * pi;
@@ -207,14 +215,16 @@ classdef Boids < GameBase
                         targetX = px;
                         targetY = py;
                     end
-                    formForceX = (targetX - px) * 0.06 + 0.15 * randn(nBoids, 1);
-                    formForceY = (targetY - py) * 0.06 + 0.15 * randn(nBoids, 1);
+                    scLocal = obj.DisplayScale;
+                    formForceX = (targetX - px) * 0.06 + 0.15 * scLocal * randn(nBoids, 1);
+                    formForceY = (targetY - py) * 0.06 + 0.15 * scLocal * randn(nBoids, 1);
 
                 case "predator"
                     % Formation flees from finger. Flee components that
                     % push toward a nearby wall are zeroed so the flock
                     % slides along edges instead of flying off-screen.
                     centX = mean(px); centY = mean(py);
+                    scLocal = obj.DisplayScale;
                     if ~any(isnan(pos))
                         dfx = centX - pos(1);
                         dfy = centY - pos(2);
@@ -227,7 +237,7 @@ classdef Boids < GameBase
                             fleeX = pushStr * (dfx / dist2F + 0.7 * tangX);
                             fleeY = pushStr * (dfy / dist2F + 0.7 * tangY);
                             % Clip flee toward nearby walls
-                            wallZone = 30;
+                            wallZone = 30 * scLocal;
                             if centX < dxRange(1) + wallZone
                                 fleeX = max(fleeX, 0);
                             end
@@ -247,14 +257,15 @@ classdef Boids < GameBase
                     targetX = centX + offX;
                     targetY = centY + offY;
                     formForceX = formForceX + (targetX - px) * 0.06 ...
-                        + 0.15 * randn(nBoids, 1);
+                        + 0.15 * scLocal * randn(nBoids, 1);
                     formForceY = formForceY + (targetY - py) * 0.06 ...
-                        + 0.15 * randn(nBoids, 1);
+                        + 0.15 * scLocal * randn(nBoids, 1);
 
                 case "vortex"
                     % Force-based orbiting with per-boid unique radii.
                     % Each boid gets a distinct orbit radius (spread via
                     % random phase), inner boids orbit faster.
+                    scLocal = obj.DisplayScale;
                     if ~any(isnan(pos))
                         dfx = px - pos(1);
                         dfy = py - pos(2);
@@ -264,8 +275,8 @@ classdef Boids < GameBase
                         tangY = dfx ./ safeD;
                         % Per-boid orbit radius — uniformly spread
                         maxHomeR = max(sqrt(offX.^2 + offY.^2));
-                        minR = 15;
-                        maxR = max(maxHomeR * 0.6, 30);
+                        minR = 15 * scLocal;
+                        maxR = max(maxHomeR * 0.6, 30 * scLocal);
                         orbitR = minR + (maxR - minR) ...
                             * obj.RandPhase(:, 1) / (2 * pi);
                         % Per-boid radial breathing
@@ -279,10 +290,10 @@ classdef Boids < GameBase
                             * (1 - orbitR / max(maxR, 1));
                         formForceX = tangSpd .* tangX ...
                             - radStr .* dfx ./ safeD ...
-                            + 0.15 * randn(nBoids, 1);
+                            + 0.15 * scLocal * randn(nBoids, 1);
                         formForceY = tangSpd .* tangY ...
                             - radStr .* dfy ./ safeD ...
-                            + 0.15 * randn(nBoids, 1);
+                            + 0.15 * scLocal * randn(nBoids, 1);
                     end
 
                 case "murmuration"
@@ -316,13 +327,14 @@ classdef Boids < GameBase
                     [nsX, nsY] = games.Boids.murmurationShape(nX, nY, hA, nxt);
                     tX = (1 - bP) * csX + bP * nsX;
                     tY = (1 - bP) * csY + bP * nsY;
+                    scLocal = obj.DisplayScale;
                     ph = obj.RandPhase;
                     targetX = centerX + tX * dispScale ...
-                        + 3 * sin(fc * 0.04 + ph(:, 1));
+                        + 3 * scLocal * sin(fc * 0.04 + ph(:, 1));
                     targetY = centerY + tY * dispScale ...
-                        + 3 * sin(fc * 0.035 + ph(:, 2));
-                    formForceX = (targetX - px) * 0.15 + 0.08 * randn(nBoids, 1);
-                    formForceY = (targetY - py) * 0.15 + 0.08 * randn(nBoids, 1);
+                        + 3 * scLocal * sin(fc * 0.035 + ph(:, 2));
+                    formForceX = (targetX - px) * 0.15 + 0.08 * scLocal * randn(nBoids, 1);
+                    formForceY = (targetY - py) * 0.15 + 0.08 * scLocal * randn(nBoids, 1);
             end
 
             % Integrate: damp then apply forces
@@ -338,7 +350,7 @@ classdef Boids < GameBase
             end
 
             % Soft wall avoidance
-            margin = 10; wallStr = 0.2;
+            margin = 10 * obj.DisplayScale; wallStr = 0.2;
             lPen = max(dxRange(1) + margin - px, 0);
             rPen = max(px - (dxRange(2) - margin), 0);
             tPen = max(dyRange(1) + margin - py, 0);
@@ -492,10 +504,6 @@ classdef Boids < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return current HUD string for host display.
-            s = obj.buildHudString();
-        end
     end
 
     % =================================================================

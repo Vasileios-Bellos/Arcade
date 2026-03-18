@@ -35,6 +35,18 @@ classdef GravityWell < GameBase
     end
 
     % =================================================================
+    % SCALED PHYSICS (computed in onInit from display size)
+    % =================================================================
+    properties (Access = private)
+        ScaledGravConst     (1,1) double = 5
+        ScaledSoftening     (1,1) double = 225
+        ScaledVelocityCap   (1,1) double = 4
+        ScaledRepelRadius   (1,1) double = 60
+        ScaledOffScreenMargin (1,1) double = 40
+        DisplayScale        (1,1) double = 1       % min(areaW,areaH)/240
+    end
+
+    % =================================================================
     % GAME STATE
     % =================================================================
     properties (Access = private)
@@ -91,6 +103,17 @@ classdef GravityWell < GameBase
             obj.SpawnTimer = 0;
             obj.FrameCount = 0;
             obj.SubMode = "attract";
+
+            % Scale physics constants to display size (tuned for ~240px)
+            areaW = displayRange.X(2) - displayRange.X(1);
+            areaH = displayRange.Y(2) - displayRange.Y(1);
+            sc = min(areaW, areaH) / 240;
+            obj.DisplayScale          = sc;
+            obj.ScaledGravConst       = obj.GravConst * sc^2;
+            obj.ScaledSoftening       = obj.Softening * sc^2;   % (15*sc)^2
+            obj.ScaledVelocityCap     = obj.VelocityCap * sc;
+            obj.ScaledRepelRadius     = obj.RepelRadius * sc;
+            obj.ScaledOffScreenMargin = obj.OffScreenMargin * sc;
 
             obj.Particles = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                 "particleMass", {}, "colorIdx", {}, "coreH", {}, "glowH", {}, ...
@@ -166,18 +189,18 @@ classdef GravityWell < GameBase
                 for ai = 1:size(attractorData, 1)
                     ddx = attractorData(ai, 1) - p.x;
                     ddy = attractorData(ai, 2) - p.y;
-                    r2 = ddx^2 + ddy^2 + obj.Softening;
+                    r2 = ddx^2 + ddy^2 + obj.ScaledSoftening;
                     rDist = sqrt(r2);
-                    forceVal = obj.GravConst * attractorData(ai, 3) ...
+                    forceVal = obj.ScaledGravConst * attractorData(ai, 3) ...
                         * p.particleMass / r2;
 
                     % Repel mode: short-range only (quadratic falloff)
                     if attractorData(ai, 3) < 0
-                        if rDist > obj.RepelRadius
+                        if rDist > obj.ScaledRepelRadius
                             forceVal = 0;
                         else
                             forceVal = forceVal ...
-                                * (1 - rDist / obj.RepelRadius)^2;
+                                * (1 - rDist / obj.ScaledRepelRadius)^2;
                         end
                     end
                     accelX = accelX + forceVal * ddx / rDist;
@@ -196,8 +219,8 @@ classdef GravityWell < GameBase
                 p.vx = p.vx * obj.Damping;
                 p.vy = p.vy * obj.Damping;
                 spd = sqrt(p.vx^2 + p.vy^2);
-                if spd > obj.VelocityCap
-                    scaleFactor = obj.VelocityCap / spd;
+                if spd > obj.ScaledVelocityCap
+                    scaleFactor = obj.ScaledVelocityCap / spd;
                     p.vx = p.vx * scaleFactor;
                     p.vy = p.vy * scaleFactor;
                 end
@@ -210,10 +233,10 @@ classdef GravityWell < GameBase
                 obj.Particles(pidx) = p;
 
                 % Off-screen removal — combo resets on particle loss
-                if p.x < dx(1) - obj.OffScreenMargin ...
-                        || p.x > dx(2) + obj.OffScreenMargin ...
-                        || p.y < dy(1) - obj.OffScreenMargin ...
-                        || p.y > dy(2) + obj.OffScreenMargin
+                if p.x < dx(1) - obj.ScaledOffScreenMargin ...
+                        || p.x > dx(2) + obj.ScaledOffScreenMargin ...
+                        || p.y < dy(1) - obj.ScaledOffScreenMargin ...
+                        || p.y > dy(2) + obj.ScaledOffScreenMargin
                     obj.deleteParticleGraphics(p);
                     obj.Particles(pidx) = [];
                     obj.resetCombo();
@@ -319,10 +342,6 @@ classdef GravityWell < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return mode-specific HUD text.
-            s = upper(obj.SubMode) + " [M]";
-        end
     end
 
     % =================================================================
@@ -352,7 +371,7 @@ classdef GravityWell < GameBase
             toCenterAngle = atan2(mean(dy) - y, mean(dx) - x);
             tangentOffset = (rand - 0.5) * pi * 0.6;   % +/-54 deg offset
             launchAngle = toCenterAngle + tangentOffset;
-            launchSpeed = 0.5 + rand * 0.8;
+            launchSpeed = (0.5 + rand * 0.8) * obj.DisplayScale;
             vx = launchSpeed * cos(launchAngle);
             vy = launchSpeed * sin(launchAngle);
             pMass = 0.5 + rand * 1.5;

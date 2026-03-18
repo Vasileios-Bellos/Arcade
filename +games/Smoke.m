@@ -341,11 +341,9 @@ classdef Smoke < GameBase
             };
         end
 
-        function s = getHudText(obj)
+        function s = getHudText(~)
             %getHudText  Return HUD string for bottom of screen.
-            s = "SMOKE: " + upper(obj.SubMode) ...
-                + " [1-4/M]  |  Grid " + obj.GridLevel + "/10 [" ...
-                + char(8593) + char(8595) + "]";
+            s = "";
         end
     end
 
@@ -353,6 +351,13 @@ classdef Smoke < GameBase
     % PRIVATE HELPERS
     % =================================================================
     methods (Access = private)
+
+        function s = buildHudString(obj)
+            %buildHudString  Return HUD string for bottom of screen.
+            s = "SMOKE: " + upper(obj.SubMode) ...
+                + " [1-4/M]  |  Grid " + obj.GridLevel + "/10 [" ...
+                + char(8593) + char(8595) + "]";
+        end
 
         function buildGrid(obj)
             %buildGrid  Allocate fluid fields, meshgrid, and FFT eigenvalues.
@@ -410,7 +415,7 @@ classdef Smoke < GameBase
 
             % HUD label
             obj.ModeTextH = text(ax, dxR(1) + 5, dyR(2) - 5, ...
-                obj.getHudText(), ...
+                obj.buildHudString(), ...
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_smoke");
         end
@@ -489,7 +494,7 @@ classdef Smoke < GameBase
 
             % Update HUD label
             if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
-                obj.ModeTextH.String = obj.getHudText();
+                obj.ModeTextH.String = obj.buildHudString();
             end
         end
 

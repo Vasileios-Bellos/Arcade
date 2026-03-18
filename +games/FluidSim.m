@@ -357,8 +357,19 @@ classdef FluidSim < GameBase
             };
         end
 
-        function s = getHudText(obj)
+        function s = getHudText(~)
             %getHudText  Return mode-specific HUD string.
+            s = "";
+        end
+    end
+
+    % =================================================================
+    % PRIVATE METHODS
+    % =================================================================
+    methods (Access = private)
+
+        function s = buildHudString(obj)
+            %buildHudString  Return mode-specific HUD string.
             if obj.InjMode == "colormap"
                 names = GameBase.lbmColormapNames();
                 cmIdx = max(1, min(numel(names), obj.ColormapIdx));
@@ -373,12 +384,6 @@ classdef FluidSim < GameBase
                 + "]  |  Vol " + sprintf("%.1f", obj.SplatRadius) ...
                 + " [" + char(8592) + char(8594) + "]";
         end
-    end
-
-    % =================================================================
-    % PRIVATE METHODS
-    % =================================================================
-    methods (Access = private)
 
         function buildGrid(obj)
             %buildGrid  Allocate fluid fields and precompute FFT eigenvalues.
@@ -434,7 +439,7 @@ classdef FluidSim < GameBase
             uistack(obj.ImageH, "up");
 
             obj.ModeTextH = text(ax, dxRange(1) + 5, dyRange(2) - 5, ...
-                obj.getHudText(), ...
+                obj.buildHudString(), ...
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_fluidsim");
         end
@@ -654,7 +659,7 @@ classdef FluidSim < GameBase
         function updateModeLabel(obj)
             %updateModeLabel  Refresh the bottom-left HUD text.
             if ~isempty(obj.ModeTextH) && isvalid(obj.ModeTextH)
-                obj.ModeTextH.String = obj.getHudText();
+                obj.ModeTextH.String = obj.buildHudString();
             end
         end
 

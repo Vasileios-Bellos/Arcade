@@ -413,10 +413,6 @@ classdef Lissajous < GameBase
             };
         end
 
-        function s = getHudText(obj)
-            %getHudText  Return HUD string.
-            s = upper(obj.SubMode) + " [M]";
-        end
     end
 
     % =================================================================
