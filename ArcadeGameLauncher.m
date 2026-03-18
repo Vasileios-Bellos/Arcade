@@ -84,6 +84,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         ComboFadeColor  (1,3) double = [0.2, 1, 0.4]
         LastScoreChangeTic
         PrevSyncedScore (1,1) double = 0
+        ResultsTic                              % tic when results screen opened
     end
 
     % =================================================================
@@ -536,12 +537,16 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     end
 
                 case "results"
+                    % Ignore keys for 0.5s (prevents ESC key repeat from
+                    % immediately dismissing results screen)
+                    if ~isempty(obj.ResultsTic) && toc(obj.ResultsTic) < 0.5
+                        return;
+                    end
                     if key == "r" || key == "return" || key == "space"
                         obj.playAgain();
                     elseif key == "escape"
                         obj.enterMenu();
                     end
-                    % Other keys ignored — results stay visible
             end
         end
     end
@@ -697,6 +702,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function enterResults(obj)
             %enterResults  Show results screen.
             obj.State = "results";
+            obj.ResultsTic = tic;    % guard against key repeat dismissing results
             obj.ComboFadeTic = [];   % stop combo fade from hiding results text
             obj.ComboShowTic = [];
 
