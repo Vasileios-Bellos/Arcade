@@ -27,8 +27,9 @@ classdef CrystalGrowth < GameBase
         Grid            (:,:) uint8             % 0=empty, 1-4=crystal types
         Age             (:,:) uint16            % growth age per cell (for color gradient)
         Dir             (:,:) uint8             % growth direction index (1-8) per cell
-        GridW           (1,1) double = 160      % grid width (columns)
-        GridH           (1,1) double = 120      % grid height (rows)
+        ColorNoise      (:,:) int8              % per-cell noise for visual variation
+        GridW           (1,1) double = 200      % grid width (columns)
+        GridH           (1,1) double = 150      % grid height (rows)
         MaxAge          (1,1) uint16 = 500      % max age for color normalization
         GrowthProb      (1,1) double = 0.08     % base growth probability per frame
         BranchProb      (1,1) double = 0.15     % probability of branching
@@ -76,6 +77,7 @@ classdef CrystalGrowth < GameBase
             obj.Grid = zeros(Ny, Nx, "uint8");
             obj.Age = zeros(Ny, Nx, "uint16");
             obj.Dir = zeros(Ny, Nx, "uint8");
+            obj.ColorNoise = int8(randi([-15, 15], Ny, Nx));
             obj.SeedType = 1;
             obj.BrushSize = 2;
             obj.FrameCount = 0;
@@ -203,6 +205,9 @@ classdef CrystalGrowth < GameBase
                 neighborDir  = padDir((2:Ny+1) + nr, (2:Nx+1) + nc);
 
                 canGrow = (newGrid == 0) & (neighborType > 0);
+                % Prevent growth into border cells (eliminates boundary racing)
+                canGrow(1, :) = false; canGrow(end, :) = false;
+                canGrow(:, 1) = false; canGrow(:, end) = false;
                 if ~any(canGrow, "all"); continue; end
 
                 % Vectorized directional weight computation
@@ -385,6 +390,15 @@ classdef CrystalGrowth < GameBase
                 B(m4) = uint8(40 + (1 - t) .* 60);
             end
 
+            % Per-cell color variation (subtle noise)
+            noise = double(obj.ColorNoise);
+            isXtalAny = (grid > 0);
+            if any(isXtalAny, "all")
+                R(isXtalAny) = uint8(max(0, min(255, double(R(isXtalAny)) + noise(isXtalAny))));
+                G(isXtalAny) = uint8(max(0, min(255, double(G(isXtalAny)) + noise(isXtalAny))));
+                B(isXtalAny) = uint8(max(0, min(255, double(B(isXtalAny)) + noise(isXtalAny) * 0.5)));
+            end
+
             % Glow effect: freshly grown cells (age < 10) get extra brightness
             fresh = (grid > 0) & (age < 10);
             if any(fresh, "all")
@@ -439,6 +453,7 @@ classdef CrystalGrowth < GameBase
             obj.Grid = zeros(Ny, Nx, "uint8");
             obj.Age = zeros(Ny, Nx, "uint16");
             obj.Dir = zeros(Ny, Nx, "uint8");
+            obj.ColorNoise = int8(randi([-15, 15], Ny, Nx));
             obj.TotalGrown = 0;
 
             switch obj.SubMode
