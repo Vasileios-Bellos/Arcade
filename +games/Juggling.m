@@ -47,6 +47,7 @@ classdef Juggling < GameBase
         Bounces         (1,1) double = 0
         Flicks          (1,1) double = 0   % session total (for results)
         BallFlicks      (1,1) double = 0   % current main ball's flick count
+        BestStreak      (1,1) double = 0   % longest single-ball flick streak
         MaxSpeed        (1,1) double = 0
         Drops           (1,1) double = 0
         LastFlickTic    uint64
@@ -123,6 +124,7 @@ classdef Juggling < GameBase
             obj.Bounces = 0;
             obj.Flicks = 0;
             obj.BallFlicks = 0;
+            obj.BestStreak = 0;
             obj.Drops = 0;
             obj.MaxSpeed = 0;
             obj.BallPhase = 0;
@@ -261,6 +263,7 @@ classdef Juggling < GameBase
 
             % --- 8. Bottom edge = main ball dropped ---
             if obj.BallPos(2) > dy(2) + obj.BallRadius
+                obj.BestStreak = max(obj.BestStreak, obj.BallFlicks);
                 obj.spawnHitEffect(obj.BallPos, obj.ColorRed, 0);
                 obj.resetCombo();
                 obj.Drops = obj.Drops + 1;
@@ -346,9 +349,11 @@ classdef Juggling < GameBase
             if ~isempty(obj.StartTic)
                 elapsed = toc(obj.StartTic);
             end
+            % Capture current ball's streak before results
+            bestStreak = max(obj.BestStreak, obj.BallFlicks);
             r.Lines = {
-                sprintf("Survival: %.1fs  |  Flicks: %d  |  Bounces: %d  |  Peak Speed: %.1f  |  Max Combo: %d", ...
-                    elapsed, obj.Flicks, obj.Bounces, obj.MaxSpeed, obj.MaxCombo)
+                sprintf("Time: %.1fs  |  Total Flicks: %d  |  Best Streak: %d  |  Best Combo: %d", ...
+                    elapsed, obj.Flicks, bestStreak, obj.MaxCombo)
             };
         end
     end
@@ -621,6 +626,7 @@ classdef Juggling < GameBase
 
                 % Bottom death — remove this extra, reset combo
                 if obj.ExtraBallPos(bi, 2) > dy(2) + r
+                    obj.BestStreak = max(obj.BestStreak, obj.ExtraBallFlicks(bi));
                     obj.spawnHitEffect(obj.ExtraBallPos(bi, :), obj.ColorRed, 0);
                     obj.resetCombo();
                     obj.Drops = obj.Drops + 1;
