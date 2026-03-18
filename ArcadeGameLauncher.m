@@ -556,6 +556,15 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.ArrowHeld(:) = false;
             obj.KeyboardMode = false;
 
+            % Stop timer during rebuild to prevent re-entrant onFrame
+            % (SizeChangedFcn and key events can fire during drawnow)
+            restartTimer = false;
+            if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer) ...
+                    && strcmp(obj.RenderTimer.Running, "on")
+                stop(obj.RenderTimer);
+                restartTimer = true;
+            end
+
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                 try
                     obj.ActiveGame.onCleanup();
@@ -581,6 +590,11 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.Menu.show();
             end
             obj.hideGameplayHUD();
+
+            drawnow;
+            if restartTimer
+                start(obj.RenderTimer);
+            end
         end
 
         function enterCountdown(obj)
