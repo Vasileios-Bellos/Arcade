@@ -411,7 +411,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
             % Arrow key cursor movement (when keyboard mode active)
             if any(obj.ArrowHeld)
-                spd = min(diff(obj.DisplayRange.X), diff(obj.DisplayRange.Y)) * 0.012 * obj.DtScale;
+                spd = min(diff(obj.DisplayRange.X), diff(obj.DisplayRange.Y)) * 0.04 * obj.DtScale;
                 if obj.ArrowHeld(1); obj.MousePos(2) = obj.MousePos(2) - spd; end  % up
                 if obj.ArrowHeld(2); obj.MousePos(2) = obj.MousePos(2) + spd; end  % down
                 if obj.ArrowHeld(3); obj.MousePos(1) = obj.MousePos(1) - spd; end  % left

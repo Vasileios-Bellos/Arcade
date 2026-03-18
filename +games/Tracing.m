@@ -606,11 +606,10 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Local search window — forward-biased
+            % 1. Wide search for deviation (is finger inside corridor?)
             searchStart = max(1, progIdx - 5);
             searchEnd = min(nPts, progIdx + 80);
             searchRange = searchStart:searchEnd;
-
             localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
                                pathData.Y(searchRange) - fingerPos(2));
             [deviation, localMinIdx] = min(localDists);
@@ -634,9 +633,27 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Advance progress (forward only, rate-limited max 8 pts/frame)
-            if nearestIdx > progIdx
-                obj.TracingProgressIdx = min(nearestIdx, progIdx + 8);
+            % 3. Step-by-step progress advancement (prevents skipping
+            %    across self-intersecting paths like figure-8 / loops).
+            %    Progress only advances when finger is closer to the next
+            %    path point than the current one.
+            advIdx = progIdx;
+            advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
+                            pathData.Y(progIdx) - fingerPos(2));
+            stepsLeft = 8;
+            while stepsLeft > 0 && advIdx < nPts
+                dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
+                              pathData.Y(advIdx + 1) - fingerPos(2));
+                if dNext < advDist
+                    advIdx = advIdx + 1;
+                    advDist = dNext;
+                    stepsLeft = stepsLeft - 1;
+                else
+                    break;
+                end
+            end
+            if advIdx > progIdx
+                obj.TracingProgressIdx = advIdx;
             end
 
             % 3b. Move progress target to frontier

@@ -564,7 +564,7 @@ classdef (Abstract) GameBase < handle
 
                     % Arrow key cursor movement
                     if any(arrowHeld)
-                        spd = min(rangeX, rangeY) * 0.012 * obj.DtScale;
+                        spd = min(rangeX, rangeY) * 0.04 * obj.DtScale;
                         if arrowHeld(1); mousePos(2) = mousePos(2) - spd; end
                         if arrowHeld(2); mousePos(2) = mousePos(2) + spd; end
                         if arrowHeld(3); mousePos(1) = mousePos(1) - spd; end
