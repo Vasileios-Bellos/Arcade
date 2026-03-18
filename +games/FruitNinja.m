@@ -83,6 +83,10 @@ classdef FruitNinja < GameBase
         % Display scale factor (1.0 at ~180px reference)
         Sc              (1,1) double = 1
 
+        % Multi-cut chain
+        MultiCutCount   (1,1) double = 0     % fruits cut in current chain
+        MultiCutTic     uint64               % tic of last slice in chain
+
         % Trace buffer (own shifting buffer or host-provided)
         GetSmoothedTrace    function_handle = function_handle.empty
         TraceBufferX    (:,1) double
@@ -120,7 +124,7 @@ classdef FruitNinja < GameBase
             % Display scale factor (1.0 at ~180px reference)
             obj.Sc = min(areaW, areaH) / 180;
 
-            obj.Gravity = max(0.06, areaH * 0.001);
+            obj.Gravity = max(0.06, areaH * 0.0008);
             obj.SpawnTimer = 0;
             obj.StartTicLocal = tic;
             obj.FruitsSliced = 0;
@@ -128,6 +132,8 @@ classdef FruitNinja < GameBase
             obj.SliceHistory = struct("centrality", {}, "speed", {}, ...
                 "angle", {}, "position", {}, "time", {});
             obj.PrevPos = [NaN, NaN];
+            obj.MultiCutCount = 0;
+            obj.MultiCutTic = [];
 
             % Pre-compute theta for fruit circles
             obj.ThetaCircle24 = linspace(0, 2*pi, 24);
@@ -232,7 +238,7 @@ classdef FruitNinja < GameBase
 
             % --- Spawn fruits ---
             obj.SpawnTimer = obj.SpawnTimer + ds;
-            spawnInterval = max(15, 45 - obj.FruitsSliced * 0.3);
+            spawnInterval = max(20, 55 - obj.FruitsSliced * 0.2);
             if obj.SpawnTimer >= spawnInterval
                 obj.SpawnTimer = 0;
                 obj.spawnFruit();
@@ -630,10 +636,19 @@ classdef FruitNinja < GameBase
             smallerArc = min(mod(a2 - a1, 2*pi), mod(a1 - a2, 2*pi));
             centrality = 1 - cos(smallerArc / 2);
 
-            % Scoring: base x centrality bonus x combo
+            % Multi-cut chain: slices within 0.3s are part of the same slash
+            if ~isempty(obj.MultiCutTic) && toc(obj.MultiCutTic) < 0.3
+                obj.MultiCutCount = obj.MultiCutCount + 1;
+            else
+                obj.MultiCutCount = 1;
+            end
+            obj.MultiCutTic = tic;
+
+            % Scoring: base x centrality bonus x combo x multi-cut bonus
             comboMult = obj.comboMultiplier();
             centralityBonus = 0.5 + centrality;  % 0.5 (edge) to 1.5 (center)
-            points = round(100 * centralityBonus * comboMult);
+            multiBonus = 1 + 0.5 * max(0, obj.MultiCutCount - 1);  % +50% per extra fruit
+            points = round(100 * centralityBonus * comboMult * multiBonus);
             obj.addScore(points);
 
             % Store slice diagnostics
