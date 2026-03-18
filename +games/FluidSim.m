@@ -296,6 +296,16 @@ classdef FluidSim < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_fluidsim");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles sub-modes.
+            modes = ["flow", "velocity", "vorticity", "curl", "pressure"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+            obj.updateModeLabel();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle mode-specific key events.
             handled = true;

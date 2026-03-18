@@ -1160,6 +1160,17 @@ classdef Elements < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_elements");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles materials.
+            modes = obj.MaterialNames;
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+            obj.CurrentMaterial = obj.MaterialIDs(newIdx);
+            obj.refreshHud();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle Elements key events.
             handled = true;

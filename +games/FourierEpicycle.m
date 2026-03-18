@@ -352,6 +352,16 @@ classdef FourierEpicycle < GameBase
             obj.BridgeIdx = 0;
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles sub-modes.
+            modes = ["draw", "presets", "letters"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+            obj.applySubMode();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle mode-specific keys.
             handled = true;

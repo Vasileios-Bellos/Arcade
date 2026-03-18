@@ -366,6 +366,16 @@ classdef Planets < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_planets");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles finger modes.
+            modes = ["neutral", "attract", "repel"];
+            idx = find(modes == obj.FingerMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.FingerMode = modes(newIdx);
+            obj.updateHud();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle mode-specific keys.
             handled = true;

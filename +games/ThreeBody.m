@@ -416,6 +416,16 @@ classdef ThreeBody < GameBase
             obj.FrameCount = 0;
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles sub-modes.
+            modes = ["figure8", "lagrange", "freeplay"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+            obj.applySubMode();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle mode-specific key events.
             %   M — cycle sub-mode (figure8 / lagrange / freeplay)

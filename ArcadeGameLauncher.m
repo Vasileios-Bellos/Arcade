@@ -285,11 +285,17 @@ classdef (Sealed) ArcadeGameLauncher < handle
         end
 
         function onScrollWheel(obj, evnt)
-            %onScrollWheel  Scroll game list with mouse wheel.
-            if obj.State ~= "menu"; return; end
-            if isempty(obj.Menu); return; end
+            %onScrollWheel  Scroll game list or forward to active game.
             delta = round(evnt.VerticalScrollCount);
-            obj.Menu.scrollByDelta(delta);
+            if obj.State == "menu"
+                if ~isempty(obj.Menu)
+                    obj.Menu.scrollByDelta(delta);
+                end
+            elseif obj.State == "active"
+                if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
+                    obj.ActiveGame.onScroll(delta);
+                end
+            end
         end
 
         function onMenuSelect(obj, key)

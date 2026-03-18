@@ -355,6 +355,17 @@ classdef Lorenz < GameBase
             obj.TrailCount = 0;
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles attractors.
+            modes = ["lorenz", "rossler", "thomas", "aizawa"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.State = zeros(3, 0);  % guard race condition
+            obj.SubMode = modes(newIdx);
+            obj.applySubMode();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle Lorenz-specific key events.
             handled = true;

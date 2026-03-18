@@ -131,6 +131,11 @@ classdef (Abstract) GameBase < handle
             obj.DisplayRange = displayRange;
         end
 
+        function onScroll(~, ~)
+            %onScroll  Called on mouse scroll wheel. Override to handle.
+            %   delta — scroll amount (positive = down, negative = up)
+        end
+
         function onPause(~)
             %onPause  Called when host pauses game. Override if needed.
         end
