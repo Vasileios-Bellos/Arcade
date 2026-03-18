@@ -303,10 +303,14 @@ classdef (Sealed) ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % During gameplay: freeze coordinate system, letterbox only
+            % During gameplay: freeze coordinate system, maintain aspect ratio
             if obj.State ~= "menu"
+                % PlotBoxAspectRatio locks the axes box shape — MATLAB
+                % auto-letterboxes within the Position rectangle.
                 gameAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
-                GameBase.letterboxAxes(obj.Fig, obj.Ax, gameAR);
+                pbaspect(obj.Ax, [gameAR 1 1]);
+                % Manual letterbox fallback (kept in case pbaspect has issues):
+                % GameBase.letterboxAxes(obj.Fig, obj.Ax, gameAR);
                 % Scale HUD fonts
                 if obj.RefPixelSize(1) > 0
                     axPx = getpixelposition(obj.Ax);
