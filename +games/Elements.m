@@ -106,6 +106,13 @@ classdef Elements < GameBase
 
         function onUpdate(obj, fingerPos)
             %onUpdate  Per-frame cellular automaton update + render.
+            %   FPS normalization: entire sim step (brush + physics + grid
+            %   writeback) runs at ~25 Hz. On skipped frames, only the
+            %   existing rendered image persists — no state changes.
+            obj.SimAccum = obj.SimAccum + obj.DtScale;
+            if obj.SimAccum < 1.0; return; end
+            obj.SimAccum = obj.SimAccum - 1.0;
+
             cellGrid = obj.CellGrid;
             if isempty(cellGrid); return; end
             Ny = obj.GridH;  Nx = obj.GridW;
