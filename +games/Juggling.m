@@ -188,14 +188,17 @@ classdef Juggling < GameBase
             end
 
             % --- 3. Main ball contact detection ---
+            %   After flicking, lock persists until mouse has been outside
+            %   the hit radius for at least one frame (prevents double-flick
+            %   when ball bounces back toward stationary mouse).
             if ~any(isnan(pos)) && ~any(isnan(obj.BallPos))
                 distToBall = norm(pos - obj.BallPos);
-                if distToBall <= obj.HitRadius
-                    if ~obj.FlickLocked
-                        obj.flickBall(avgVel);
-                        obj.FlickLocked = true;
-                    end
-                else
+                inside = distToBall <= obj.HitRadius;
+                if inside && ~obj.FlickLocked
+                    obj.flickBall(avgVel);
+                    obj.FlickLocked = true;
+                    obj.LastFlickTic = tic;
+                elseif ~inside && obj.FlickLocked && toc(obj.LastFlickTic) > 0.15
                     obj.FlickLocked = false;
                 end
             else
