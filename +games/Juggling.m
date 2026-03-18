@@ -352,7 +352,7 @@ classdef Juggling < GameBase
             % Capture current ball's streak before results
             bestStreak = max(obj.BestStreak, obj.BallFlicks);
             r.Lines = {
-                sprintf("Time: %.1fs  |  Total Flicks: %d  |  Best Streak: %d  |  Best Combo: %d", ...
+                sprintf("Time: %.1fs  |  Total Flicks: %d  |  Best Flick Streak: %d  |  Best Combo: %d", ...
                     elapsed, obj.Flicks, bestStreak, obj.MaxCombo)
             };
         end
