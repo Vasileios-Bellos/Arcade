@@ -171,9 +171,7 @@ classdef Tracing < GameBase
                 "Visible", "off", "Tag", "GT_tracing");
 
             % --- Ghost trail to target ---
-            obj.TrailLine = line(ax, NaN, NaN, ...
-                "Color", [obj.ColorCyan, 0.12], "LineWidth", 1, ...
-                "LineStyle", ":", "Visible", "off", "Tag", "GT_tracing");
+            obj.TrailLine = [];  % ghost trail disabled
 
             % --- Time bar ---
             barY = dyR(2) - 8;
@@ -477,7 +475,7 @@ classdef Tracing < GameBase
 
             % Show trail line to guide finger to start
             if ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
-                obj.TrailLine.Visible = "on";
+                obj.TrailLine.Visible = "off";
             end
 
             % Direction arrow at path start pointing along first segment
@@ -606,14 +604,12 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Find nearest path point to finger (full forward search
-            %    for corridor membership check — never lose inside corridor)
-            searchStart = max(1, progIdx - 5);
-            searchRange = searchStart:nPts;
+            % 1. Full search for deviation (corridor membership — never
+            %    lose when inside the corridor, regardless of progress)
+            searchRange = max(1, progIdx - 5):nPts;
             localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
                                pathData.Y(searchRange) - fingerPos(2));
-            [deviation, localMinIdx] = min(localDists);
-            nearestIdx = searchRange(localMinIdx);
+            deviation = min(localDists);
 
             % 2. Check corridor (15% tolerance)
             insideCorridor = deviation <= halfCorridor * 1.15;
@@ -633,13 +629,28 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Advance progress — capped per frame to prevent jumping
-            %    across self-intersecting paths (figure-8 crossing is ~50%
-            %    of path away; 15% cap keeps us on the correct loop)
-            maxAdvance = max(50, round(nPts * 0.15));
-            if nearestIdx > progIdx
-                obj.TracingProgressIdx = min(nearestIdx, progIdx + maxAdvance);
+            % 3. Step-by-step progress: advance while each next point is
+            %    closer to the finger than the current one. No step limit
+            %    (terminates naturally). This correctly handles figure-8
+            %    crossings: at the crossing, the next point curves onto
+            %    the other loop (farther from finger), so the loop stops.
+            advIdx = progIdx;
+            advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
+                            pathData.Y(progIdx) - fingerPos(2));
+            while advIdx < nPts
+                dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
+                              pathData.Y(advIdx + 1) - fingerPos(2));
+                if dNext < advDist
+                    advIdx = advIdx + 1;
+                    advDist = dNext;
+                else
+                    break;
+                end
             end
+            if advIdx > progIdx
+                obj.TracingProgressIdx = advIdx;
+            end
+            nearestIdx = obj.TracingProgressIdx;
 
             % 3b. Target circle at progress frontier
             frontIdx = obj.TracingProgressIdx;
@@ -1173,13 +1184,9 @@ classdef Tracing < GameBase
                 obj.TargetGlow.Color = [ringColor, 0.1 + 0.08 * sin(obj.PulsePhase)];
             end
 
-            % Ghost trail from finger to target
-            if ~any(isnan(fingerPos)) && ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
-                obj.TrailLine.XData = [fingerPos(1), tcx];
-                obj.TrailLine.YData = [fingerPos(2), tcy];
-                trailAlpha = 0.08 + 0.06 * (1 - urgency);
-                obj.TrailLine.Color = [ringColor, trailAlpha];
-                obj.TrailLine.Visible = "on";
+            % Ghost trail hidden (not needed)
+            if ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
+                obj.TrailLine.Visible = "off";
             end
         end
 
