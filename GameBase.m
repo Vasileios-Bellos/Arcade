@@ -43,7 +43,8 @@ classdef (Abstract) GameBase < handle
     properties (SetAccess = protected)
         HitEffects      struct = struct("handles", {}, "frames", {}, ...
                                         "maxFrames", {}, "x", {}, "y", {}, ...
-                                        "color", {}, "radius", {}, "nRays", {})
+                                        "color", {}, "radius", {}, "nRays", {}, ...
+                                        "rayCos", {}, "raySin", {})
     end
 
     % =================================================================
@@ -56,6 +57,10 @@ classdef (Abstract) GameBase < handle
         ColorRed        (1,3) double = [1, 0.3, 0.2]
         ColorWhite      (1,3) double = [1, 1, 1]
         ColorMagenta    (1,3) double = [1, 0.3, 0.85]
+
+        % Pre-computed ring geometry (48-point circle for hit effects)
+        FxRingCos       (1,48) double = cos(linspace(0, 2*pi, 48))
+        FxRingSin       (1,48) double = sin(linspace(0, 2*pi, 48))
     end
 
     % =================================================================
@@ -172,10 +177,9 @@ classdef (Abstract) GameBase < handle
             handles = gobjects(1, nRays + 2);
 
             % Handle 1: expanding ring at impact point
-            theta = linspace(0, 2*pi, 48);
             ringR = sparkLen * 0.5;
-            handles(1) = line(ax, pos(1) + ringR * cos(theta), ...
-                pos(2) + ringR * sin(theta), ...
+            handles(1) = line(ax, pos(1) + ringR * obj.FxRingCos, ...
+                pos(2) + ringR * obj.FxRingSin, ...
                 "Color", [clr, 0.8], "LineWidth", 2, "Tag", "GT_fx");
 
             % Handles 2..nRays+1: spark rays from impact point
@@ -209,6 +213,8 @@ classdef (Abstract) GameBase < handle
             effect.color = clr;
             effect.radius = sparkLen;
             effect.nRays = nRays;
+            effect.rayCos = cos(sparkAngles);
+            effect.raySin = sin(sparkAngles);
             obj.HitEffects(end + 1) = effect;
         end
 
@@ -223,21 +229,20 @@ classdef (Abstract) GameBase < handle
             handles = gobjects(1, nRays + 2);
 
             % Expanding ring
-            theta = linspace(0, 2*pi, 48);
-            handles(1) = line(ax, pos(1) + effectRadius * cos(theta), ...
-                pos(2) + effectRadius * sin(theta), ...
+            handles(1) = line(ax, pos(1) + effectRadius * obj.FxRingCos, ...
+                pos(2) + effectRadius * obj.FxRingSin, ...
                 "Color", [clr, 0.9], "LineWidth", 3, "Tag", "GT_fx");
 
             % Radial burst lines
             angles = linspace(0, 2*pi, nRays + 1);
             angles = angles(1:end-1);
+            rayCosArr = cos(angles);
+            raySinArr = sin(angles);
             for k = 1:nRays
-                ddx = cos(angles(k));
-                ddy = sin(angles(k));
                 r0 = effectRadius * 0.5;
                 handles(k + 1) = line(ax, ...
-                    [pos(1) + r0 * ddx, pos(1) + effectRadius * ddx], ...
-                    [pos(2) + r0 * ddy, pos(2) + effectRadius * ddy], ...
+                    [pos(1) + r0 * rayCosArr(k), pos(1) + effectRadius * rayCosArr(k)], ...
+                    [pos(2) + r0 * raySinArr(k), pos(2) + effectRadius * raySinArr(k)], ...
                     "Color", [clr, 0.8], "LineWidth", 2, "Tag", "GT_fx");
             end
 
@@ -264,6 +269,8 @@ classdef (Abstract) GameBase < handle
             effect.color = clr;
             effect.radius = effectRadius;
             effect.nRays = nRays;
+            effect.rayCos = rayCosArr;
+            effect.raySin = raySinArr;
             obj.HitEffects(end + 1) = effect;
         end
 
@@ -301,10 +308,9 @@ classdef (Abstract) GameBase < handle
                 baseR = fx.radius;
                 if numel(fx.handles) >= 1 && isvalid(fx.handles(1))
                     if fx.nRays > 0 || ~isa(fx.handles(1), "matlab.graphics.primitive.Text")
-                        theta = linspace(0, 2*pi, 48);
                         r = baseR * expandScale;
-                        fx.handles(1).XData = fx.x + r * cos(theta);
-                        fx.handles(1).YData = fx.y + r * sin(theta);
+                        fx.handles(1).XData = fx.x + r * obj.FxRingCos;
+                        fx.handles(1).YData = fx.y + r * obj.FxRingSin;
                         fx.handles(1).Color = [fx.color, alpha * 0.8];
                         fx.handles(1).LineWidth = max(0.5, 3 * (1 - eased));
                     end
@@ -313,19 +319,19 @@ classdef (Abstract) GameBase < handle
                 % Update burst lines (handles 2 to nRays+1)
                 nRays = fx.nRays;
                 if nRays > 0
-                    angles = linspace(0, 2*pi, nRays + 1);
-                    angles = angles(1:end-1);
+                    rayCos = fx.rayCos;
+                    raySin = fx.raySin;
+                    r0 = baseR * (0.5 + eased * 1.5);
+                    r1 = baseR * (1.0 + eased * 3.0);
+                    rayAlpha = [fx.color, alpha * 0.6];
+                    rayLW = max(0.5, 2 * (1 - eased));
                     for j = 1:nRays
                         h = fx.handles(j + 1);
                         if ~isvalid(h); continue; end
-                        ddx = cos(angles(j));
-                        ddy = sin(angles(j));
-                        r0 = baseR * (0.5 + eased * 1.5);
-                        r1 = baseR * (1.0 + eased * 3.0);
-                        h.XData = [fx.x + r0 * ddx, fx.x + r1 * ddx];
-                        h.YData = [fx.y + r0 * ddy, fx.y + r1 * ddy];
-                        h.Color = [fx.color, alpha * 0.6];
-                        h.LineWidth = max(0.5, 2 * (1 - eased));
+                        h.XData = [fx.x + r0 * rayCos(j), fx.x + r1 * rayCos(j)];
+                        h.YData = [fx.y + r0 * raySin(j), fx.y + r1 * raySin(j)];
+                        h.Color = rayAlpha;
+                        h.LineWidth = rayLW;
                     end
                 end
 
@@ -355,7 +361,7 @@ classdef (Abstract) GameBase < handle
             end
             obj.HitEffects = struct("handles", {}, "frames", {}, ...
                 "maxFrames", {}, "x", {}, "y", {}, "color", {}, ...
-                "radius", {}, "nRays", {});
+                "radius", {}, "nRays", {}, "rayCos", {}, "raySin", {});
         end
     end
 
