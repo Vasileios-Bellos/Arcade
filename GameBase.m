@@ -34,7 +34,7 @@ classdef (Abstract) GameBase < handle
     % FRAME-RATE INDEPENDENCE
     % =================================================================
     properties
-        DtScale         (1,1) double = 1   % smoothedDt / RefDt — set by host each frame
+        DtScale         (1,1) double = 1   % avgDt / RefDt — set by host each frame (30-frame ring buffer)
         FontScale       (1,1) double = 1   % pixel scale for font/marker sizing — set by host on resize
     end
 
@@ -431,21 +431,31 @@ classdef (Abstract) GameBase < handle
             if ~isempty(orphans); delete(orphans); end
         end
 
-        function [dtScale, newSmoothedDt] = computeDtScale(rawDt, prevSmoothedDt)
+        function [dtScale, dtBuffer, dtBufIdx] = computeDtScale(rawDt, dtBuffer, dtBufIdx)
             %computeDtScale  Compute frame-rate-independent speed scale.
-            %   Uses EMA on dt (not FPS) to smooth frame time, then divides
-            %   by RefDt (0.040s = 25 Hz) to get a dimensionless multiplier.
+            %   Uses a running-average ring buffer of frame times, then
+            %   divides mean dt by RefDt (0.040s = 25 Hz) to get a
+            %   dimensionless multiplier.
             %   At 25 FPS: DtScale = 1.0. At 50 FPS: ~0.5. At 12.5 FPS: ~2.0.
             %
-            %   rawDt          — toc() since last frame (seconds)
-            %   prevSmoothedDt — previous SmoothedDt value (for EMA continuity)
+            %   rawDt     — toc() since last frame (seconds)
+            %   dtBuffer  — ring buffer of recent frame dts (e.g., 30 elements)
+            %   dtBufIdx  — current write index into buffer (1-based)
             %
             %   Returns:
-            %   dtScale        — clamped to [0.1, 3.0]
-            %   newSmoothedDt  — updated EMA value (pass back next frame)
+            %   dtScale   — clamped to [0.1, 3.0]
+            %   dtBuffer  — updated buffer
+            %   dtBufIdx  — updated index
             clampedDt = max(0.004, min(rawDt, 0.100));
-            newSmoothedDt = 0.1 * clampedDt + 0.9 * prevSmoothedDt;
-            dtScale = max(0.1, min(newSmoothedDt / GameBase.RefDt, 3.0));
+            dtBufIdx = mod(dtBufIdx, numel(dtBuffer)) + 1;
+            dtBuffer(dtBufIdx) = clampedDt;
+            validDts = dtBuffer(~isnan(dtBuffer));
+            if isempty(validDts)
+                avgDt = GameBase.RefDt;
+            else
+                avgDt = mean(validDts);
+            end
+            dtScale = max(0.1, min(avgDt / GameBase.RefDt, 3.0));
         end
 
         function letterboxAxes(fig, ax, gameAR)
@@ -521,7 +531,8 @@ classdef (Abstract) GameBase < handle
             fig.SizeChangedFcn = @(~, ~) onFigResize();
 
             % Timer for physics ticking
-            smoothedDt = GameBase.RefDt;
+            dtBuf = NaN(1, 30);
+            dtBufIdx = 0;
             frameTic = tic;
             tmr = timer("ExecutionMode", "fixedSpacing", "Period", 0.02, ...
                 "TimerFcn", @(~, ~) tick(), ...
@@ -560,7 +571,7 @@ classdef (Abstract) GameBase < handle
                     % Measure dt and compute DtScale
                     rawDt = toc(frameTic);
                     frameTic = tic;
-                    [obj.DtScale, smoothedDt] = GameBase.computeDtScale(rawDt, smoothedDt);
+                    [obj.DtScale, dtBuf, dtBufIdx] = GameBase.computeDtScale(rawDt, dtBuf, dtBufIdx);
 
                     % Arrow key cursor movement
                     if any(arrowHeld)

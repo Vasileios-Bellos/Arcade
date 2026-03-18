@@ -63,8 +63,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
     % =================================================================
     properties (SetAccess = private)
         FpsLastTic      uint64                  % tic of previous frame
-        SmoothedDt      (1,1) double = 0.040    % EMA-smoothed frame dt (init RefDt)
-        DtScale         (1,1) double = 1        % smoothedDt / RefDt — clamped [0.1, 3.0]
+        DtBuffer        (1,30) double = NaN     % ring buffer of frame dts (30 frames)
+        DtBufIdx        (1,1) double = 0        % current write index
+        DtScale         (1,1) double = 1        % avgDt / RefDt — clamped [0.1, 3.0]
         RefPixelSize    (1,2) double = [0, 0]   % axes pixel size at launch (for font scaling)
     end
 
@@ -369,7 +370,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             % Measure frame dt (EMA on dt, not FPS) and compute speed scale
             rawDt = toc(obj.FpsLastTic);
             obj.FpsLastTic = tic;
-            [obj.DtScale, obj.SmoothedDt] = GameBase.computeDtScale(rawDt, obj.SmoothedDt);
+            [obj.DtScale, obj.DtBuffer, obj.DtBufIdx] = GameBase.computeDtScale(rawDt, obj.DtBuffer, obj.DtBufIdx);
 
             try
                 switch obj.State
