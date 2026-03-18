@@ -87,7 +87,7 @@ classdef Snake < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
-            obj.CellSize = max(6, round(min(areaW, areaH) * 0.06));
+            obj.CellSize = max(6, round(min(areaW, areaH) * 0.025));
             obj.BaseSpeed = max(1.0, obj.CellSize * 0.35);
             obj.Speed = obj.BaseSpeed;
             obj.MoveAccum = 0;
@@ -200,7 +200,7 @@ classdef Snake < GameBase
 
             % Check food collision
             ate = false;
-            if ~any(isnan(obj.FoodPos)) && norm(newHead - obj.FoodPos) < cs * 0.5
+            if ~any(isnan(obj.FoodPos)) && norm(newHead - obj.FoodPos) < cs * 1.0
                 ate = true;
                 obj.incrementCombo();
                 totalPoints = round(100 * obj.comboMultiplier());

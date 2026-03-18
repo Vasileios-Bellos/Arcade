@@ -80,12 +80,14 @@ classdef FruitNinja < GameBase
         SliceHistory    struct = struct("centrality", {}, "speed", {}, ...
                                         "angle", {}, "position", {}, "time", {})
 
-        % Trace buffer (own or host-provided)
+        % Trace buffer (own shifting buffer or host-provided)
         GetSmoothedTrace    function_handle = function_handle.empty
-        TraceBufferX    (1,:) double = []
-        TraceBufferY    (1,:) double = []
+        TraceBufferX    (:,1) double
+        TraceBufferY    (:,1) double
         TraceBufferIdx  (1,1) double = 0
-        TraceBufferLen  (1,1) double = 200
+        TraceBufferMax  (1,1) double = 200
+        SmoothedX       (:,1) double        % cached smoothed trace
+        SmoothedY       (:,1) double
         PrevPos         (1,2) double = [NaN, NaN]
     end
 
@@ -130,10 +132,12 @@ classdef FruitNinja < GameBase
                 obj.GetSmoothedTrace = function_handle.empty;
             end
 
-            % Own trace buffer (used when no host trace is available)
-            obj.TraceBufferX = NaN(1, obj.TraceBufferLen);
-            obj.TraceBufferY = NaN(1, obj.TraceBufferLen);
+            % Own trace buffer (shifting array, same pattern as FourierEpicycle)
+            obj.TraceBufferX = NaN(obj.TraceBufferMax, 1);
+            obj.TraceBufferY = NaN(obj.TraceBufferMax, 1);
             obj.TraceBufferIdx = 0;
+            obj.SmoothedX = zeros(0, 1);
+            obj.SmoothedY = zeros(0, 1);
 
             % --- Pre-allocate Fruit Pool (8 slots) ---
             obj.FruitPoolPatch = cell(1, 8);
@@ -215,7 +219,7 @@ classdef FruitNinja < GameBase
                 speeds = sqrt(diff(traceX).^2 + diff(traceY).^2);
                 slashSpeed = mean(speeds(max(1, end-2):end));
             end
-            slashThresh = max(1.5, min(areaW, areaH) * 0.008);
+            slashThresh = max(1.5, min(areaW, areaH) * 0.004);
 
             % --- Spawn fruits ---
             obj.SpawnTimer = obj.SpawnTimer + 1;
@@ -334,7 +338,7 @@ classdef FruitNinja < GameBase
                 end
             end
 
-            % --- Animate slash effects (capture -> fade) ---
+            % --- Animate slash effects (re-read from trace with age offset) ---
             for kk = 1:6
                 if ~obj.SlashActive(kk); continue; end
 
@@ -345,10 +349,14 @@ classdef FruitNinja < GameBase
                     continue;
                 end
 
-                % Update coordinates from current trace every frame.
-                % Buffer shifts by 1 each frame, so adjust indices to
-                % track the same physical points.
-                age = obj.SlashFrames(kk) - 1;
+                % Re-read from live trace — buffer shifts 1/frame when full,
+                % so subtract age to track the same physical points.
+                % During growing phase (buffer not full), no shift occurs.
+                if obj.TraceBufferIdx >= obj.TraceBufferMax
+                    age = obj.SlashFrames(kk) - 1;
+                else
+                    age = 0;
+                end
                 trN = numel(traceX);
                 i1 = max(1, obj.SlashIdxStart(kk) - age);
                 i2 = min(trN, obj.SlashIdxEnd(kk) - age);
@@ -452,37 +460,38 @@ classdef FruitNinja < GameBase
 
         function [tx, ty] = getTrace(obj, pos)
             %getTrace  Return smoothed trace coordinates.
-            %   Uses host-provided trace if available, otherwise own buffer.
+            %   Uses host-provided trace if available, otherwise own
+            %   shifting buffer (same pattern as FourierEpicycle).
             if ~isempty(obj.GetSmoothedTrace)
                 [tx, ty] = obj.GetSmoothedTrace();
             else
-                % Update own trace buffer
+                % Update own shifting trace buffer
                 if ~any(isnan(pos))
-                    idx = mod(obj.TraceBufferIdx, obj.TraceBufferLen) + 1;
-                    obj.TraceBufferX(idx) = pos(1);
-                    obj.TraceBufferY(idx) = pos(2);
-                    obj.TraceBufferIdx = obj.TraceBufferIdx + 1;
+                    obj.TraceBufferIdx = min(obj.TraceBufferIdx + 1, obj.TraceBufferMax);
+                    if obj.TraceBufferIdx == obj.TraceBufferMax
+                        % Buffer full — shift left by 1
+                        obj.TraceBufferX(1:end-1) = obj.TraceBufferX(2:end);
+                        obj.TraceBufferY(1:end-1) = obj.TraceBufferY(2:end);
+                    end
+                    obj.TraceBufferX(obj.TraceBufferIdx) = pos(1);
+                    obj.TraceBufferY(obj.TraceBufferIdx) = pos(2);
                 end
-                % Extract valid (non-NaN) entries in order
-                nFilled = min(obj.TraceBufferIdx, obj.TraceBufferLen);
-                if nFilled == 0
-                    tx = []; ty = [];
+
+                nValid = obj.TraceBufferIdx;
+                if nValid < 1
+                    tx = zeros(0, 1); ty = zeros(0, 1);
                     return;
                 end
-                if obj.TraceBufferIdx <= obj.TraceBufferLen
-                    tx = obj.TraceBufferX(1:nFilled);
-                    ty = obj.TraceBufferY(1:nFilled);
-                else
-                    startIdx = mod(obj.TraceBufferIdx, obj.TraceBufferLen) + 1;
-                    order = [startIdx:obj.TraceBufferLen, 1:startIdx-1];
-                    tx = obj.TraceBufferX(order);
-                    ty = obj.TraceBufferY(order);
-                end
-                % Apply Gaussian smoothing for consistency with host trace
+                tx = obj.TraceBufferX(1:nValid);
+                ty = obj.TraceBufferY(1:nValid);
+
+                % Smooth once, cache result
                 if numel(tx) >= 5
                     tx = smoothdata(tx, "gaussian", 9);
                     ty = smoothdata(ty, "gaussian", 9);
                 end
+                obj.SmoothedX = tx;
+                obj.SmoothedY = ty;
             end
         end
 
@@ -672,16 +681,22 @@ classdef FruitNinja < GameBase
                 end
             end
 
-            % Slash animation -- store trace INDEX range, update coordinates
-            % from the live trace every frame so it stays superimposed.
+            % Slash animation — find entry/exit in RECENT trace only
+            % (searching full buffer matches old positions, creating huge spans)
+            searchLen = min(40, nTrace);
+            searchStart = nTrace - searchLen + 1;
+            recentX = traceX(searchStart:end);
+            recentY = traceY(searchStart:end);
             entryOnCircle = [fx + fRadius * cos(a1), ...
                              fy + fRadius * sin(a1)];
-            entryDists = (traceX - entryOnCircle(1)).^2 + ...
-                         (traceY - entryOnCircle(2)).^2;
-            [~, entryIdx] = min(entryDists);
-            exitDists = (traceX - exitPos(1)).^2 + ...
-                        (traceY - exitPos(2)).^2;
-            [~, exitIdx] = min(exitDists);
+            entryDists = (recentX - entryOnCircle(1)).^2 + ...
+                         (recentY - entryOnCircle(2)).^2;
+            [~, entryLocal] = min(entryDists);
+            exitDists = (recentX - exitPos(1)).^2 + ...
+                        (recentY - exitPos(2)).^2;
+            [~, exitLocal] = min(exitDists);
+            entryIdx = searchStart + entryLocal - 1;
+            exitIdx = searchStart + exitLocal - 1;
             padVal = 4;
             idxStart = max(1, min(entryIdx, exitIdx) - padVal);
             idxEnd = min(nTrace, max(entryIdx, exitIdx) + padVal);
