@@ -35,6 +35,7 @@ classdef Ecosystem < GameBase
         SpawnNames      (1,5) string = ["plant", "herbivore", "predator", "decomposer", "toxin"]
         PeakPop         (1,1) double = 0        % peak total population
         FrameCount      (1,1) double = 0
+        SimAccum        (1,1) double = 0      % FPS accumulator for fixed-rate physics
     end
 
     % =================================================================
@@ -149,6 +150,14 @@ classdef Ecosystem < GameBase
             end
 
             % === CELLULAR AUTOMATON UPDATE ===
+            % FPS normalization: run physics at design rate
+            obj.SimAccum = obj.SimAccum + obj.DtScale;
+            if obj.SimAccum < 1.0
+                % Skip physics this frame, still render below
+                obj.Grid = grid;  obj.Energy = energy;
+            else
+            obj.SimAccum = obj.SimAccum - 1.0;
+
             randMat = rand(Ny, Nx);
             newGrid = grid;
             newEnergy = energy;
@@ -452,9 +461,11 @@ classdef Ecosystem < GameBase
                 obj.PeakPop = totalPop;
             end
 
+            end  % SimAccum gate
+
             % === RENDER ===
             obj.renderGrid();
-            obj.Score = totalPop;
+            obj.Score = nnz(obj.Grid > 0 & obj.Grid < 5);
         end
 
         function onCleanup(obj)

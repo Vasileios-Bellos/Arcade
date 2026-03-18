@@ -38,6 +38,7 @@ classdef CrystalGrowth < GameBase
         SeedNames       (1,4) string = ["blue", "red", "green", "gold"]
         TotalGrown      (1,1) double = 0        % total cells grown (for results)
         FrameCount      (1,1) double = 0
+        SimAccum        (1,1) double = 0      % FPS accumulator for fixed-rate physics
     end
 
     % =================================================================
@@ -136,14 +137,20 @@ classdef CrystalGrowth < GameBase
             end
 
             % === CRYSTAL GROWTH UPDATE ===
+            % FPS normalization: run physics at design rate
+            obj.SimAccum = obj.SimAccum + obj.DtScale;
+            if obj.SimAccum < 1.0
+                % Skip physics this frame, still render below
+                obj.Grid = grid;  obj.Age = age;  obj.Dir = dirField;
+            else
+            obj.SimAccum = obj.SimAccum - 1.0;
+
             isXtal = (grid > 0);
             if ~any(isXtal, "all")
                 obj.Grid = grid;
                 obj.Age = age;
                 obj.Dir = dirField;
-                obj.renderGrid();
-                return;
-            end
+            else
 
             % Increment age of existing crystals (capped at MaxAge)
             age(isXtal) = min(age(isXtal) + 1, obj.MaxAge);
@@ -242,9 +249,12 @@ classdef CrystalGrowth < GameBase
             obj.Age = newAge;
             obj.Dir = newDir;
 
+            end  % no-crystals guard
+            end  % SimAccum gate
+
             % === RENDER ===
             obj.renderGrid();
-            obj.Score = nnz(newGrid > 0);
+            obj.Score = nnz(obj.Grid > 0);
         end
 
         function onCleanup(obj)

@@ -29,6 +29,7 @@ classdef GameOfLife < GameBase
         PopIdx          (1,1) double = 0
         FrameCount      (1,1) double = 0
         PeakPop         (1,1) double = 0
+        SimAccum        (1,1) double = 0   % FPS accumulator for fixed-rate physics
     end
 
     % =================================================================
@@ -153,6 +154,13 @@ classdef GameOfLife < GameBase
                 end
             end
 
+            % FPS normalization: run physics at design rate
+            obj.SimAccum = obj.SimAccum + obj.DtScale;
+            if obj.SimAccum < 1.0
+                % Skip physics this frame, still render below
+            else
+            obj.SimAccum = obj.SimAccum - 1.0;
+
             % Advance generation
             obj.FrameAccum = obj.FrameAccum + 1;
             if obj.FrameAccum >= obj.FramesPerGen
@@ -183,6 +191,8 @@ classdef GameOfLife < GameBase
                 obj.PopIdx = mod(obj.PopIdx, 200) + 1;
                 obj.PopHistory(obj.PopIdx) = pop;
             end
+
+            end  % SimAccum gate
 
             % Render: neon age-based coloring
             % Newborn = bright cyan, young = green, mature = gold, elder = magenta
