@@ -538,9 +538,10 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 case "results"
                     if key == "r" || key == "return" || key == "space"
                         obj.playAgain();
-                    else
+                    elseif key == "escape"
                         obj.enterMenu();
                     end
+                    % Other keys ignored — results stay visible
             end
         end
     end
