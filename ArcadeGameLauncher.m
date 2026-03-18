@@ -26,6 +26,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
         Ax                                      % axes handle
         RenderTimer                             % timer for frame loop
         MousePos        (1,2) double = [NaN, NaN]
+        KeyboardMode    (1,1) logical = false   % true while arrow keys drive cursor
+        ArrowHeld       (1,4) logical = false   % [up, down, left, right]
 
         ActiveGame                              % current GameBase subclass (or [])
         ActiveGameName  string = ""
@@ -196,7 +198,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "WindowButtonDownFcn", @(~, ~) obj.onMouseDown(), ...
                 "WindowButtonUpFcn", @(~, ~) obj.onMouseUp(), ...
                 "WindowScrollWheelFcn", @(~, e) obj.onScrollWheel(e), ...
-                "KeyPressFcn", @(~, e) obj.onKeyPress(e));
+                "KeyPressFcn", @(~, e) obj.onKeyPress(e), ...
+                "KeyReleaseFcn", @(~, e) obj.onKeyRelease(e));
 
             drawnow;  % force layout so Position reflects maximized size
             obj.computeDisplayRange();
@@ -241,6 +244,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function onMouseMove(obj)
             %onMouseMove  Update mouse position; handle scroll thumb drag.
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
+            if obj.KeyboardMode; return; end  % ignore mouse while arrows active
             cp = get(obj.Ax, "CurrentPoint");
             obj.MousePos = cp(1, 1:2);
 
@@ -405,6 +409,18 @@ classdef (Sealed) ArcadeGameLauncher < handle
             %updateActive  Per-frame update during active gameplay.
             if isempty(obj.ActiveGame) || ~isvalid(obj.ActiveGame); return; end
 
+            % Arrow key cursor movement (when keyboard mode active)
+            if any(obj.ArrowHeld)
+                spd = min(diff(obj.DisplayRange.X), diff(obj.DisplayRange.Y)) * 0.012 * obj.DtScale;
+                if obj.ArrowHeld(1); obj.MousePos(2) = obj.MousePos(2) - spd; end  % up
+                if obj.ArrowHeld(2); obj.MousePos(2) = obj.MousePos(2) + spd; end  % down
+                if obj.ArrowHeld(3); obj.MousePos(1) = obj.MousePos(1) - spd; end  % left
+                if obj.ArrowHeld(4); obj.MousePos(1) = obj.MousePos(1) + spd; end  % right
+                % Clamp to display range
+                obj.MousePos(1) = max(obj.DisplayRange.X(1), min(obj.DisplayRange.X(2), obj.MousePos(1)));
+                obj.MousePos(2) = max(obj.DisplayRange.Y(1), min(obj.DisplayRange.Y(2), obj.MousePos(2)));
+            end
+
             obj.ActiveGame.DtScale = obj.DtScale;
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
@@ -500,8 +516,13 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     elseif key == "escape"
                         obj.enterResults();
                     else
+                        handled = false;
                         if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
-                            obj.ActiveGame.onKeyPress(key);
+                            handled = obj.ActiveGame.onKeyPress(key);
+                        end
+                        % Arrow keys for cursor movement (if game didn't handle them)
+                        if ~handled
+                            obj.handleArrowPress(key);
                         end
                     end
 
@@ -532,6 +553,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function enterMenu(obj)
             %enterMenu  Return to menu screen.
             obj.State = "menu";
+            obj.ArrowHeld(:) = false;
+            obj.KeyboardMode = false;
 
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                 try
@@ -830,6 +853,29 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 if ~isempty(h) && isvalid(h)
                     h.FontSize = max(6, round(baseSizes(k) * fs));
                 end
+            end
+        end
+
+        function handleArrowPress(obj, key)
+            %handleArrowPress  Set arrow held flags for cursor movement.
+            switch key
+                case "uparrow";    obj.ArrowHeld(1) = true; obj.KeyboardMode = true;
+                case "downarrow";  obj.ArrowHeld(2) = true; obj.KeyboardMode = true;
+                case "leftarrow";  obj.ArrowHeld(3) = true; obj.KeyboardMode = true;
+                case "rightarrow"; obj.ArrowHeld(4) = true; obj.KeyboardMode = true;
+            end
+        end
+
+        function onKeyRelease(obj, evnt)
+            %onKeyRelease  Clear arrow held flags on key release.
+            switch string(evnt.Key)
+                case "uparrow";    obj.ArrowHeld(1) = false;
+                case "downarrow";  obj.ArrowHeld(2) = false;
+                case "leftarrow";  obj.ArrowHeld(3) = false;
+                case "rightarrow"; obj.ArrowHeld(4) = false;
+            end
+            if ~any(obj.ArrowHeld)
+                obj.KeyboardMode = false;
             end
         end
 

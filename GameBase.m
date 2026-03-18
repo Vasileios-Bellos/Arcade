@@ -504,9 +504,12 @@ classdef (Abstract) GameBase < handle
 
             % Mouse tracking state (closure variable)
             mousePos = [rangeX / 2, rangeY / 2];
+            arrowHeld = false(1, 4);  % [up, down, left, right]
+            kbMode = false;           % true while arrows drive cursor
 
             fig.WindowButtonMotionFcn = @(~, ~) updateMouse();
             fig.KeyPressFcn = @(~, e) onKey(e);
+            fig.KeyReleaseFcn = @(~, e) onKeyRelease(e);
 
             % Capture reference pixel size for font scaling
             gameAR = diff(range.X) / diff(range.Y);
@@ -546,6 +549,7 @@ classdef (Abstract) GameBase < handle
             end
 
             function updateMouse()
+                if kbMode; return; end  % ignore mouse while arrows active
                 cp = get(ax, "CurrentPoint");
                 mousePos = cp(1, 1:2);
             end
@@ -557,6 +561,17 @@ classdef (Abstract) GameBase < handle
                     rawDt = toc(frameTic);
                     frameTic = tic;
                     [obj.DtScale, smoothedDt] = GameBase.computeDtScale(rawDt, smoothedDt);
+
+                    % Arrow key cursor movement
+                    if any(arrowHeld)
+                        spd = min(rangeX, rangeY) * 0.012 * obj.DtScale;
+                        if arrowHeld(1); mousePos(2) = mousePos(2) - spd; end
+                        if arrowHeld(2); mousePos(2) = mousePos(2) + spd; end
+                        if arrowHeld(3); mousePos(1) = mousePos(1) - spd; end
+                        if arrowHeld(4); mousePos(1) = mousePos(1) + spd; end
+                        mousePos(1) = max(0, min(rangeX, mousePos(1)));
+                        mousePos(2) = max(0, min(rangeY, mousePos(2)));
+                    end
 
                     obj.onUpdate(mousePos);
                     obj.updateHitEffects();
@@ -574,7 +589,28 @@ classdef (Abstract) GameBase < handle
                     cleanup();
                     return;
                 end
-                obj.onKeyPress(key);
+                handled = obj.onKeyPress(key);
+                % Arrow keys for cursor if game didn't use them
+                if ~handled
+                    switch key
+                        case "uparrow";    arrowHeld(1) = true; kbMode = true;
+                        case "downarrow";  arrowHeld(2) = true; kbMode = true;
+                        case "leftarrow";  arrowHeld(3) = true; kbMode = true;
+                        case "rightarrow"; arrowHeld(4) = true; kbMode = true;
+                    end
+                end
+            end
+
+            function onKeyRelease(e)
+                switch string(e.Key)
+                    case "uparrow";    arrowHeld(1) = false;
+                    case "downarrow";  arrowHeld(2) = false;
+                    case "leftarrow";  arrowHeld(3) = false;
+                    case "rightarrow"; arrowHeld(4) = false;
+                end
+                if ~any(arrowHeld)
+                    kbMode = false;
+                end
             end
 
             function cleanup()

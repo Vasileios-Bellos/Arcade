@@ -521,11 +521,15 @@ classdef FruitNinja < GameBase
             clr = fruitColors{randi(numel(fruitColors))};
             fruitRadius = max(5, round(min(areaW, areaH) * (0.03 + rand * 0.025)));
 
-            % Launch from bottom with upward velocity
+            % Launch from bottom with upward velocity.
+            % Minimum velocity must clear at least half the screen:
+            % apex = v^2/(2*g), need apex >= areaH*0.55, so v >= sqrt(2*g*areaH*0.55)
             xPos = dx(1) + areaW * (0.15 + rand * 0.7);
             yPos = dy(2) + fruitRadius;
             velX = (rand - 0.5) * areaW * 0.012;
-            velY = -(areaH * (0.022 + rand * 0.025));
+            minVelY = sqrt(2 * obj.Gravity * areaH * 0.55);
+            maxVelY = sqrt(2 * obj.Gravity * areaH * 0.90);
+            velY = -(minVelY + rand * (maxVelY - minVelY));
 
             theta = obj.ThetaCircle24;
             circX = xPos + fruitRadius * cos(theta);

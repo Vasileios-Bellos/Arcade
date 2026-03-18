@@ -422,8 +422,12 @@ classdef Catching < GameBase
                 startX = p.X(1); startY = p.Y(1);
             end
 
-            dotSize = radius;
-            auraSize = radius * 3.5;
+            % SizeData is in screen points² — use unscaled base sizes
+            % so markers look the same physical size at any display scale.
+            % Collision uses data-space radius (scaled); visuals use fixed pts.
+            baseRadius = radius / max(obj.Sc, 0.5);  % unscale back to ~10-14
+            dotSize = baseRadius;
+            auraSize = baseRadius * 3.5;
 
             % Activate pool slot — update properties, make visible
             hDot = obj.FFPoolDotH{slot};

@@ -23,6 +23,8 @@ classdef Tracing < GameBase
     % GAME STATE
     % =================================================================
     properties (Access = private)
+        Sc                  (1,1) double = 1           % display scale factor
+
         % Phase machine
         TracingPhase        (1,1) string = "preview"  % preview|approach|tracing|scored|gap
 
@@ -151,6 +153,7 @@ classdef Tracing < GameBase
 
             dxR = displayRange.X;
             dyR = displayRange.Y;
+            obj.Sc = min(diff(dxR), diff(dyR)) / 180;
 
             % --- Target beacon rings ---
             obj.TargetGlow = line(ax, NaN, NaN, ...
@@ -322,9 +325,9 @@ classdef Tracing < GameBase
                 tier = randi(4);
             end
 
-            % Corridor width shrinks with tier and combo
+            % Corridor width shrinks with tier and combo (scaled to display)
             baseWidths = [16, 14, 11, 8];
-            obj.CorridorWidth = max(4, baseWidths(min(tier, 4)) - obj.Combo * 0.2);
+            obj.CorridorWidth = max(4 * obj.Sc, (baseWidths(min(tier, 4)) - obj.Combo * 0.2) * obj.Sc);
 
             % Time limit per tier
             timeLimits = [15, 13, 11, 10];
