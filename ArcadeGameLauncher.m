@@ -310,10 +310,10 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 % Scale HUD fonts
                 if obj.RefPixelSize(1) > 0
                     axPx = getpixelposition(obj.Ax);
-                    fs = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
-                    obj.scaleFonts(fs);
+                    pixelScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
+                    obj.scaleFonts(pixelScale);
                     if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
-                        obj.ActiveGame.FontScale = fs;
+                        obj.ActiveGame.FontScale = pixelScale;
                     end
                 end
                 return;
@@ -836,14 +836,14 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "Tag", "GT_arcHud");
         end
 
-        function scaleFonts(obj, fs)
-            %scaleFonts  Scale HUD font sizes by factor fs.
+        function scaleFonts(obj, pixelScale)
+            %scaleFonts  Scale HUD font sizes by pixel scale factor.
             baseSizes = [14, 13, 28, 11];  % Score, Combo, Status, Hud
             handles = {obj.ScoreTextH, obj.ComboTextH, obj.StatusTextH, obj.HudTextH};
             for k = 1:4
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
-                    h.FontSize = max(6, round(baseSizes(k) * fs));
+                    h.FontSize = max(6, round(baseSizes(k) * pixelScale));
                 end
             end
         end
