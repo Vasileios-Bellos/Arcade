@@ -52,9 +52,8 @@ classdef Tracing < GameBase
         % Gap phase
         GapFrames           (1,1) double = 0
 
-        % Progress tracking
+        % Progress tracking (forward-only)
         TracingProgressIdx  (1,1) double = 0
-        Covered             logical             % per-point coverage mask
 
         % Session stats
         PathsCompleted      (1,1) double = 0
@@ -172,7 +171,9 @@ classdef Tracing < GameBase
                 "Visible", "off", "Tag", "GT_tracing");
 
             % --- Ghost trail to target ---
-            obj.TrailLine = [];  % ghost trail disabled
+            obj.TrailLine = line(ax, NaN, NaN, ...
+                "Color", [obj.ColorCyan, 0.12], "LineWidth", 1, ...
+                "LineStyle", ":", "Visible", "off", "Tag", "GT_tracing");
 
             % --- Time bar ---
             barY = dyR(2) - 8;
@@ -476,7 +477,7 @@ classdef Tracing < GameBase
 
             % Show trail line to guide finger to start
             if ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
-                obj.TrailLine.Visible = "off";
+                obj.TrailLine.Visible = "on";
             end
 
             % Direction arrow at path start pointing along first segment
@@ -532,7 +533,6 @@ classdef Tracing < GameBase
             %enterTracing  Begin active tracing — reset accumulators.
             obj.TracingPhase = "tracing";
             obj.TracingProgressIdx = 1;
-            obj.Covered = false(1, numel(obj.CurrentPath.X));
 
             % Hide preview handles
             if ~isempty(obj.PathPreviewGlow) && isvalid(obj.PathPreviewGlow)
@@ -606,15 +606,18 @@ classdef Tracing < GameBase
             halfCorridor = obj.CorridorWidth / 2;
             progIdx = obj.TracingProgressIdx;
 
-            % 1. Mark all path points within corridor as covered
-            allDists = hypot(pathData.X - fingerPos(1), ...
-                             pathData.Y - fingerPos(2));
-            obj.Covered = obj.Covered | (allDists <= halfCorridor)';
-            deviation = min(allDists);
+            % 1. Wide search for deviation (is finger inside corridor?)
+            searchStart = max(1, progIdx - 5);
+            searchEnd = min(nPts, progIdx + 80);
+            searchRange = searchStart:searchEnd;
+            localDists = hypot(pathData.X(searchRange) - fingerPos(1), ...
+                               pathData.Y(searchRange) - fingerPos(2));
+            [deviation, localMinIdx] = min(localDists);
+            nearestIdx = searchRange(localMinIdx);
 
-            % 2. Check corridor (15% tolerance — don't lose inside shape)
+            % 2. Check corridor (15% tolerance)
             insideCorridor = deviation <= halfCorridor * 1.15;
-            hasStarted = any(obj.Covered);
+            hasStarted = progIdx > 1;
             if ~insideCorridor
                 if hasStarted
                     obj.hideTarget();
@@ -630,20 +633,13 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Progress = furthest contiguous covered region from start
-            uncovIdx = find(~obj.Covered, 1, "first");
-            if isempty(uncovIdx)
-                obj.TracingProgressIdx = nPts;
-            else
-                obj.TracingProgressIdx = max(1, uncovIdx - 1);
+            % 3. Advance progress toward nearest point (rate-limited, forward only)
+            if nearestIdx > progIdx
+                obj.TracingProgressIdx = min(nearestIdx, progIdx + 8);
             end
-            nearestIdx = obj.TracingProgressIdx;
 
-            % 3b. Target circle at nearest uncovered point to finger
-            uncoveredDists = allDists;
-            uncoveredDists(obj.Covered) = Inf;
-            [~, nearestUncov] = min(uncoveredDists);
-            frontIdx = nearestUncov;
+            % 3b. Move progress target to frontier
+            frontIdx = obj.TracingProgressIdx;
             obj.TargetPos = [pathData.X(frontIdx), pathData.Y(frontIdx)];
             obj.PulsePhase = obj.PulsePhase + 0.12;
             theta = linspace(0, 2*pi, 48);
@@ -686,7 +682,7 @@ classdef Tracing < GameBase
             end
 
             % 6. Update visuals
-            progress = sum(obj.Covered) / nPts;
+            progress = obj.TracingProgressIdx / nPts;
             obj.updateTracingVisuals(fingerPos, nearestIdx, deviation, progress);
 
             % 6b. Move arrow with progress target
@@ -706,8 +702,8 @@ classdef Tracing < GameBase
             elapsed = toc(obj.PathSpawnTic);
             obj.updateTimeBar(elapsed / obj.PathTimeLimit);
 
-            % 8. Check completion (95% coverage)
-            if progress >= 0.95
+            % 8. Check completion (100% — full path traversal)
+            if obj.TracingProgressIdx >= nPts
                 obj.onPathComplete();
                 return
             end
@@ -732,8 +728,9 @@ classdef Tracing < GameBase
                 zoneColor = obj.ColorGold;
             end
 
-            % --- Traced band: from path start to progress frontier ---
-            segEnd = min(obj.TracingProgressIdx, numel(pathData.X));
+            % --- Traced band: from path start to current progress only ---
+            progIdx = obj.TracingProgressIdx;
+            segEnd = min(progIdx, numel(pathData.X));
             if segEnd >= 2
                 try
                     tps = games.PathUtils.buildBandPolyshape( ...
@@ -756,9 +753,17 @@ classdef Tracing < GameBase
                 end
             end
 
-            % --- Deviation whisker (hidden — not needed in tracing) ---
+            % --- Deviation whisker ---
             if ~isempty(obj.DeviationWhisker) && isvalid(obj.DeviationWhisker)
-                obj.DeviationWhisker.Visible = "off";
+                if deviation > 3
+                    whiskerAlpha = min(0.35, deviation / halfCorridor * 0.3);
+                    set(obj.DeviationWhisker, ...
+                        "XData", [fingerPos(1), pathData.X(nearestIdx)], ...
+                        "YData", [fingerPos(2), pathData.Y(nearestIdx)], ...
+                        "Color", [zoneColor, whiskerAlpha], "Visible", "on");
+                else
+                    obj.DeviationWhisker.Visible = "off";
+                end
             end
 
             % --- Zone circle around finger ---
@@ -1174,9 +1179,13 @@ classdef Tracing < GameBase
                 obj.TargetGlow.Color = [ringColor, 0.1 + 0.08 * sin(obj.PulsePhase)];
             end
 
-            % Ghost trail hidden (not needed)
-            if ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
-                obj.TrailLine.Visible = "off";
+            % Ghost trail from finger to target
+            if ~any(isnan(fingerPos)) && ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
+                obj.TrailLine.XData = [fingerPos(1), tcx];
+                obj.TrailLine.YData = [fingerPos(2), tcy];
+                trailAlpha = 0.08 + 0.06 * (1 - urgency);
+                obj.TrailLine.Color = [ringColor, trailAlpha];
+                obj.TrailLine.Visible = "on";
             end
         end
 
