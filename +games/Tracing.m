@@ -630,19 +630,21 @@ classdef Tracing < GameBase
             end
 
             % 3. Step-by-step progress: advance while each next point is
-            %    closer to the finger than the current one. No step limit
-            %    (terminates naturally). This correctly handles figure-8
-            %    crossings: at the crossing, the next point curves onto
-            %    the other loop (farther from finger), so the loop stops.
+            %    closer to the finger than the current one. Per-frame cap
+            %    at 10% of path prevents jumping across figure-8 crossings
+            %    (~50% of path away). At 25 FPS, full path in ~0.4s.
+            maxSteps = max(15, round(nPts * 0.10));
             advIdx = progIdx;
             advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
                             pathData.Y(progIdx) - fingerPos(2));
-            while advIdx < nPts
+            stepsLeft = maxSteps;
+            while advIdx < nPts && stepsLeft > 0
                 dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
                               pathData.Y(advIdx + 1) - fingerPos(2));
                 if dNext < advDist
                     advIdx = advIdx + 1;
                     advDist = dNext;
+                    stepsLeft = stepsLeft - 1;
                 else
                     break;
                 end
