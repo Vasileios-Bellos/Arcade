@@ -481,6 +481,86 @@ classdef (Abstract) GameBase < handle
                 ax.Position = [0, (1 - axH) / 2, 1, axH];
             end
         end
+
+        function scaleScreenSpaceObjects(ax, pixelScale)
+            %scaleScreenSpaceObjects  Scale all screen-space properties in axes.
+            %   Scales FontSize, SizeData, MarkerSize, and LineWidth of all
+            %   children proportionally to pixelScale (1.0 = original size).
+            %   Base values are captured on first call into each object's
+            %   UserData so subsequent calls scale from the original, not
+            %   from the previously scaled value (no accumulation).
+            %
+            %   ax         — axes handle
+            %   pixelScale — ratio of current axes pixel size to launch size
+            if isempty(ax) || ~isvalid(ax); return; end
+
+            % --- Text: scale FontSize ---
+            allText = findall(ax, "Type", "text");
+            for k = 1:numel(allText)
+                t = allText(k);
+                ud = t.UserData;
+                if ~isstruct(ud) || ~isfield(ud, "baseFontSize")
+                    ud = struct("baseFontSize", t.FontSize);
+                    t.UserData = ud;
+                end
+                t.FontSize = max(4, round(ud.baseFontSize * pixelScale));
+            end
+
+            % --- Scatter: scale SizeData ---
+            allScatter = findall(ax, "Type", "scatter");
+            for k = 1:numel(allScatter)
+                s = allScatter(k);
+                ud = s.UserData;
+                if ~isstruct(ud) || ~isfield(ud, "baseSizeData")
+                    ud = struct("baseSizeData", s.SizeData);
+                    s.UserData = ud;
+                end
+                s.SizeData = max(1, ud.baseSizeData * pixelScale^2);
+            end
+
+            % --- Line: scale MarkerSize and LineWidth ---
+            allLines = findall(ax, "Type", "line");
+            for k = 1:numel(allLines)
+                ln = allLines(k);
+                ud = ln.UserData;
+                if ~isstruct(ud)
+                    ud = struct();
+                end
+                % MarkerSize (only for markers > default 6pt)
+                if ~isfield(ud, "baseMarkerSize") && ln.MarkerSize > 6
+                    ud.baseMarkerSize = ln.MarkerSize;
+                    ln.UserData = ud;
+                end
+                if isfield(ud, "baseMarkerSize")
+                    ln.MarkerSize = max(1, ud.baseMarkerSize * pixelScale);
+                end
+                % LineWidth (only for non-default widths > 0.5)
+                if ~isfield(ud, "baseLineWidth") && ln.LineWidth > 0.5
+                    ud.baseLineWidth = ln.LineWidth;
+                    ln.UserData = ud;
+                end
+                if isfield(ud, "baseLineWidth")
+                    ln.LineWidth = max(0.5, ud.baseLineWidth * pixelScale);
+                end
+            end
+
+            % --- Patch: scale LineWidth ---
+            allPatches = findall(ax, "Type", "patch");
+            for k = 1:numel(allPatches)
+                p = allPatches(k);
+                ud = p.UserData;
+                if ~isstruct(ud)
+                    ud = struct();
+                end
+                if ~isfield(ud, "baseLineWidth") && p.LineWidth > 0.5
+                    ud.baseLineWidth = p.LineWidth;
+                    p.UserData = ud;
+                end
+                if isfield(ud, "baseLineWidth")
+                    p.LineWidth = max(0.5, ud.baseLineWidth * pixelScale);
+                end
+            end
+        end
     end
 
     % =================================================================
@@ -550,13 +630,11 @@ classdef (Abstract) GameBase < handle
             function onFigResize()
                 if ~isvalid(fig) || ~isvalid(ax); return; end
                 GameBase.letterboxAxes(fig, ax, gameAR);
-                % Scale HUD font
+                % Scale all screen-space objects (fonts, markers, line widths)
                 axPx = getpixelposition(ax);
-                fs = min(axPx(3) / refPixW, axPx(4) / refPixH);
-                obj.FontScale = fs;
-                if isvalid(scoreH)
-                    scoreH.FontSize = max(6, round(baseFontSize * fs));
-                end
+                pixelScale = min(axPx(3) / refPixW, axPx(4) / refPixH);
+                obj.FontScale = pixelScale;
+                GameBase.scaleScreenSpaceObjects(ax, pixelScale);
             end
 
             function updateMouse()

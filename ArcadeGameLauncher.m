@@ -311,7 +311,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 if obj.RefPixelSize(1) > 0
                     axPx = getpixelposition(obj.Ax);
                     pixelScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
-                    obj.scaleFonts(pixelScale);
+                    GameBase.scaleScreenSpaceObjects(obj.Ax, pixelScale);
                     if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                         obj.ActiveGame.FontScale = pixelScale;
                     end
