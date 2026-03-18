@@ -648,12 +648,22 @@ classdef WindTunnel < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_windtunnel");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles sub-modes.
+            modes = ["dye", "velocity", "vorticity", "curl", ...
+                "streamlines", "paint"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle wind tunnel key events.
             %   M = cycle sub-mode, N = injection mode, B = obstacle shape,
             %   Up/Down = grid level, Left/Right = velocity,
             %   Shift+Up/Down = dye volume, Shift+Left/Right = colormap,
-            %   0 = reset simulation.
+            %   0 = reset (in-game), R = restart simulation.
             handled = true;
             switch key
                 case "m"

@@ -287,10 +287,20 @@ classdef MoleculeGrid < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_moleculegrid");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles finger modes.
+            modes = ["repel", "attract"];
+            idx = find(modes == obj.FingerMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.FingerMode = modes(newIdx);
+            obj.refreshHud();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle mode-specific keys.
             %   M = finger mode, N = physics sub-mode, B = node coloring,
-            %   V = breathing, Up/Down = grid density, 0 = reset.
+            %   V = breathing, Up/Down = grid density, 0 = reset (in-game), R = restart.
             handled = true;
             switch key
                 case "m"

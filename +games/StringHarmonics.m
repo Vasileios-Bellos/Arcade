@@ -556,6 +556,18 @@ classdef StringHarmonics < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_stringharmonics");
         end
 
+        function onScroll(obj, delta)
+            %onScroll  Scroll wheel cycles sub-modes.
+            modes = ["superposition", "harmonics"];
+            idx = find(modes == obj.SubMode, 1);
+            if isempty(idx); idx = 1; end
+            newIdx = mod(idx - 1 + delta, numel(modes)) + 1;
+            obj.SubMode = modes(newIdx);
+            obj.onCleanup();
+            obj.onInit(obj.Ax, obj.DisplayRange, struct());
+            obj.beginGame();
+        end
+
         function handled = onKeyPress(obj, key)
             %onKeyPress  Handle mode-specific keys.
             handled = true;
@@ -679,7 +691,7 @@ classdef StringHarmonics < GameBase
             switch obj.SubMode
                 case "harmonics"
                     s = s + "  |  n=" + obj.HarmonicN + ...
-                        " [cross string / 1-9]  |  0=reset";
+                        " [cross string / 1-9]  |  0=reset, R=restart";
                 case "superposition"
                     active = find(obj.ActiveHarm);
                     if isempty(active)
@@ -693,7 +705,7 @@ classdef StringHarmonics < GameBase
                         s = s + "  |  Avg speed: " + ...
                             sprintf("%.2f", mean(obj.PluckVels));
                     end
-                    s = s + "  |  0=reset";
+                    s = s + "  |  0=reset, R=restart";
             end
         end
     end
