@@ -697,6 +697,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function enterResults(obj)
             %enterResults  Show results screen.
             obj.State = "results";
+            obj.ComboFadeTic = [];   % stop combo fade from hiding results text
+            obj.ComboShowTic = [];
 
             results = struct("Title", "GAME OVER", "Lines", {{}});
             gameId = "";
