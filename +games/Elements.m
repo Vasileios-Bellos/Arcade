@@ -183,13 +183,6 @@ classdef Elements < GameBase
             end
 
             % === CELLULAR AUTOMATON UPDATE ===
-            % FPS normalization: run physics at design rate (~25 Hz)
-            obj.SimAccum = obj.SimAccum + obj.DtScale;
-            if obj.SimAccum < 1.0
-                % Skip physics this frame, still render below
-                obj.CellGrid = cellGrid;  obj.CellLife = cellLife;
-            else
-            obj.SimAccum = obj.SimAccum - 1.0;
             randMat = rand(Ny, Nx);
             gapTol = obj.FallingGapTol;
             flowMode = obj.WaterFlowMode;
@@ -1041,7 +1034,6 @@ classdef Elements < GameBase
             end
 
             obj.CellGrid = cellGrid;  obj.CellLife = cellLife;
-            end  % SimAccum gate
 
             % === RENDER ===
             if ~isempty(obj.ImageH) && isvalid(obj.ImageH)
