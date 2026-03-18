@@ -45,7 +45,8 @@ classdef Juggling < GameBase
 
         % Stats
         Bounces         (1,1) double = 0
-        Flicks          (1,1) double = 0
+        Flicks          (1,1) double = 0   % session total (for results)
+        BallFlicks      (1,1) double = 0   % current main ball's flick count
         MaxSpeed        (1,1) double = 0
         Drops           (1,1) double = 0
         LastFlickTic    uint64
@@ -54,6 +55,7 @@ classdef Juggling < GameBase
         ExtraBallPos        double = zeros(0, 2)
         ExtraBallVel        double = zeros(0, 2)
         ExtraBallLocked     logical = logical.empty(0, 1)
+        ExtraBallFlicks     double = zeros(0, 1)
         ExtraBallTrailBufX  cell = {}
         ExtraBallTrailBufY  cell = {}
         ExtraBallTrailIdx   double = zeros(0, 1)
@@ -120,6 +122,7 @@ classdef Juggling < GameBase
             obj.Alive = true;
             obj.Bounces = 0;
             obj.Flicks = 0;
+            obj.BallFlicks = 0;
             obj.Drops = 0;
             obj.MaxSpeed = 0;
             obj.BallPhase = 0;
@@ -271,6 +274,7 @@ classdef Juggling < GameBase
                     obj.TrailBufY = obj.ExtraBallTrailBufY{1};
                     obj.TrailIdx = obj.ExtraBallTrailIdx(1);
                     obj.FlickLocked = obj.ExtraBallLocked(1);
+                    obj.BallFlicks = obj.ExtraBallFlicks(1);
                     obj.removeExtraBall(1);
                 else
                     % No balls left — respawn at center top
@@ -280,6 +284,7 @@ classdef Juggling < GameBase
                     obj.TrailBufY(:) = NaN;
                     obj.TrailIdx = 0;
                     obj.FlickLocked = false;
+                    obj.BallFlicks = 0;
                 end
             end
 
@@ -373,6 +378,7 @@ classdef Juggling < GameBase
             obj.TrailBufY(:) = NaN;
             obj.TrailIdx = 0;
 
+            obj.BallFlicks = obj.BallFlicks + 1;
             obj.scoreFlick(obj.BallPos, hitSpeed);
 
             % Reset finger velocity buffer
@@ -466,7 +472,7 @@ classdef Juggling < GameBase
                 if ~isempty(obj.StartTic)
                     elapsed = toc(obj.StartTic);
                 end
-                obj.BallInfoTextH.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.Flicks);
+                obj.BallInfoTextH.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.BallFlicks);
                 obj.BallInfoTextH.Position = [bx, by - r - 6, 0];
                 obj.BallInfoTextH.Color = [clr, 0.7];
             end
@@ -505,6 +511,7 @@ classdef Juggling < GameBase
             obj.ExtraBallPos(end+1, :) = [xPos, yPos];
             obj.ExtraBallVel(end+1, :) = [0, 0];
             obj.ExtraBallLocked(end+1) = false;
+            obj.ExtraBallFlicks(end+1) = 0;
 
             % Trail buffers
             obj.ExtraBallTrailBufX{end+1} = NaN(1, obj.TrailLen);
@@ -576,6 +583,7 @@ classdef Juggling < GameBase
                                 obj.ExtraBallVel(bi, 1) = obj.ExtraBallVel(bi, 1) * 0.8;
                             end
                             extraSpeed = norm(obj.ExtraBallVel(bi, :));
+                            obj.ExtraBallFlicks(bi) = obj.ExtraBallFlicks(bi) + 1;
                             obj.scoreFlick(obj.ExtraBallPos(bi, :), extraSpeed);
                             % Clear trail on hit
                             obj.ExtraBallTrailBufX{bi}(:) = NaN;
@@ -682,7 +690,7 @@ classdef Juggling < GameBase
                 % Info text
                 h = obj.ExtraBallInfoTextH{bi};
                 if ~isempty(h) && isvalid(h)
-                    h.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.Flicks);
+                    h.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.ExtraBallFlicks(bi));
                     h.Position = [bx, by - r - 6, 0];
                     h.Color = [clr, 0.7];
                 end
@@ -710,6 +718,7 @@ classdef Juggling < GameBase
             obj.ExtraBallPos(idx, :) = [];
             obj.ExtraBallVel(idx, :) = [];
             obj.ExtraBallLocked(idx) = [];
+            obj.ExtraBallFlicks(idx) = [];
             obj.ExtraBallTrailBufX(idx) = [];
             obj.ExtraBallTrailBufY(idx) = [];
             obj.ExtraBallTrailIdx(idx) = [];
@@ -735,6 +744,7 @@ classdef Juggling < GameBase
             obj.ExtraBallPos = zeros(0, 2);
             obj.ExtraBallVel = zeros(0, 2);
             obj.ExtraBallLocked = logical.empty(0, 1);
+            obj.ExtraBallFlicks = zeros(0, 1);
             obj.ExtraBallTrailBufX = {};
             obj.ExtraBallTrailBufY = {};
             obj.ExtraBallTrailIdx = zeros(0, 1);
