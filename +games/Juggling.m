@@ -203,13 +203,14 @@ classdef Juggling < GameBase
             end
 
             % --- 4. Apply gravity (positive = down in YDir=reverse) ---
-            obj.BallVel(2) = obj.BallVel(2) + obj.Gravity;
+            ds = obj.DtScale;
+            obj.BallVel(2) = obj.BallVel(2) + obj.Gravity * ds;
 
             % --- 5. Move ball ---
             prePos = obj.BallPos;
-            stepVel = obj.BallVel;
-            obj.BallPos = obj.BallPos + obj.BallVel;
-            obj.BallVel = obj.BallVel * obj.Friction;
+            stepVel = obj.BallVel * ds;
+            obj.BallPos = obj.BallPos + stepVel;
+            obj.BallVel = obj.BallVel * obj.Friction ^ ds;
 
             % --- 6. Wall collisions: TOP, LEFT, RIGHT only ---
             bounced = false;
@@ -290,7 +291,7 @@ classdef Juggling < GameBase
             obj.TrailIdx = tidx;
 
             % --- 11. Animation + render ---
-            obj.BallPhase = obj.BallPhase + 0.08;
+            obj.BallPhase = obj.BallPhase + 0.08 * ds;
             obj.renderBall();
 
             % --- 12. Danger line pulse ---
@@ -586,11 +587,11 @@ classdef Juggling < GameBase
                 end
 
                 % Gravity
-                obj.ExtraBallVel(bi, 2) = obj.ExtraBallVel(bi, 2) + obj.Gravity;
+                obj.ExtraBallVel(bi, 2) = obj.ExtraBallVel(bi, 2) + obj.Gravity * ds;
 
                 % Move
-                obj.ExtraBallPos(bi, :) = obj.ExtraBallPos(bi, :) + obj.ExtraBallVel(bi, :);
-                obj.ExtraBallVel(bi, :) = obj.ExtraBallVel(bi, :) * obj.Friction;
+                obj.ExtraBallPos(bi, :) = obj.ExtraBallPos(bi, :) + obj.ExtraBallVel(bi, :) * ds;
+                obj.ExtraBallVel(bi, :) = obj.ExtraBallVel(bi, :) * obj.Friction ^ ds;
 
                 % Wall collisions (top, left, right)
                 if obj.ExtraBallPos(bi, 2) < dy(1)
