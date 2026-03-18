@@ -629,29 +629,25 @@ classdef Tracing < GameBase
                 end
             end
 
-            % 3. Step-by-step progress: only advance when the finger is
-            %    near the current progress point (within 3x corridor).
-            %    This prevents "rushing" on closed shapes when the finger
-            %    reaches the far side by going the wrong direction —
-            %    the path curves toward the finger but the finger never
-            %    actually traced it.
-            distToProgress = hypot(pathData.X(progIdx) - fingerPos(1), ...
-                                   pathData.Y(progIdx) - fingerPos(2));
+            % 3. Step-by-step progress: advance while each next point is
+            %    closer AND within corridor distance of the finger.
+            %    The corridor check ensures we only advance through points
+            %    the finger is actually near (not across a closed shape).
+            %    10% cap prevents crossing figure-8 junctions in one frame.
+            maxSteps = max(15, round(nPts * 0.10));
             advIdx = progIdx;
-            if distToProgress <= halfCorridor * 3
-                maxSteps = max(15, round(nPts * 0.10));
-                advDist = distToProgress;
-                stepsLeft = maxSteps;
-                while advIdx < nPts && stepsLeft > 0
-                    dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
-                                  pathData.Y(advIdx + 1) - fingerPos(2));
-                    if dNext < advDist
-                        advIdx = advIdx + 1;
-                        advDist = dNext;
-                        stepsLeft = stepsLeft - 1;
-                    else
-                        break;
-                    end
+            advDist = hypot(pathData.X(progIdx) - fingerPos(1), ...
+                            pathData.Y(progIdx) - fingerPos(2));
+            stepsLeft = maxSteps;
+            while advIdx < nPts && stepsLeft > 0
+                dNext = hypot(pathData.X(advIdx + 1) - fingerPos(1), ...
+                              pathData.Y(advIdx + 1) - fingerPos(2));
+                if dNext < advDist && dNext <= halfCorridor * 2
+                    advIdx = advIdx + 1;
+                    advDist = dNext;
+                    stepsLeft = stepsLeft - 1;
+                else
+                    break;
                 end
             end
             if advIdx > progIdx
