@@ -303,6 +303,11 @@ classdef CrystalGrowth < GameBase
                     obj.updateHud();
                 case "0"
                     obj.applySubMode();
+                case "numpad0"
+                    if ~isempty(obj.Grid)
+                        obj.Grid(:) = 0;
+                        obj.Age(:) = 0;
+                    end
                 otherwise
                     handled = false;
             end
