@@ -465,7 +465,9 @@ classdef ShieldGuardian < GameBase
             speedVal = baseSpeed * speedMult;
             vx = aimed(1) * speedVal;
             vy = aimed(2) * speedVal;
-            markerSz = max(40, radiusVal^2 * pi);
+            % Convert data-unit radius to screen points for SizeData
+            radiusPts = radiusVal / obj.CachedPtsToData;
+            markerSz = max(40, radiusPts^2 * pi);
 
             % Populate pool slot
             obj.ProjX(slot) = x;
