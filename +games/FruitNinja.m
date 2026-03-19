@@ -131,7 +131,7 @@ classdef FruitNinja < GameBase
             obj.Sc = min(areaW, areaH) / 180;
 
             obj.Gravity = max(0.06, areaH * 0.0008);
-            obj.SpawnTimer = 0;
+            obj.SpawnTimer = 50;  % equals initial spawnInterval → first fruit spawns immediately
             obj.StartTicLocal = tic;
             obj.FruitsSliced = 0;
             obj.FruitsDropped = 0;
@@ -417,8 +417,8 @@ classdef FruitNinja < GameBase
                     age = 0;
                 end
                 trN = numel(traceX);
-                i1 = max(1, obj.SlashIdxStart(kk) - age);
-                i2 = min(trN, obj.SlashIdxEnd(kk) - age);
+                i1 = max(1, round(obj.SlashIdxStart(kk) - age));
+                i2 = min(trN, round(obj.SlashIdxEnd(kk) - age));
                 if i1 < i2
                     sx = traceX(i1:i2);
                     sy = traceY(i1:i2);
@@ -804,7 +804,7 @@ classdef FruitNinja < GameBase
 
             % Flash multi-cut text (×2, ×3, ...) at fruit position
             if multiCut >= 2 && ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
-                obj.MultiCutTextH.String = sprintf("%s%d", char(215), multiCut);
+                obj.MultiCutTextH.String = sprintf("%d%s", multiCut, char(215));
                 obj.MultiCutTextH.Position = [fx, fy - fRadius * 2, 0];
                 obj.MultiCutTextH.Color = [obj.ColorGold, 1];
                 obj.MultiCutTextH.Visible = "on";
