@@ -354,8 +354,9 @@ classdef Snake < GameBase
             nBody = size(obj.Body, 1);
             cmapSize = size(obj.ColormapRGB, 1);
             cs = obj.CellSize;
-            headSize = cs * (2.4 + 0.04 * max(0, nBody - 5));
-            tailSize = cs * 1.3;
+            pxScale = obj.FontScale;
+            headSize = cs * (2.4 + 0.04 * max(0, nBody - 5)) * pxScale;
+            tailSize = cs * 1.3 * pxScale;
             nPool = numel(obj.BodyPatchH);
 
             % Activate/update segments up to nBody, hide rest
