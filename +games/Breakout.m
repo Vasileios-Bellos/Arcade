@@ -113,7 +113,8 @@ classdef Breakout < GameBase
         LivesH
         LivesFlashTic       = []
         LevelTextH
-        DangerLineH
+        DangerPatchH                    % filled rectangle (data-unit height)
+        DangerEdgeH                     % bright line at top edge of danger zone
         PowerBarH           = {}
         ModeTextH                           % text -- bottom-left HUD label
     end
@@ -190,10 +191,18 @@ classdef Breakout < GameBase
             obj.buildBrickGrid(1);
 
             % --- Create graphics ---
-            % Danger line at bottom
-            obj.DangerLineH = line(ax, [dx(1), dx(2)], ...
-                [dy(2), dy(2)], "Color", [obj.ColorRed, 0], ...
-                "LineWidth", 3, "Tag", "GT_breakout");
+            % Danger zone at bottom — patch with data-unit height scales with
+            % window size automatically, unlike a fixed-point LineWidth line.
+            dangerH = areaH * 0.012;  % ~5-6 data units at 480 height
+            dangerY = dy(2) - 6;
+            obj.DangerPatchH = patch(ax, ...
+                [dx(1), dx(2), dx(2), dx(1)], ...
+                [dangerY, dangerY, dangerY + dangerH, dangerY + dangerH], ...
+                obj.ColorRed, "EdgeColor", "none", ...
+                "FaceAlpha", 0, "Tag", "GT_breakout");
+            obj.DangerEdgeH = line(ax, [dx(1), dx(2)], ...
+                [dangerY, dangerY], "Color", [obj.ColorRed, 0], ...
+                "LineWidth", 2, "Tag", "GT_breakout");
 
             % Trail glow + trail
             obj.BallTrailGlowH = line(ax, NaN, NaN, ...
@@ -457,17 +466,23 @@ classdef Breakout < GameBase
                 return;
             end
 
-            % --- Danger line pulse ---
-            if ~isempty(obj.DangerLineH) && isvalid(obj.DangerLineH) && ...
-                    ~any(isnan(obj.BallPos))
+            % --- Danger zone glow ---
+            hasPatch = ~isempty(obj.DangerPatchH) && isvalid(obj.DangerPatchH);
+            hasEdge  = ~isempty(obj.DangerEdgeH)  && isvalid(obj.DangerEdgeH);
+            if (hasPatch || hasEdge) && ~any(isnan(obj.BallPos))
                 distToBottom = dy(2) - obj.BallPos(2);
-                dangerZone = (dy(2) - dy(1)) * 0.3;
+                dangerZone = (dy(2) - dy(1)) * 0.25;
                 if distToBottom < dangerZone && obj.BallVel(2) > 0
-                    intensity = (1 - distToBottom / dangerZone) * ...
-                        (0.5 + 0.5 * sin(obj.BallPhase * 3));
-                    obj.DangerLineH.Color = [obj.ColorRed, intensity * 0.7];
+                    intensity = (1 - distToBottom / dangerZone)^0.5;
+                    if hasPatch
+                        obj.DangerPatchH.FaceAlpha = intensity * 0.55;
+                    end
+                    if hasEdge
+                        obj.DangerEdgeH.Color = [obj.ColorRed, intensity];
+                    end
                 else
-                    obj.DangerLineH.Color = [obj.ColorRed, 0];
+                    if hasPatch; obj.DangerPatchH.FaceAlpha = 0; end
+                    if hasEdge;  obj.DangerEdgeH.Color = [obj.ColorRed, 0]; end
                 end
             end
 
@@ -502,7 +517,8 @@ classdef Breakout < GameBase
             handles = {obj.BallCoreH, obj.BallGlowH, obj.BallAuraH, ...
                        obj.BallTrailH, obj.BallTrailGlowH, ...
                        obj.PaddleH, obj.PaddleGlowH, ...
-                       obj.LevelTextH, obj.DangerLineH, obj.ModeTextH};
+                       obj.LevelTextH, obj.DangerPatchH, obj.DangerEdgeH, ...
+                       obj.ModeTextH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
@@ -512,7 +528,7 @@ classdef Breakout < GameBase
             obj.BallCoreH = []; obj.BallGlowH = []; obj.BallAuraH = [];
             obj.BallTrailH = []; obj.BallTrailGlowH = [];
             obj.PaddleH = []; obj.PaddleGlowH = [];
-            obj.LevelTextH = []; obj.DangerLineH = [];
+            obj.LevelTextH = []; obj.DangerPatchH = []; obj.DangerEdgeH = [];
             obj.ModeTextH = [];
 
             % Bricks

@@ -500,7 +500,8 @@ classdef (Abstract) GameBase < handle
             allLines = findall(ax, "Type", "line");
             for k = 1:numel(allLines)
                 ln = allLines(k);
-                ud = ln.UserData;
+                if ~isvalid(ln); continue; end
+                try ud = ln.UserData; catch; continue; end
                 if ~isstruct(ud)
                     ud = struct();
                 end
