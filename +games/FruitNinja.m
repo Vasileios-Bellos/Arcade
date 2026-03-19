@@ -256,27 +256,23 @@ classdef FruitNinja < GameBase
             slashThresh = max(1.5, min(areaW, areaH) * 0.008);
 
             % --- Swipe lifecycle tracking ---
-            %   A swipe is a continuous fast finger motion. Starts when
-            %   speed exceeds threshold, ends after 3 slow frames.
-            %   Fruits sliced during one swipe count as a multi-cut.
+            %   A swipe is a single continuous fast finger motion. Starts when
+            %   speed exceeds threshold, ends immediately when speed drops
+            %   (1 slow frame = swipe over). Two separate fast motions
+            %   are two separate swipes — no false multi-cuts.
             if slashSpeed > slashThresh
                 if ~obj.SwipeActive
-                    % New swipe starting — increment generation
                     obj.SwipeActive = true;
                     obj.SwipeGen = obj.SwipeGen + 1;
                     obj.SwipeGenSliced = 0;
                 end
-                obj.SwipeSlowFrames = 0;
-            elseif obj.SwipeActive
-                obj.SwipeSlowFrames = obj.SwipeSlowFrames + ds;
-                if obj.SwipeSlowFrames >= 3
-                    obj.SwipeActive = false;
-                end
+            else
+                obj.SwipeActive = false;
             end
 
             % --- Spawn fruits ---
             obj.SpawnTimer = obj.SpawnTimer + ds;
-            spawnInterval = max(12, 50 - obj.FruitsSliced * 0.25 - obj.Combo * 0.8);
+            spawnInterval = max(10, 50 - obj.FruitsSliced * 0.15 - obj.Combo * 1.5);
             if obj.SpawnTimer >= spawnInterval
                 obj.SpawnTimer = 0;
                 % Occasionally spawn 2-3 fruits as a cluster for multi-cut
@@ -591,7 +587,10 @@ classdef FruitNinja < GameBase
             areaH = dy(2) - dy(1);
 
             fruitColors = {obj.ColorRed, obj.ColorGreen, obj.ColorGold, ...
-                           obj.ColorMagenta, [1, 0.6, 0.15]};
+                           obj.ColorMagenta, [1, 0.6, 0.15], ...  % orange
+                           [0.6, 0.2, 0.8], ...                   % purple
+                           [0.2, 0.8, 0.6], ...                   % teal
+                           [1, 0.4, 0.5]};
             clr = fruitColors{randi(numel(fruitColors))};
             fruitRadius = max(5, round(min(areaW, areaH) * (0.03 + rand * 0.025)));
 
@@ -651,7 +650,10 @@ classdef FruitNinja < GameBase
             areaH = dy(2) - dy(1);
 
             fruitColors = {obj.ColorRed, obj.ColorGreen, obj.ColorGold, ...
-                           obj.ColorMagenta, [1, 0.6, 0.15]};
+                           obj.ColorMagenta, [1, 0.6, 0.15], ...  % orange
+                           [0.6, 0.2, 0.8], ...                   % purple
+                           [0.2, 0.8, 0.6], ...                   % teal
+                           [1, 0.4, 0.5]};
             clr = fruitColors{randi(numel(fruitColors))};
             fruitRadius = max(5, round(min(areaW, areaH) * (0.03 + rand * 0.025)));
 
