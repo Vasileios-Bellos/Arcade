@@ -998,7 +998,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.RegistryOrder = strings(0);
 
             % === Number keys (1-9) ===
-            obj.registerGame("1", @games.Pointing, "Target Practice");
+            obj.registerGame("1", @games.TargetPractice, "Target Practice");
             obj.registerGame("2", @games.Tracing, "Tracing");
             obj.registerGame("3", @games.Catching, "Catching");
             obj.registerGame("4", @games.FlickBall, "Flick Ball");

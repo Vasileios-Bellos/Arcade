@@ -1,5 +1,5 @@
-classdef Pointing < GameBase
-    %Pointing  Target practice — accuracy and speed game.
+classdef TargetPractice < GameBase
+    %TargetPractice  Target practice — accuracy and speed game.
     %   Random targets appear on screen. Hit them before they time out.
     %   Targets shrink and timeout decreases as combo grows.
     %   Also used for pointing accuracy training in the webcam app.
