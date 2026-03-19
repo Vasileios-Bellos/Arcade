@@ -24,7 +24,7 @@ classdef FlickIt < GameBase
         BallVel             (1,2) double = [0, 0]        % velocity [vx, vy] px/frame
         BallRadius          (1,1) double = 10            % display radius
         HitRadius           (1,1) double = 22            % flick detection radius
-        Friction            (1,1) double = 0.99          % velocity decay per frame
+        Friction            (1,1) double = 0.9958         % velocity decay per frame
         Restitution         (1,1) double = 0.80          % energy retained on wall bounce
         BallMoving          (1,1) logical = false         % ball is in motion
         BallPhase           (1,1) double = 0             % animation phase (radians)
@@ -229,7 +229,7 @@ classdef FlickIt < GameBase
             end
 
             % --- 4. Animation phase ---
-            obj.BallPhase = obj.BallPhase + 0.08 * ds;
+            obj.BallPhase = obj.BallPhase + 0.0333 * ds;
 
             % --- 5. Combo decay (2s after last flick) ---
             obj.updateComboDecay();

@@ -43,8 +43,8 @@ classdef Snake < GameBase
     properties (Access = private)
         Body            (:,2) double                % [x, y] per segment, head = row 1
         Direction       (1,2) double = [1, 0]       % current movement direction
-        Speed           (1,1) double = 1.5
-        BaseSpeed       (1,1) double = 1.5
+        Speed           (1,1) double = 0.625
+        BaseSpeed       (1,1) double = 0.625
         CellSize        (1,1) double = 4
         FoodPos         (1,2) double = [NaN, NaN]
         MoveAccum       (1,1) double = 0            % sub-cell movement accumulator
@@ -90,7 +90,7 @@ classdef Snake < GameBase
             areaH = diff(dy);
 
             obj.CellSize = max(6, round(min(areaW, areaH) * 0.06));
-            obj.BaseSpeed = max(1.0, obj.CellSize * 0.35);
+            obj.BaseSpeed = max(0.4167, obj.CellSize * 0.1458);
             obj.Speed = obj.BaseSpeed;
             obj.MoveAccum = 0;
 

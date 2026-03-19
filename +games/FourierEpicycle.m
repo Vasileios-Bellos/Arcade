@@ -38,8 +38,8 @@ classdef FourierEpicycle < GameBase
 
         % Animation
         AnimT           (1,1) double = 0             % animation parameter [0, 2*pi)
-        AnimSpeed       (1,1) double = 0.06          % radians per frame (fallback)
-        TipSpeed        (1,1) double = 4             % target tip distance per frame (px)
+        AnimSpeed       (1,1) double = 0.025         % radians per frame (fallback)
+        TipSpeed        (1,1) double = 1.6667        % target tip distance per frame (px)
         PathPerimeter   (1,1) double = 0             % total path length
         PathN           (1,1) double = 0             % FFT sample count (for open-path end)
 
@@ -66,7 +66,7 @@ classdef FourierEpicycle < GameBase
 
         % Completion effect
         CompletingFrames    (1,1) double = 0
-        CompletingMax       (1,1) double = 25
+        CompletingMax       (1,1) double = 60
         CompleteCentroid    (1,2) double = [0, 0]
         CompleteTraceX      (:,1) double
         CompleteTraceY      (:,1) double
@@ -190,7 +190,7 @@ classdef FourierEpicycle < GameBase
             obj.DispScale = sc;
             obj.CloseDist = 20 * sc;
             obj.PauseDispThresh = 18 * sc;
-            obj.TipSpeed = 4 * sc;
+            obj.TipSpeed = 1.6667 * sc;
 
             % --- State ---
             obj.State = "waiting";
@@ -1350,9 +1350,9 @@ classdef FourierEpicycle < GameBase
             %changeSpeed  Adjust tip speed via left/right arrows.
             sc = obj.DispScale;
             if key == "rightarrow"
-                obj.TipSpeed = min(20 * sc, obj.TipSpeed * 1.3);
+                obj.TipSpeed = min(8.3333 * sc, obj.TipSpeed * 1.3);
             else
-                obj.TipSpeed = max(0.5 * sc, obj.TipSpeed / 1.3);
+                obj.TipSpeed = max(0.2083 * sc, obj.TipSpeed / 1.3);
             end
             obj.updateHud();
         end

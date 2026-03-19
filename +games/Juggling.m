@@ -22,8 +22,8 @@ classdef Juggling < GameBase
         BallVel         (1,2) double = [0, 0]
         BallRadius      (1,1) double = 10
         HitRadius       (1,1) double = 22
-        Gravity         (1,1) double = 0.15
-        Friction        (1,1) double = 0.998
+        Gravity         (1,1) double = 0.0625
+        Friction        (1,1) double = 0.9992
         Restitution     (1,1) double = 0.75
         BallPhase       (1,1) double = 0
         Alive           (1,1) logical = false
@@ -110,7 +110,7 @@ classdef Juggling < GameBase
             % Scale to display area (tuned for ~180px minDim)
             areaH = diff(dy);
             areaW = diff(dx);
-            obj.Gravity = max(0.05, areaH * 0.001);
+            obj.Gravity = max(0.021, areaH * 0.000417);
             obj.BallRadius = max(5, round(min(areaH, areaW) * 0.042));
             obj.HitRadius = max(10, round(obj.BallRadius * 2.2));
 
@@ -302,7 +302,7 @@ classdef Juggling < GameBase
             obj.TrailIdx = tidx;
 
             % --- 11. Animation + render ---
-            obj.BallPhase = obj.BallPhase + 0.08 * ds;
+            obj.BallPhase = obj.BallPhase + 0.0333 * ds;
             obj.renderBall();
 
             % --- 12. Danger line pulse ---

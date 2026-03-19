@@ -32,7 +32,7 @@ classdef DoublePendulum < GameBase
         Mass2           (1,1) double = 1.0      % bob2 mass
         Gravity         (1,1) double = 9.81     % gravitational acceleration
         TimeStep        (1,1) double = 0.002    % RK4 dt
-        SubSteps        (1,1) double = 10       % RK4 sub-steps per frame
+        SubSteps        (1,1) double = 4        % RK4 sub-steps per frame
         SubMode         (1,1) string = "chaos"  % chaos | energy | cascade | freefall
         FingerMode      (1,1) string = "neutral" % neutral | attract | repel
         ShowRods        (1,1) logical = true     % visibility of rods/pivot/bob1
@@ -115,7 +115,7 @@ classdef DoublePendulum < GameBase
             obj.Mass2 = 1.0;
             obj.Gravity = 9.81;
             obj.TimeStep = 0.002;
-            obj.SubSteps = 10;
+            obj.SubSteps = 4;
             obj.SubMode = "chaos";
             obj.TrailLen = 100;
 

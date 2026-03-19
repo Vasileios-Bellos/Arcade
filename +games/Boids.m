@@ -29,7 +29,7 @@ classdef Boids < GameBase
         VelX            (:,1) double
         VelY            (:,1) double
         SubMode         (1,1) string = "flock"
-        MaxSpeed        (1,1) double = 4
+        MaxSpeed        (1,1) double = 1.67
         PerceptRadius   (1,1) double = 60
         SepRadius       (1,1) double = 25
         HomeOffsetX     (:,1) double
@@ -84,7 +84,7 @@ classdef Boids < GameBase
             % Scale physics constants to display size (tuned for ~180px minDim)
             sc = min(areaW, areaH) / 180;
             obj.DisplayScale = sc;
-            obj.MaxSpeed = 4 * sc;
+            obj.MaxSpeed = 1.67 * sc;
             obj.PerceptRadius = 60 * sc;
             obj.SepRadius = 25 * sc;
 
@@ -216,8 +216,8 @@ classdef Boids < GameBase
                         targetY = py;
                     end
                     scLocal = obj.DisplayScale;
-                    formForceX = (targetX - px) * 0.06 + 0.15 * scLocal * randn(nBoids, 1);
-                    formForceY = (targetY - py) * 0.06 + 0.15 * scLocal * randn(nBoids, 1);
+                    formForceX = (targetX - px) * 0.025 + 0.0625 * scLocal * randn(nBoids, 1);
+                    formForceY = (targetY - py) * 0.025 + 0.0625 * scLocal * randn(nBoids, 1);
 
                 case "predator"
                     % Formation flees from finger. Flee components that
@@ -231,7 +231,7 @@ classdef Boids < GameBase
                         dist2F = max(sqrt(dfx^2 + dfy^2), 1);
                         fleeR = perceptR * 3;
                         if dist2F < fleeR
-                            pushStr = 4.0 * (1 - dist2F / fleeR);
+                            pushStr = 1.667 * (1 - dist2F / fleeR);
                             tangX = -dfy / dist2F;
                             tangY = dfx / dist2F;
                             fleeX = pushStr * (dfx / dist2F + 0.7 * tangX);
@@ -256,10 +256,10 @@ classdef Boids < GameBase
                     end
                     targetX = centX + offX;
                     targetY = centY + offY;
-                    formForceX = formForceX + (targetX - px) * 0.06 ...
-                        + 0.15 * scLocal * randn(nBoids, 1);
-                    formForceY = formForceY + (targetY - py) * 0.06 ...
-                        + 0.15 * scLocal * randn(nBoids, 1);
+                    formForceX = formForceX + (targetX - px) * 0.025 ...
+                        + 0.0625 * scLocal * randn(nBoids, 1);
+                    formForceY = formForceY + (targetY - py) * 0.025 ...
+                        + 0.0625 * scLocal * randn(nBoids, 1);
 
                 case "vortex"
                     % Force-based orbiting with per-boid unique radii.
@@ -284,16 +284,16 @@ classdef Boids < GameBase
                         orbitR = orbitR .* (1 + 0.2 * sin( ...
                             fc * 0.03 + obj.RandPhase(:, 2)));
                         % Radial spring toward orbit radius
-                        radStr = 0.3 * (dist2F - orbitR) ./ safeD;
+                        radStr = 0.125 * (dist2F - orbitR) ./ safeD;
                         % Tangential force — inner faster
-                        tangSpd = 2.0 + 1.5 ...
+                        tangSpd = 0.833 + 0.625 ...
                             * (1 - orbitR / max(maxR, 1));
                         formForceX = tangSpd .* tangX ...
                             - radStr .* dfx ./ safeD ...
-                            + 0.15 * scLocal * randn(nBoids, 1);
+                            + 0.0625 * scLocal * randn(nBoids, 1);
                         formForceY = tangSpd .* tangY ...
                             - radStr .* dfy ./ safeD ...
-                            + 0.15 * scLocal * randn(nBoids, 1);
+                            + 0.0625 * scLocal * randn(nBoids, 1);
                     end
 
                 case "murmuration"
@@ -333,14 +333,14 @@ classdef Boids < GameBase
                         + 3 * scLocal * sin(fc * 0.04 + ph(:, 1));
                     targetY = centerY + tY * dispScale ...
                         + 3 * scLocal * sin(fc * 0.035 + ph(:, 2));
-                    formForceX = (targetX - px) * 0.15 + 0.08 * scLocal * randn(nBoids, 1);
-                    formForceY = (targetY - py) * 0.15 + 0.08 * scLocal * randn(nBoids, 1);
+                    formForceX = (targetX - px) * 0.0625 + 0.0333 * scLocal * randn(nBoids, 1);
+                    formForceY = (targetY - py) * 0.0625 + 0.0333 * scLocal * randn(nBoids, 1);
             end
 
             % Integrate: damp then apply forces (frame-rate scaled)
             ds = obj.DtScale;
-            vx = vx * 0.92^ds + formForceX * ds;
-            vy = vy * 0.92^ds + formForceY * ds;
+            vx = vx * 0.9654^ds + formForceX * ds;
+            vy = vy * 0.9654^ds + formForceY * ds;
 
             spd = sqrt(vx.^2 + vy.^2);
             tooFast = spd > spdCap;
@@ -351,7 +351,7 @@ classdef Boids < GameBase
             end
 
             % Soft wall avoidance
-            margin = 10 * obj.DisplayScale; wallStr = 0.2;
+            margin = 10 * obj.DisplayScale; wallStr = 0.0833;
             lPen = max(dxRange(1) + margin - px, 0);
             rPen = max(px - (dxRange(2) - margin), 0);
             tPen = max(dyRange(1) + margin - py, 0);

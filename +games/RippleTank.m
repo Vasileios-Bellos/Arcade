@@ -24,7 +24,7 @@ classdef RippleTank < GameBase
         GridH           (1,1) double = 60       % visible grid height
         Damping         (1,1) double = 0.996    % wave energy dissipation
         WaveSpeed       (1,1) double = 0.45     % c (Courant number)
-        Omega           (1,1) double = 0.5      % source oscillation frequency
+        Omega           (1,1) double = 0.2083   % source oscillation frequency
         Amplitude       (1,1) double = 5.0      % source injection amplitude
         Phase           (1,1) double = 0        % oscillation phase accumulator
         Viscosity       (1,1) double = 0.15     % viscous damping (high-freq faster)
@@ -181,7 +181,7 @@ classdef RippleTank < GameBase
             uNew = 2 * uField - uPrevField + c2 * lap + nu * lapVel;
 
             % Uniform damping for background energy drain (frame-rate scaled)
-            uNew = uNew * 0.998^dsR;
+            uNew = uNew * 0.9992^dsR;
 
             % Reflective (Neumann) boundaries: du/dn = 0 at walls
             uNew(1, :) = uNew(2, :);
@@ -292,11 +292,11 @@ classdef RippleTank < GameBase
                 case {"uparrow", "downarrow"}
                     obj.changeGridLevel(key);
                 case {"leftarrow", "rightarrow"}
-                    stepVal = 0.1;
+                    stepVal = 0.0417;
                     if key == "rightarrow"
-                        obj.Omega = min(2.0, obj.Omega + stepVal);
+                        obj.Omega = min(0.8333, obj.Omega + stepVal);
                     else
-                        obj.Omega = max(0.1, obj.Omega - stepVal);
+                        obj.Omega = max(0.0417, obj.Omega - stepVal);
                     end
                 case "0"
                     % Reset simulation state

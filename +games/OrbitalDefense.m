@@ -261,11 +261,11 @@ classdef OrbitalDefense < GameBase
                 % Auto-fire interceptors from base toward crosshair
                 distToBase = norm(pos - obj.BasePos);
                 obj.FireCD = obj.FireCD + ds;
-                if obj.FireCD >= 15 && distToBase > obj.BaseRadius
+                if obj.FireCD >= 36 && distToBase > obj.BaseRadius
                     obj.FireCD = 0;
                     launchX = obj.BasePos(1);
                     launchY = obj.BasePos(2);
-                    intSpeed = max(2, diff(dy) * 0.025);
+                    intSpeed = max(0.833, diff(dy) * 0.0104);
 
                     % Find inactive interceptor slot
                     slot = find(~obj.IntActive, 1);
@@ -339,12 +339,12 @@ classdef OrbitalDefense < GameBase
             for ki = numel(activeExps):-1:1
                 k = activeExps(ki);
                 if obj.ExpPhase(k) == 1
-                    obj.ExpRadius(k) = obj.ExpRadius(k) + obj.ExpMaxRadius(k) * 0.1 * ds;
+                    obj.ExpRadius(k) = obj.ExpRadius(k) + obj.ExpMaxRadius(k) * 0.0417 * ds;
                     if obj.ExpRadius(k) >= obj.ExpMaxRadius(k)
                         obj.ExpPhase(k) = 2;
                     end
                 else
-                    obj.ExpRadius(k) = obj.ExpRadius(k) - obj.ExpMaxRadius(k) * 0.08 * ds;
+                    obj.ExpRadius(k) = obj.ExpRadius(k) - obj.ExpMaxRadius(k) * 0.0333 * ds;
                 end
 
                 % Chain explosion: destroy asteroids caught in blast
@@ -557,7 +557,7 @@ classdef OrbitalDefense < GameBase
             tierRadii = obj.TierRadii;
             tierSpeedMult = [1.0, 1.5, 2.2];
             counts = [nLarge, nMedium, nSmall];
-            baseSpeed = max(0.3, min(areaW, areaH) * 0.004) * (1 + wave * 0.08);
+            baseSpeed = max(0.125, min(areaW, areaH) * 0.00167) * (1 + wave * 0.08);
 
             for tier = 1:3
                 for m = 1:counts(tier)
@@ -605,7 +605,7 @@ classdef OrbitalDefense < GameBase
             obj.AstRadius(slot) = rockRadius;
             obj.AstTier(slot) = tier;
             obj.AstAngle(slot) = 0;
-            obj.AstSpin(slot) = (rand - 0.5) * 0.05;
+            obj.AstSpin(slot) = (rand - 0.5) * 0.0208;
             obj.AstActive(slot) = true;
 
             tierColors = {obj.ColorSilver, obj.ColorGold, obj.ColorRed};

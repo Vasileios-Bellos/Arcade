@@ -21,7 +21,7 @@ classdef Cloth < GameBase
         Gravity         (1,1) double = 0.08
         Sc              (1,1) double = 1    % display scale (1.0 at ~180px)
         Damping         (1,1) double = 0.995
-        SubSteps        (1,1) double = 8
+        SubSteps        (1,1) double = 3
         ConstraintPasses (1,1) double = 3
         ConstraintFactor (1,1) double = 0.12
         GridLevel       (1,1) double = 5   % 1-10 resolution levels

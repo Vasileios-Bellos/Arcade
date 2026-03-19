@@ -24,7 +24,7 @@ classdef Dobryakov < GameBase
         ForceStrength   (1,1) double = 200    % force multiplier
         VortEps         (1,1) double = 2.5    % vorticity confinement strength
         DyeRate         (1,1) double = 8.0    % dye injection rate
-        DyeDecay        (1,1) double = 0.002  % per-frame dye decay
+        DyeDecay        (1,1) double = 0.0008  % per-frame dye decay
         Dt              (1,1) double = 0.1    % time step
     end
 
@@ -273,8 +273,8 @@ classdef Dobryakov < GameBase
             u(:, 1) = 0; u(:, end) = 0;
             v(1, :) = 0; v(end, :) = 0;
             dsF = obj.DtScale;
-            u = u * 0.998^dsF;
-            v = v * 0.998^dsF;
+            u = u * 0.9992^dsF;
+            v = v * 0.9992^dsF;
 
             % === STEP 6: Advect dye ===
             dyeR = games.FluidUtils.fldAdvect(dyeR, u, v, dt, X, Y, Ny, Nx);

@@ -37,8 +37,8 @@ classdef Breakout < GameBase
         BallVel         (1,2) double = [0, 0]
         BallRadius      (1,1) double = 6
         BallPhase       (1,1) double = 0
-        BallBaseSpeed   (1,1) double = 3.5
-        BallSpeed       (1,1) double = 3.5
+        BallBaseSpeed   (1,1) double = 1.458
+        BallSpeed       (1,1) double = 1.458
 
         % Paddle
         PaddleX         (1,1) double = NaN
@@ -147,7 +147,7 @@ classdef Breakout < GameBase
 
             % Scale sizes to display area
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
-            obj.BallBaseSpeed = max(1.5, areaH * 0.027);
+            obj.BallBaseSpeed = max(0.625, areaH * 0.01125);
             obj.BallSpeed = obj.BallBaseSpeed;
             obj.PaddleBaseW = max(20, round(areaW * 0.15));
             obj.PaddleW = obj.PaddleBaseW;
@@ -271,7 +271,7 @@ classdef Breakout < GameBase
             % --- Level transition phase ---
             if obj.LevelPhase == "transition"
                 obj.LevelTransFrames = obj.LevelTransFrames - ds;
-                tProgress = 1 - obj.LevelTransFrames / 40;
+                tProgress = 1 - obj.LevelTransFrames / 96;
 
                 % Fade out old bricks
                 if tProgress < 0.5
@@ -323,7 +323,7 @@ classdef Breakout < GameBase
             if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
                 set(obj.PaddleGlowH, "XData", xv, "YData", yv);
                 % Breathing glow
-                obj.BallPhase = obj.BallPhase + 0.08 * ds;
+                obj.BallPhase = obj.BallPhase + 0.0333 * ds;
                 glowAlpha = 0.08 + 0.04 * sin(obj.BallPhase);
                 obj.PaddleGlowH.FaceAlpha = glowAlpha;
             end
@@ -744,7 +744,7 @@ classdef Breakout < GameBase
         function serveBall(obj)
             %serveBall  Place ball on paddle, prepare serve.
             obj.Serving = true;
-            obj.ServeCountdown = 25;  % ~1s at 25fps
+            obj.ServeCountdown = 60;  % ~1s at 60fps
             obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 2];
             obj.BallVel = [0, 0];
             obj.CatchHeld = false;
@@ -945,7 +945,7 @@ classdef Breakout < GameBase
 
             % Level transition
             obj.LevelPhase = "transition";
-            obj.LevelTransFrames = 40;
+            obj.LevelTransFrames = 96;
 
             % Flash remaining bricks white
             for k = 1:numel(obj.Bricks)
@@ -991,7 +991,7 @@ classdef Breakout < GameBase
             typeIdx = randi(numel(types));
             pType = types(typeIdx);
             pColor = colors{typeIdx};
-            pSpeed = 1.5 * obj.Sc;
+            pSpeed = 0.625 * obj.Sc;
 
             % Glow aura
             glowH = line(ax, x, y, "Color", [pColor, 0.2], ...

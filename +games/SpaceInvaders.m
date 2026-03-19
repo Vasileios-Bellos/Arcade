@@ -38,7 +38,7 @@ classdef SpaceInvaders < GameBase
                                             "type", {}, "shapeX", {}, "shapeY", {}, ...
                                             "patchH", {}, "glowH", {})
         AlienDir            (1,1) double = 1            % 1=right, -1=left
-        AlienSpeed          (1,1) double = 0.3
+        AlienSpeed          (1,1) double = 0.125
         AlienDropDist       (1,1) double = 6
 
         % Player bullet pool
@@ -56,7 +56,7 @@ classdef SpaceInvaders < GameBase
 
         % Auto-fire
         FireCD              (1,1) double = 0
-        FireRate             (1,1) double = 12           % frames between shots
+        FireRate             (1,1) double = 29           % frames between shots
 
         % Wave / Lives
         Wave                (1,1) double = 1
@@ -140,7 +140,7 @@ classdef SpaceInvaders < GameBase
             obj.FireCD = 0;
             obj.FireRate = 12;
             obj.AlienDir = 1;
-            obj.AlienSpeed = max(0.2, areaW * 0.002);
+            obj.AlienSpeed = max(0.083, areaW * 0.000833);
             obj.AlienDropDist = max(3, areaH * 0.04);
             obj.InvulnFrames = 0;
             obj.GameOver = false;
@@ -275,14 +275,14 @@ classdef SpaceInvaders < GameBase
             % Auto-fire
             obj.FireCD = obj.FireCD + ds;
             currentFireRate = obj.FireRate;
-            if obj.LaserActive; currentFireRate = max(4, currentFireRate / 2); end
+            if obj.LaserActive; currentFireRate = max(10, currentFireRate / 2); end
             if obj.FireCD >= currentFireRate
                 obj.FireCD = 0;
                 obj.fireBullet();
             end
 
             % Move player bullets upward
-            bulletSpeed = max(2, diff(dy) * 0.025);
+            bulletSpeed = max(0.833, diff(dy) * 0.0104);
             bLen = max(3, diff(dy) * 0.02);
             for k = 1:obj.BulletPoolSize
                 if ~obj.BulletActive(k); continue; end
@@ -374,13 +374,13 @@ classdef SpaceInvaders < GameBase
             end
 
             % Enemy fire (random alien shoots) — use pool
-            if ~isempty(obj.Aliens) && rand < 0.02 * (1 + obj.Wave * 0.3)
+            if ~isempty(obj.Aliens) && rand < 0.0083 * (1 + obj.Wave * 0.3)
                 shooter = obj.Aliens(randi(numel(obj.Aliens)));
                 obj.activateEBullet(shooter.x, shooter.y);
             end
 
             % Move enemy bullets
-            eBulletSpeed = max(1.5, diff(dy) * 0.015);
+            eBulletSpeed = max(0.625, diff(dy) * 0.00625);
             for k = 1:obj.EBulletPoolSize
                 if ~obj.EBulletActive(k); continue; end
                 obj.EBulletY(k) = obj.EBulletY(k) + eBulletSpeed * ds;
@@ -454,7 +454,7 @@ classdef SpaceInvaders < GameBase
             thetaCap = obj.ThetaCircle24;
             for k = 1:obj.PUPoolSize
                 if ~obj.PUActive(k); continue; end
-                obj.PUY(k) = obj.PUY(k) + ds;
+                obj.PUY(k) = obj.PUY(k) + 0.4167 * ds;
                 puX = obj.PUX(k);
                 puY = obj.PUY(k);
 
@@ -709,7 +709,7 @@ classdef SpaceInvaders < GameBase
                 end
             end
 
-            obj.AlienSpeed = max(0.2, diff(dx) * 0.002) * (1 + 0.15 * (wave - 1));
+            obj.AlienSpeed = max(0.083, diff(dx) * 0.000833) * (1 + 0.15 * (wave - 1));
         end
 
         function fireBullet(obj)
@@ -799,7 +799,7 @@ classdef SpaceInvaders < GameBase
                 obj.GameOver = true;
                 return;
             end
-            obj.InvulnFrames = 60;
+            obj.InvulnFrames = 144;
         end
 
         function updateLivesDisplay(obj)

@@ -29,7 +29,7 @@ classdef Lissajous < GameBase
         FrameCount      (1,1) double = 0
         MorphA          (1,1) double = 1
         MorphB          (1,1) double = 1
-        MorphRate       (1,1) double = 0.003
+        MorphRate       (1,1) double = 0.00125
         SpiralC         (1,1) double = 3
         SpiralRot       (1,1) double = 0
     end
@@ -192,7 +192,7 @@ classdef Lissajous < GameBase
             obj.FrameCount = obj.FrameCount + 1;
 
             % Increment time parameter (frame-rate scaled)
-            obj.T = obj.T + 0.02 * obj.DtScale;
+            obj.T = obj.T + 0.008 * obj.DtScale;
             tNow = obj.T;
 
             % Finger interaction: X/Y position control phase offsets
@@ -201,11 +201,11 @@ classdef Lissajous < GameBase
                 relY = (pos(2) - dy(1)) / areaH;  % 0..1
                 % Phase drift proportional to finger offset from center
                 dsL = obj.DtScale;
-                obj.PhaseX = obj.PhaseX + (relX - 0.5) * 0.02 * dsL;
-                obj.PhaseY = obj.PhaseY + (relY - 0.5) * 0.02 * dsL;
+                obj.PhaseX = obj.PhaseX + (relX - 0.5) * 0.008 * dsL;
+                obj.PhaseY = obj.PhaseY + (relY - 0.5) * 0.008 * dsL;
                 % In morph/spiral, finger also controls morph/rotation speed
                 if obj.SubMode == "morph"
-                    obj.MorphRate = 0.002 + relX * 0.008;
+                    obj.MorphRate = 0.0008 + relX * 0.0033;
                 elseif obj.SubMode == "spiral"
                     obj.SpiralC = 0.5 + relY * 2.0;
                 end
@@ -231,7 +231,7 @@ classdef Lissajous < GameBase
                     if obj.MorphA > 8; obj.MorphA = 1; end
                     if obj.MorphB > 8; obj.MorphB = 1; end
                 case "spiral"
-                    obj.SpiralRot = obj.SpiralRot + 0.01 * dsL2;
+                    obj.SpiralRot = obj.SpiralRot + 0.0042 * dsL2;
             end
 
             topMX = zeros(1, nGrid);

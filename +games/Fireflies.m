@@ -19,7 +19,7 @@ classdef Fireflies < GameBase
     % =================================================================
     properties (Access = private)
         % Firefly management
-        BaseSpeed       (1,1) double = 5.25     % base speed (idx/frame), tiers multiply 1x-3.2x
+        BaseSpeed       (1,1) double = 2.1875   % base speed (idx/frame), tiers multiply 1x-3.2x
         ActiveFF                                 % active firefly struct array
         SpawnCooldown   (1,1) double = 0         % frames until next spawn
         CatchRadiusBonus (1,1) double = 0        % extra catch radius for mouse input
@@ -90,7 +90,7 @@ classdef Fireflies < GameBase
             obj.Sc = min(areaW, areaH) / 180;
 
             obj.ActiveFF = [];
-            obj.SpawnCooldown = 40;
+            obj.SpawnCooldown = 96;
             obj.CatchStartTic = tic;
             obj.LastCatchTic = tic;
             obj.ComboFadeTic = [];
@@ -151,11 +151,11 @@ classdef Fireflies < GameBase
             % Advance and check each firefly (reverse for safe deletion)
             for i = numel(obj.ActiveFF):-1:1
                 ff = obj.ActiveFF(i);
-                ff.phase = ff.phase + 0.15 * ds;
+                ff.phase = ff.phase + 0.0625 * ds;
 
                 if ff.isSnitch
                     % Golden snitch: Lissajous base trajectory + evasion
-                    ff.theta = ff.theta + ff.speed * 0.004 * ds;
+                    ff.theta = ff.theta + ff.speed * 0.00167 * ds;
 
                     cx = (dx(1) + dx(2)) / 2;
                     cy = (dy(1) + dy(2)) / 2;
@@ -180,8 +180,8 @@ classdef Fireflies < GameBase
                             evadeY = ddy / dFinger * push;
                         end
                     end
-                    ff.evadeX = ff.evadeX * 0.92 ^ ds + evadeX;
-                    ff.evadeY = ff.evadeY * 0.92 ^ ds + evadeY;
+                    ff.evadeX = ff.evadeX * 0.9664 ^ ds + evadeX;
+                    ff.evadeY = ff.evadeY * 0.9664 ^ ds + evadeY;
 
                     ff.posX = baseX + ff.evadeX;
                     ff.posY = baseY + ff.evadeY;
@@ -263,7 +263,7 @@ classdef Fireflies < GameBase
             if obj.SpawnCooldown <= 0 && numel(obj.ActiveFF) < 3
                 obj.spawnFirefly();
                 elapsed = toc(obj.CatchStartTic);
-                obj.SpawnCooldown = max(8, round(30 - elapsed * 0.3));
+                obj.SpawnCooldown = max(19, round(72 - elapsed * 0.3));
             end
 
             % Animate combo text fade

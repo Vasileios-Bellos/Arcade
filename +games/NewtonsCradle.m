@@ -33,7 +33,7 @@ classdef NewtonsCradle < GameBase
         BallRadius      (1,1) double = 1.0      % ball radius (display units)
         Gravity         (1,1) double = 9.81     % scaled gravity
         TimeStep        (1,1) double = 0.004    % RK4 dt
-        SubSteps        (1,1) double = 8        % RK4 sub-steps per frame
+        SubSteps        (1,1) double = 3        % RK4 sub-steps per frame
         Damping         (1,1) double = 0.9985   % per-substep air resistance
         SubMode         (1,1) string = "classic"
         BarX            (1,1) double = 0        % frame bar center X
@@ -114,7 +114,7 @@ classdef NewtonsCradle < GameBase
             % Scale gravity so pendulum period ~ 1.5 sim-seconds regardless of L
             obj.Gravity = stringLen * (2 * pi / 1.5)^2;
             obj.TimeStep = 0.004;
-            obj.SubSteps = 8;
+            obj.SubSteps = 3;
             obj.Damping = 0.9985;
             obj.StringOffset = ballR * 0.6;
             obj.BallRadius = ballR;

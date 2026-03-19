@@ -211,7 +211,7 @@ classdef ShieldGuardian < GameBase
 
             % --- Spawn projectiles ---
             obj.SpawnTimer = obj.SpawnTimer + ds;
-            spawnRate = max(8, 30 - obj.Wave * 2);
+            spawnRate = max(19, 72 - obj.Wave * 5);
             if obj.SpawnTimer >= spawnRate
                 obj.SpawnTimer = 0;
                 obj.spawnProjectile();
@@ -438,7 +438,7 @@ classdef ShieldGuardian < GameBase
             sa = sin(spreadVal);
             aimed = [toCore(1)*ca - toCore(2)*sa, toCore(1)*sa + toCore(2)*ca];
 
-            baseSpeed = max(0.8, min(areaW, areaH) * 0.02) ...
+            baseSpeed = max(0.333, min(areaW, areaH) * 0.0083) ...
                 * (1 + obj.Wave * 0.1);
 
             % Random type: fast (red), normal (magenta), heavy (orange)

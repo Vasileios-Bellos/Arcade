@@ -45,7 +45,7 @@ classdef FluidSim < GameBase
         ForceStrength   (1,1) double = 150
         VortEps         (1,1) double = 1.5      % vorticity confinement strength
         DyeRate         (1,1) double = 6.0
-        DyeDecay        (1,1) double = 0.003
+        DyeDecay        (1,1) double = 0.0013
         Dt              (1,1) double = 0.1       % simulation time step
     end
 
@@ -242,8 +242,8 @@ classdef FluidSim < GameBase
             u(:, 1) = 0; u(:, end) = 0;
             v(1, :) = 0; v(end, :) = 0;
             dsF = obj.DtScale;
-            u = u * 0.998^dsF;
-            v = v * 0.998^dsF;
+            u = u * 0.9992^dsF;
+            v = v * 0.9992^dsF;
 
             % === STEP 6: Advect dye ===
             dyeR = games.FluidUtils.fldAdvect(dyeR, u, v, dt, gX, gY, Ny, Nx);

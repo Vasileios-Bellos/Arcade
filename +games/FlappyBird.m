@@ -31,10 +31,10 @@ classdef FlappyBird < GameBase
         PipeGapHSlot                % gap height per pool slot
         PipeScored                  % scored flag per pool slot
 
-        PipeSpeed       (1,1) double = 1.5
-        PipeBaseSpeed   (1,1) double = 1.5
-        PipeTargetSpeed (1,1) double = 1.5   % speed decays toward this after hit
-        PipeSpeedDecay  (1,1) double = 0.005 % linear ramp per frame (slow)
+        PipeSpeed       (1,1) double = 0.625
+        PipeBaseSpeed   (1,1) double = 0.625
+        PipeTargetSpeed (1,1) double = 0.625   % speed decays toward this after hit
+        PipeSpeedDecay  (1,1) double = 0.0021 % linear ramp per frame (slow)
         PipeWidth       (1,1) double = 20
         PipeGapH        (1,1) double = 40
         PipeBaseGapH    (1,1) double = 40
@@ -92,7 +92,7 @@ classdef FlappyBird < GameBase
             obj.PipeGapH = max(35, round(areaH * 0.35));
             obj.PipeBaseGapH = obj.PipeGapH;
             obj.PipeSpacing = max(40, round(areaW * 0.35));
-            obj.PipeBaseSpeed = max(0.8, areaW * 0.008);
+            obj.PipeBaseSpeed = max(0.333, areaW * 0.0033);
             obj.PipeSpeed = obj.PipeBaseSpeed;
             obj.PipeTargetSpeed = obj.PipeBaseSpeed;
 
@@ -383,7 +383,7 @@ classdef FlappyBird < GameBase
             obj.spawnBounceEffect(birdPos, [0, -1], 0, 15);
 
             % Red flash + invulnerability (bird blinks through pipes)
-            obj.InvulnFrames = 40;
+            obj.InvulnFrames = 96;
             if ~isempty(obj.BirdCoreH) && isvalid(obj.BirdCoreH)
                 obj.BirdCoreH.CData = obj.ColorRed;
             end

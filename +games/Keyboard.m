@@ -21,7 +21,7 @@ classdef Keyboard < GameBase
                                         "w", {}, "h", {})
         HoverIdx        (1,1) double = 0
         DwellFrames     (1,1) double = 0
-        DwellThreshold  (1,1) double = 12
+        DwellThreshold  (1,1) double = 29
         TypedText       (1,1) string = ""
         LastPressIdx    (1,1) double = 0
         ShiftActive     (1,1) logical = false

@@ -296,7 +296,7 @@ classdef GlyphTracing < GameBase
 
             % Every 3 frames: polybuffer recent path, union with fill
             obj.FillUpdateCD = obj.FillUpdateCD + obj.DtScale;
-            if obj.FillUpdateCD >= 3 && numel(obj.RecentX) >= 2
+            if obj.FillUpdateCD >= 7 && numel(obj.RecentX) >= 2
                 obj.FillUpdateCD = 0;
                 obj.updateProximityFill();
             end
@@ -331,7 +331,7 @@ classdef GlyphTracing < GameBase
         function updateScored(obj)
             %updateScored  Animate scored phase (fade + expand).
             obj.ScoredFrames = obj.ScoredFrames - obj.DtScale;
-            t = 1 - obj.ScoredFrames / 20;  % 0 -> 1
+            t = 1 - obj.ScoredFrames / 48;  % 0 -> 1
 
             % Fade all elements (quadratic for fast drop-off)
             fade = max(0, 1 - t)^2;
@@ -387,7 +387,7 @@ classdef GlyphTracing < GameBase
 
             if obj.ScoredFrames <= 0
                 obj.Phase = "gap";
-                obj.GapFrames = 15;
+                obj.GapFrames = 36;
             end
         end
 
@@ -622,7 +622,7 @@ classdef GlyphTracing < GameBase
 
             obj.hideTimeBar();
             obj.Phase = "scored";
-            obj.ScoredFrames = 20;
+            obj.ScoredFrames = 48;
         end
 
         function onFail(obj, elapsed)
@@ -656,7 +656,7 @@ classdef GlyphTracing < GameBase
             obj.SeqIndex = obj.SeqIndex - 1;
             obj.hideTimeBar();
             obj.Phase = "scored";
-            obj.ScoredFrames = 20;
+            obj.ScoredFrames = 48;
         end
 
         % ----- Recognition callback -----------------------------------

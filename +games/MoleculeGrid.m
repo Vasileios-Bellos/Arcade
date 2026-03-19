@@ -21,9 +21,9 @@ classdef MoleculeGrid < GameBase
         GridSpacing     (1,1) double = 5
         SpringK         (1,1) double = 0.3
         AnchorK         (1,1) double = 0.08
-        Retention       (1,1) double = 0.7
+        Retention       (1,1) double = 0.8620
         FingerRadius    (1,1) double = 28
-        FingerForce     (1,1) double = 80
+        FingerForce     (1,1) double = 33
         NodeColorsOn    (1,1) logical = false
         BreathingOn     (1,1) logical = false
         SubMode         (1,1) string = "elastic"
@@ -126,7 +126,7 @@ classdef MoleculeGrid < GameBase
                 if any(inRange)
                     forceR = obj.FingerForce ...
                         * (1 - distF(inRange) / obj.FingerRadius).^2;
-                    forceR = min(forceR, 3);
+                    forceR = min(forceR, 1.25);
                     safeDist = max(distF(inRange), 1);
                     if obj.FingerMode == "attract"
                         obj.VelX(inRange) = obj.VelX(inRange) ...
@@ -143,7 +143,7 @@ classdef MoleculeGrid < GameBase
             end
 
             % --- Physics substeps (symplectic Euler, 4 substeps) ---
-            baseNSub = 4;
+            baseNSub = 2;
             ds = obj.DtScale;
             nSub = max(1, round(baseNSub * ds));
             nSub = min(nSub, baseNSub * 4);  % safety cap
@@ -180,7 +180,7 @@ classdef MoleculeGrid < GameBase
             totalEnergy = sum(obj.VelX.^2 + obj.VelY.^2);
             obj.PeakEnergy = max(obj.PeakEnergy, totalEnergy);
             if obj.BreathingOn
-                obj.Phase = obj.Phase + 0.05;
+                obj.Phase = obj.Phase + 0.0208;
                 breathX = 0.5 * sin(obj.Phase + (1:numNodes)' * 0.1);
                 breathY = 0.5 * cos(obj.Phase * 0.7 ...
                     + (1:numNodes)' * 0.13);
@@ -498,18 +498,18 @@ classdef MoleculeGrid < GameBase
                 case "damped"
                     obj.SpringK = 0.2;
                     obj.AnchorK = 0.06;
-                    obj.Retention = 0.5;
-                    obj.FingerForce = 50;
+                    obj.Retention = 0.7491;
+                    obj.FingerForce = 21;
                 case "elastic"
                     obj.SpringK = 0.3;
                     obj.AnchorK = 0.08;
-                    obj.Retention = 0.7;
-                    obj.FingerForce = 80;
+                    obj.Retention = 0.8620;
+                    obj.FingerForce = 33;
                 case "energetic"
                     obj.SpringK = 0.5;
                     obj.AnchorK = 0.10;
-                    obj.Retention = 0.9;
-                    obj.FingerForce = 120;
+                    obj.Retention = 0.9571;
+                    obj.FingerForce = 50;
             end
             obj.refreshHud();
         end

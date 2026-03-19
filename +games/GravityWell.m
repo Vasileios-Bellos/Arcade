@@ -21,14 +21,14 @@ classdef GravityWell < GameBase
     % PHYSICS CONSTANTS
     % =================================================================
     properties (Access = private, Constant)
-        GravConst       (1,1) double = 5       % gravitational constant
+        GravConst       (1,1) double = 2.0833   % gravitational constant
         FingerMass      (1,1) double = 100     % finger attractor mass
         Softening       (1,1) double = 225     % 15^2 softening
-        Damping         (1,1) double = 0.998   % per-frame velocity damping
-        VelocityCap     (1,1) double = 4       % max speed px/frame
+        Damping         (1,1) double = 0.9992  % per-frame velocity damping
+        VelocityCap     (1,1) double = 1.667   % max speed px/frame
         MaxParticles    (1,1) double = 6
         TrailLength     (1,1) double = 20
-        SpawnInterval   (1,1) double = 12      % frames between spawns
+        SpawnInterval   (1,1) double = 29      % frames between spawns
         RepelRadius     (1,1) double = 60      % short-range repel cutoff
         OffScreenMargin (1,1) double = 40
         OrbitFraction   (1,1) double = 0.4     % orbit scoring radius
@@ -365,7 +365,7 @@ classdef GravityWell < GameBase
             toCenterAngle = atan2(mean(dy) - y, mean(dx) - x);
             tangentOffset = (rand - 0.5) * pi * 0.6;   % +/-54 deg offset
             launchAngle = toCenterAngle + tangentOffset;
-            launchSpeed = (0.5 + rand * 0.8) * obj.DisplayScale;
+            launchSpeed = (0.2083 + rand * 0.3333) * obj.DisplayScale;
             vx = launchSpeed * cos(launchAngle);
             vy = launchSpeed * sin(launchAngle);
             pMass = 0.5 + rand * 1.5;

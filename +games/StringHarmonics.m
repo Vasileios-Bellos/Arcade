@@ -28,7 +28,7 @@ classdef StringHarmonics < GameBase
         NumPoints       (1,1) double = 300           % points per string
         WaveSpeed       (1,1) double = 0.8           % wave speed
         Damping         (1,1) double = 0.9998        % damping factor
-        SubSteps        (1,1) double = 8             % wave equation sub-steps per frame
+        SubSteps        (1,1) double = 3             % wave equation sub-steps per frame
         SubMode         (1,1) string = "superposition"
         XPos            (:,1) double                 % normalized [0,1] x positions
 
@@ -329,7 +329,7 @@ classdef StringHarmonics < GameBase
             % Decay pluck flash intensity (frame-rate scaled)
             ds = obj.DtScale;
             if obj.PluckFlashAmp > 0.01
-                obj.PluckFlashAmp = obj.PluckFlashAmp * 0.85^ds;
+                obj.PluckFlashAmp = obj.PluckFlashAmp * 0.9312^ds;
             else
                 obj.PluckFlashAmp = 0;
             end
@@ -365,7 +365,7 @@ classdef StringHarmonics < GameBase
                 if obj.SubMode == "harmonics"
                     obj.EnvelopeMax = max(obj.EnvelopeMax, absU);
                 else
-                    obj.EnvelopeMax = max(obj.EnvelopeMax * 0.995^ds, absU);
+                    obj.EnvelopeMax = max(obj.EnvelopeMax * 0.9979^ds, absU);
                 end
             end
 

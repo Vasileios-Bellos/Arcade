@@ -35,7 +35,7 @@ classdef Smoke < GameBase
         GridH           (1,1) double = 60
         SubMode         (1,1) string = "chimney"
         Buoyancy        (1,1) double = 0.5
-        Dissipation     (1,1) double = 0.03
+        Dissipation     (1,1) double = 0.0126
         VortEps         (1,1) double = 1.5
     end
 
@@ -226,8 +226,8 @@ classdef Smoke < GameBase
                 v(end - bi + 1, :) = v(end - bi + 1, :) * fac;
             end
             dsF = obj.DtScale;
-            u = u * 0.998^dsF;
-            v = v * 0.998^dsF;
+            u = u * 0.9992^dsF;
+            v = v * 0.9992^dsF;
 
             % === STEP 8: Advect density and temperature ===
             dens = games.FluidUtils.fldAdvect(dens, u, v, dt, gX, gY, Ny, Nx);
@@ -473,15 +473,15 @@ classdef Smoke < GameBase
             switch obj.SubMode
                 case "chimney"
                     obj.Buoyancy = 0.5;
-                    obj.Dissipation = 0.035;
+                    obj.Dissipation = 0.0147;
                     obj.VortEps = 1.5;
                 case "incense"
                     obj.Buoyancy = 0.2;
-                    obj.Dissipation = 0.025;
+                    obj.Dissipation = 0.0105;
                     obj.VortEps = 3.0;
                 case "explosion"
                     obj.Buoyancy = 0.3;
-                    obj.Dissipation = 0.04;
+                    obj.Dissipation = 0.0169;
                     obj.VortEps = 2.0;
                     % Reset fields for fresh burst
                     ghost = obj.GhostCells;
@@ -494,7 +494,7 @@ classdef Smoke < GameBase
                     obj.FrameCount = 0;
                 case "wind"
                     obj.Buoyancy = 0.15;
-                    obj.Dissipation = 0.03;
+                    obj.Dissipation = 0.0126;
                     obj.VortEps = 1.0;
             end
 

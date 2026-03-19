@@ -46,7 +46,7 @@ classdef EmField < GameBase
         FingerMode      (1,1) string = "repel"
 
         % Field parameters
-        FlowSpeed       (1,1) double = 2.5     % particle advection speed
+        FlowSpeed       (1,1) double = 1.0417  % particle advection speed
         Softening       (1,1) double = 15.0    % field singularity softening
         SubMode         (1,1) string = "monopole"
         Transitioning   (1,1) logical = false   % guard: true during init/cleanup
@@ -79,7 +79,7 @@ classdef EmField < GameBase
         CycSpawnTic     (1,1) double = 0       % frame counter for spawning
         CycSimTime      (1,1) double = 0       % cumulative simulation time
         CycDtSub        (1,1) double = 0.5     % substep time increment
-        CycNSub         (1,1) double = 8       % substeps per frame
+        CycNSub         (1,1) double = 3       % substeps per frame
         CycExtractions  (1,1) double = 0       % total particles extracted
         CycTotalSpawned (1,1) double = 0       % running counter for unique hue
 
@@ -138,7 +138,7 @@ classdef EmField < GameBase
             % Scale display-space constants for actual display size
             sc = min(diff(dxR), diff(dyR)) / 180;
             obj.Softening = 15.0 * sc;
-            obj.FlowSpeed = 2.5 * sc;
+            obj.FlowSpeed = 1.0417 * sc;
 
             % Trail length depends on mode
             if isCyc
@@ -1021,7 +1021,7 @@ classdef EmField < GameBase
             obj.CycExtractions = 0;
             obj.CycTotalSpawned = 0;
 
-            obj.CycNSub  = 8;
+            obj.CycNSub  = 3;
             obj.CycDtSub = 0.5;
 
             v0 = 0.5;

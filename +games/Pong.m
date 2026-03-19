@@ -19,14 +19,14 @@ classdef Pong < GameBase
     % GAME CONFIGURATION
     % =================================================================
     properties (Access = private)
-        BallBaseSpeed   (1,1) double = 4.5      % initial serve speed (px/frame)
+        BallBaseSpeed   (1,1) double = 1.875     % initial serve speed (px/frame)
         BallSpeedGain   (1,1) double = 1.08     % speed multiplier per paddle hit
         WinScore        (1,1) double = 10       % first to this wins
         PaddleHalfH     (1,1) double = 35       % paddle half-height in px
         PaddleWidth     (1,1) double = 6        % paddle visual width in px
         PaddleMargin    (1,1) double = 15       % paddle X offset from edge
         BallRadius      (1,1) double = 8        % ball display radius
-        AIBaseSpeed     (1,1) double = 3.0      % base AI max speed (px/frame)
+        AIBaseSpeed     (1,1) double = 1.25      % base AI max speed (px/frame)
         AIErrorPx       (1,1) double = 20       % base intentional offset error
         Restitution     (1,1) double = 0.95     % wall bounce energy retention
         TrailLen        (1,1) double = 20       % trail buffer capacity
@@ -123,8 +123,8 @@ classdef Pong < GameBase
             obj.PaddleMargin = max(6, round(areaW * 0.06));
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.035));
             % Speed scales with display so ball crosses screen in same time
-            obj.BallBaseSpeed = max(1.5, areaW * 0.02);
-            obj.AIBaseSpeed = max(1.0, areaH * 0.02);
+            obj.BallBaseSpeed = max(0.625, areaW * 0.00833);
+            obj.AIBaseSpeed = max(0.417, areaH * 0.00833);
             obj.AIErrorPx = max(5, areaH * 0.12);
 
             % flickSpeedColor expects speeds in the ~3-12 range (calibrated
@@ -269,17 +269,17 @@ classdef Pong < GameBase
                     obj.launchBall();
                 else
                     % Animate serve text
-                    remaining = ceil(obj.ServeCountdown / 25);
+                    remaining = ceil(obj.ServeCountdown / 60);
                     if ~isempty(obj.ServeTextH) && isvalid(obj.ServeTextH)
                         obj.ServeTextH.String = string(remaining);
-                        progress = mod(obj.ServeCountdown, 25) / 25;
+                        progress = mod(obj.ServeCountdown, 60) / 60;
                         serveScale = 1 + 0.2 * sin(progress * pi);
                         obj.ServeTextH.FontSize = round(30 * serveScale);
                         obj.ServeTextH.Visible = "on";
                     end
                 end
                 obj.updateAIPaddle();
-                obj.BallPhase = obj.BallPhase + 0.08 * ds;
+                obj.BallPhase = obj.BallPhase + 0.0333 * ds;
                 obj.updateGraphics();
                 obj.updateComboFade();
                 return;
@@ -365,7 +365,7 @@ classdef Pong < GameBase
             obj.TrailIdx = tidx;
 
             % --- Animation + render ---
-            obj.BallPhase = obj.BallPhase + 0.08 * ds;
+            obj.BallPhase = obj.BallPhase + 0.0333 * ds;
             obj.updateGraphics();
             obj.updateComboFade();
         end
@@ -437,7 +437,7 @@ classdef Pong < GameBase
             obj.BallPos = [cx, cy];
             obj.BallVel = [0, 0];
             obj.Serving = true;
-            obj.ServeCountdown = 50;
+            obj.ServeCountdown = 120;
             obj.ServeDir = 1;  % always serve toward player (right)
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;

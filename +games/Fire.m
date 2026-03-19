@@ -37,7 +37,7 @@ classdef Fire < GameBase
         GridH           (1,1) double = 60
         SubMode         (1,1) string = "torch"
         Buoyancy        (1,1) double = 1.0
-        Cooling         (1,1) double = 0.02
+        Cooling         (1,1) double = 0.0084
         Combustion      (1,1) double = 0.5
         MaxEmbers       (1,1) double = 50
     end
@@ -243,8 +243,8 @@ classdef Fire < GameBase
                 v(end - bi + 1, :) = v(end - bi + 1, :) * fac;
             end
             dsF = obj.DtScale;
-            u = u * 0.995^dsF;
-            v = v * 0.995^dsF;
+            u = u * 0.9979^dsF;
+            v = v * 0.9979^dsF;
             % Kill heat and fuel at all boundaries
             temp(1:ghost, :) = 0; temp(end-ghost+1:end, :) = 0;
             temp(:, 1:ghost) = 0; temp(:, end-ghost+1:end) = 0;
@@ -434,7 +434,7 @@ classdef Fire < GameBase
             obj.PrevFinger = [NaN NaN];
             obj.SubMode = "torch";
             obj.Buoyancy = 0.3;
-            obj.Cooling = 0.08;
+            obj.Cooling = 0.0341;
             obj.Combustion = 0.8;
             obj.MaxEmbers = 120;
             obj.ExplosionDone = false;
@@ -658,22 +658,22 @@ classdef Fire < GameBase
             switch obj.SubMode
                 case "campfire"
                     obj.Buoyancy = 1.0;
-                    obj.Cooling = 0.02;
+                    obj.Cooling = 0.0084;
                     obj.Combustion = 0.5;
                     obj.MaxEmbers = 50;
                 case "wall"
                     obj.Buoyancy = 0.05;
-                    obj.Cooling = 0.025;
+                    obj.Cooling = 0.0105;
                     obj.Combustion = 0.5;
                     obj.MaxEmbers = 50;
                 case "torch"
                     obj.Buoyancy = 0.3;
-                    obj.Cooling = 0.08;
+                    obj.Cooling = 0.0341;
                     obj.Combustion = 0.8;
                     obj.MaxEmbers = 120;
                 case "wildfire"
                     obj.Buoyancy = 0.03;
-                    obj.Cooling = 0.001;
+                    obj.Cooling = 0.0004;
                     obj.Combustion = 0.03;
                     obj.MaxEmbers = 50;
             end

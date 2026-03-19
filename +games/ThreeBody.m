@@ -38,7 +38,7 @@ classdef ThreeBody < GameBase
         % Integration parameters
         SubMode         (1,1) string = "figure8"
         Dt              (1,1) double = 0.0005
-        SubSteps        (1,1) double = 20
+        SubSteps        (1,1) double = 8
         GravConst       (1,1) double = 1.0
 
         % Display mapping (sim -> display)

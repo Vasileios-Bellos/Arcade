@@ -181,8 +181,8 @@ classdef Lorenz < GameBase
             % RK4 integration — 4 batches per frame at 1x speed, each
             % batch stores a trail point for smooth spatial resolution.
             ds = obj.DtScale;
-            nBatches = max(1, round(obj.SpeedMult * 4 * ds));
-            nBatches = min(nBatches, round(obj.SpeedMult * 4) * 4);  % safety cap
+            nBatches = max(1, round(obj.SpeedMult * 1.6667 * ds));
+            nBatches = min(nBatches, round(obj.SpeedMult * 1.6667) * 4);  % safety cap
             baseSub = obj.SubSteps;
             angleStep = 0.002 / nBatches;
             expandA = 0.05;

@@ -40,7 +40,7 @@ classdef Planets < GameBase
         SunMass         (1,1) double = 1
         TimeScale       (1,1) double = 1.0
         BaseDt          (1,1) double = 0.0005
-        SubSteps        (1,1) double = 10
+        SubSteps        (1,1) double = 4
 
         % Sun dynamics
         SunPosX         (1,1) double = 0
@@ -497,7 +497,7 @@ classdef Planets < GameBase
 
             obj.TimeScale = 1.0;
             obj.BaseDt = 0.0005;
-            obj.SubSteps = 10;
+            obj.SubSteps = 4;
             obj.SimTime = 0;
             obj.FrameCount = 0;
             obj.FingerMass = 1;

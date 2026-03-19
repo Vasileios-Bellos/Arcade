@@ -70,7 +70,7 @@ classdef FruitNinja < GameBase
     % GAME STATE
     % =================================================================
     properties (Access = private)
-        Gravity         (1,1) double = 0.12
+        Gravity         (1,1) double = 0.05
         SpawnTimer      (1,1) double = 0
         SlashThreshold  (1,1) double = 1.5
 
@@ -130,8 +130,8 @@ classdef FruitNinja < GameBase
             % Display scale factor (1.0 at ~180px reference)
             obj.Sc = min(areaW, areaH) / 180;
 
-            obj.Gravity = max(0.06, areaH * 0.0008);
-            obj.SpawnTimer = 50;  % equals initial spawnInterval → first fruit spawns immediately
+            obj.Gravity = max(0.025, areaH * 0.000333);
+            obj.SpawnTimer = 120;  % equals initial spawnInterval → first fruit spawns immediately
             obj.StartTicLocal = tic;
             obj.FruitsSliced = 0;
             obj.FruitsDropped = 0;
@@ -272,7 +272,7 @@ classdef FruitNinja < GameBase
 
             % --- Spawn fruits ---
             obj.SpawnTimer = obj.SpawnTimer + ds;
-            spawnInterval = max(10, 50 - obj.FruitsSliced * 0.15 - obj.Combo * 1.5);
+            spawnInterval = max(24, 120 - obj.FruitsSliced * 0.36 - obj.Combo * 3.6);
             if obj.SpawnTimer >= spawnInterval
                 obj.SpawnTimer = 0;
                 % Occasionally spawn 2-3 fruits as a cluster for multi-cut
@@ -363,9 +363,9 @@ classdef FruitNinja < GameBase
                 if ~obj.HalfActive(kk); continue; end
 
                 obj.HalfFrames(kk) = obj.HalfFrames(kk) + ds;
-                obj.HalfVx(kk) = obj.HalfVx(kk) * 0.97 ^ ds;
+                obj.HalfVx(kk) = obj.HalfVx(kk) * 0.9875 ^ ds;
                 obj.HalfVy(kk) = obj.HalfVy(kk) + obj.Gravity * ds;
-                obj.HalfAlpha(kk) = max(0, obj.HalfAlpha(kk) - 0.04 * ds);
+                obj.HalfAlpha(kk) = max(0, obj.HalfAlpha(kk) - 0.0167 * ds);
 
                 verts = obj.HalfVerts{kk};
 
@@ -392,7 +392,7 @@ classdef FruitNinja < GameBase
                     hpH.EdgeAlpha = obj.HalfAlpha(kk);
                 end
 
-                if obj.HalfAlpha(kk) <= 0 || obj.HalfFrames(kk) > 30
+                if obj.HalfAlpha(kk) <= 0 || obj.HalfFrames(kk) > 72
                     obj.deactivateHalf(kk);
                 end
             end
@@ -450,12 +450,12 @@ classdef FruitNinja < GameBase
                         obj.MultiCutTextH.Visible = "off";
                     end
                 else
-                    fadeAlpha = min(1, obj.MultiCutFade / 8);
+                    fadeAlpha = min(1, obj.MultiCutFade / 19);
                     if ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
                         obj.MultiCutTextH.Color = [obj.ColorGold, fadeAlpha];
                         % Rise upward as it fades
                         p = obj.MultiCutTextH.Position;
-                        obj.MultiCutTextH.Position = [p(1), p(2) - 1.5 * ds, p(3)];
+                        obj.MultiCutTextH.Position = [p(1), p(2) - 0.625 * ds, p(3)];
                     end
                 end
             end
@@ -598,7 +598,7 @@ classdef FruitNinja < GameBase
             % apex = v^2/(2*g), need apex >= areaH*0.55, so v >= sqrt(2*g*areaH*0.55)
             xPos = dx(1) + areaW * (0.15 + rand * 0.7);
             yPos = dy(2) + fruitRadius;
-            velX = (rand - 0.5) * areaW * 0.012;
+            velX = (rand - 0.5) * areaW * 0.005;
             minVelY = sqrt(2 * obj.Gravity * areaH * 0.55);
             maxVelY = sqrt(2 * obj.Gravity * areaH * 0.90);
             velY = -(minVelY + rand * (maxVelY - minVelY));
@@ -660,7 +660,7 @@ classdef FruitNinja < GameBase
             xPos = max(dx(1) + fruitRadius, min(dx(2) - fruitRadius, ...
                 centerX + (rand - 0.5) * areaW * 0.3));
             yPos = dy(2) + fruitRadius;
-            velX = (rand - 0.5) * areaW * 0.008;
+            velX = (rand - 0.5) * areaW * 0.0033;
             minVelY = sqrt(2 * obj.Gravity * areaH * 0.55);
             maxVelY = sqrt(2 * obj.Gravity * areaH * 0.90);
             velY = -(minVelY + rand * (maxVelY - minVelY));
@@ -807,7 +807,7 @@ classdef FruitNinja < GameBase
                 obj.MultiCutTextH.Position = [fx, fy - fRadius * 2, 0];
                 obj.MultiCutTextH.Color = [obj.ColorGold, 1];
                 obj.MultiCutTextH.Visible = "on";
-                obj.MultiCutFade = 20;  % frames to display
+                obj.MultiCutFade = 48;  % frames to display
             end
 
             % Store slice diagnostics
@@ -838,15 +838,15 @@ classdef FruitNinja < GameBase
 
                 % Halves inherit fruit velocity + fly apart perpendicular
                 % to slash + carry swipe momentum along slash direction
-                swipePush = min(slashSpeed * 0.3, 5 * obj.Sc);
-                splitVx = fvx + splitNorm(1) * side * 1.5 * obj.Sc + slashVec(1) * swipePush;
-                splitVy = fvy + splitNorm(2) * side * 1.5 * obj.Sc + slashVec(2) * swipePush;
+                swipePush = min(slashSpeed * 0.125, 2.083 * obj.Sc);
+                splitVx = fvx + splitNorm(1) * side * 0.625 * obj.Sc + slashVec(1) * swipePush;
+                splitVy = fvy + splitNorm(2) * side * 0.625 * obj.Sc + slashVec(2) * swipePush;
 
                 obj.HalfVerts{halfSlot} = [hx(:), hy(:)];
                 obj.HalfColor{halfSlot} = fColor;
                 obj.HalfVx(halfSlot) = splitVx;
                 obj.HalfVy(halfSlot) = splitVy;
-                obj.HalfSpin(halfSlot) = side * 0.06;
+                obj.HalfSpin(halfSlot) = side * 0.025;
                 obj.HalfAlpha(halfSlot) = 1.0;
                 obj.HalfFrames(halfSlot) = 0;
                 obj.HalfActive(halfSlot) = true;
@@ -888,7 +888,7 @@ classdef FruitNinja < GameBase
             % Find inactive slash slot
             slashSlot = find(~obj.SlashActive, 1);
             if ~isempty(slashSlot)
-                fadeFrames = 12;
+                fadeFrames = 29;
                 obj.SlashFrames(slashSlot) = 0;
                 obj.SlashFadeFrames(slashSlot) = fadeFrames;
                 obj.SlashIdxStart(slashSlot) = idxStart;

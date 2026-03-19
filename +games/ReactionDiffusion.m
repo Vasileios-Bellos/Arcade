@@ -109,7 +109,7 @@ classdef ReactionDiffusion < GameBase
             end
 
             % Sub-steps per frame for stability (frame-rate scaled)
-            baseNSub = 4;
+            baseNSub = 2;
             ds = obj.DtScale;
             nSubScaled = max(1, round(baseNSub * ds));
             nSubScaled = min(nSubScaled, baseNSub * 4);  % safety cap

@@ -143,7 +143,7 @@ classdef Asteroids < GameBase
 
             % Auto-fire toward nearest asteroid
             obj.FireCooldown = obj.FireCooldown + ds;
-            if obj.FireCooldown >= 10 && ~isempty(obj.Rocks)
+            if obj.FireCooldown >= 24 && ~isempty(obj.Rocks)
                 obj.FireCooldown = 0;
                 obj.fireAtNearest(ax, dx, dy);
             end
@@ -246,7 +246,7 @@ classdef Asteroids < GameBase
                     case 3; x = dx(1) + rand * areaW; y = dy(1) - 15;
                     case 4; x = dx(1) + rand * areaW; y = dy(2) + 15;
                 end
-                spd = max(0.3, min(areaW, areaH) * 0.004) * (0.5 + rand);
+                spd = max(0.125, min(areaW, areaH) * 0.00167) * (0.5 + rand);
                 theta = rand * 2 * pi;
                 vx = spd * cos(theta);
                 vy = spd * sin(theta);
@@ -273,7 +273,7 @@ classdef Asteroids < GameBase
 
             obj.Rocks(end + 1) = struct("x", x, "y", y, "vx", vx, "vy", vy, ...
                 "radius", rockRadius, "tier", tier, "angle", 0, ...
-                "spin", (rand - 0.5) * 0.05, "patchH", pH);
+                "spin", (rand - 0.5) * 0.0208, "patchH", pH);
         end
 
         function showWaveText(obj, waveNum)
@@ -303,7 +303,7 @@ classdef Asteroids < GameBase
             if norm(aimDir) > 0
                 aimDir = aimDir / norm(aimDir);
             end
-            bSpeed = max(3, min(diff(dx), diff(dy)) * 0.03);
+            bSpeed = max(1.25, min(diff(dx), diff(dy)) * 0.0125);
             bvx = aimDir(1) * bSpeed;
             bvy = aimDir(2) * bSpeed;
             sx = obj.ShipPos(1);
@@ -458,7 +458,7 @@ classdef Asteroids < GameBase
                             obj.IsRunning = false;
                             return;
                         end
-                        obj.InvulnFrames = 60;
+                        obj.InvulnFrames = 144;
                         break;
                     end
                 end

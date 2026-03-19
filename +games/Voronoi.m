@@ -26,10 +26,10 @@ classdef Voronoi < GameBase
         ImgW            (1,1) double = 120
         ImgH            (1,1) double = 90
         FrameCount      (1,1) double = 0
-        Damping         (1,1) double = 0.995
+        Damping         (1,1) double = 0.9979
         SpeedCap        (1,1) double = 3.0
         RepelRadius     (1,1) double = 80
-        LloydAlpha      (1,1) double = 0.08
+        LloydAlpha      (1,1) double = 0.0333
     end
 
     % =================================================================
@@ -164,14 +164,14 @@ classdef Voronoi < GameBase
                 % Repulsion (close range)
                 inRepel = dist < repelR & dist > 0;
                 if any(inRepel)
-                    strength = 3.0 * (1 - dist(inRepel) / repelR).^2;
+                    strength = 1.25 * (1 - dist(inRepel) / repelR).^2;
                     vx(inRepel) = vx(inRepel) + strength .* ddx(inRepel) ./ safeDist(inRepel);
                     vy(inRepel) = vy(inRepel) + strength .* ddy(inRepel) ./ safeDist(inRepel);
                 end
                 % Attraction (medium range — creates orbit/gather effect)
                 inAttract = dist >= repelR & dist < attractR & dist > 0;
                 if any(inAttract)
-                    pullStr = 0.8 * (1 - dist(inAttract) / attractR);
+                    pullStr = 0.3333 * (1 - dist(inAttract) / attractR);
                     vx(inAttract) = vx(inAttract) - pullStr .* ddx(inAttract) ./ safeDist(inAttract);
                     vy(inAttract) = vy(inAttract) - pullStr .* ddy(inAttract) ./ safeDist(inAttract);
                 end

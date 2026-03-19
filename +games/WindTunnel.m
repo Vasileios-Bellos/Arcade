@@ -65,7 +65,7 @@ classdef WindTunnel < GameBase
         UIn             (1,1) double = 0.09 % inlet velocity (lattice units)
         UInLevel        (1,1) double = 7    % 1-10
         Tau             (1,1) double = 0.56 % relaxation time
-        SubSteps        (1,1) double = 8    % physics steps per render frame
+        SubSteps        (1,1) double = 3    % physics steps per render frame
 
         % Visualization
         SubMode         (1,1) string = "dye"    % dye|velocity|vorticity|curl|streamlines|paint
@@ -77,7 +77,7 @@ classdef WindTunnel < GameBase
         DyeR            (:,:) double        % red dye channel
         DyeG            (:,:) double        % green dye channel
         DyeB            (:,:) double        % blue dye channel
-        DyeDecay        (1,1) double = 0.004    % dye decay per substep
+        DyeDecay        (1,1) double = 0.0017   % dye decay per substep
         DyeVolume       (1,1) double = 1.0      % injection strength (0.2-3.0)
 
         % Quiver arrows
@@ -132,7 +132,7 @@ classdef WindTunnel < GameBase
             % Scale substeps proportional to grid width so the physical
             % time per frame is constant regardless of resolution.
             NxRef = 120;
-            nSubBase = 12;
+            nSubBase = 5;
             obj.SubSteps = max(4, round(nSubBase * Nx / NxRef));
 
             % D2Q9 lattice velocities and weights

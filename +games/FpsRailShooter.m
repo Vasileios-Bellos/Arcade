@@ -49,13 +49,13 @@ classdef FpsRailShooter < GameBase
         Lives               (1,1) double = 3
         SpawnQueue          (1,:) double = []
         SpawnTimer          (1,1) double = 0
-        SpawnInterval       (1,1) double = 25
+        SpawnInterval       (1,1) double = 60
         WavePause           (1,1) double = 0
         KillCount           (1,1) double = 0
 
         % Damage system
         DamageCD            (1,1) double = 0
-        DamageRate          (1,1) double = 3
+        DamageRate          (1,1) double = 7
         DamageFlashFrames   (1,1) double = 0
         DamageShakeFrames   (1,1) double = 0
 
@@ -121,7 +121,7 @@ classdef FpsRailShooter < GameBase
             obj.DamageCD = 0;
             obj.DamageFlashFrames = 0;
             obj.SpawnTimer = 0;
-            obj.SpawnInterval = 25;
+            obj.SpawnInterval = 60;
             obj.WavePause = 0;
             obj.BaseSize = max(8, round(min(areaW, areaH) * 0.06));
             obj.VanishPt = [mean(dx), mean(dy)];
@@ -244,7 +244,7 @@ classdef FpsRailShooter < GameBase
                     ax.XLim = obj.OrigXLim;
                     ax.YLim = obj.OrigYLim;
                 else
-                    shakeAmt = obj.DamageShakeFrames * 1.5;
+                    shakeAmt = obj.DamageShakeFrames * 0.625;
                     jx = (rand - 0.5) * shakeAmt * 2;
                     jy = (rand - 0.5) * shakeAmt * 2;
                     ax.XLim = obj.OrigXLim + jx;
@@ -296,7 +296,7 @@ classdef FpsRailShooter < GameBase
             if obj.MuzzleFlashFrames > 0
                 obj.MuzzleFlashFrames = obj.MuzzleFlashFrames - ds;
                 if ~isempty(obj.MuzzleFlashH) && isvalid(obj.MuzzleFlashH)
-                    t = obj.MuzzleFlashFrames / 4;
+                    t = obj.MuzzleFlashFrames / 10;
                     obj.MuzzleFlashH.FaceAlpha = max(0, t * 0.7);
                 end
             end
@@ -412,7 +412,7 @@ classdef FpsRailShooter < GameBase
 
                 % Advance depth (approach player)
                 m.depth = m.depth - m.speed * ds;
-                m.phase = m.phase + 0.08 * ds;
+                m.phase = m.phase + 0.033 * ds;
 
                 % Compute screen position (perspective projection)
                 scaleVal = obj.depthScale(m.depth);
@@ -570,7 +570,7 @@ classdef FpsRailShooter < GameBase
             if obj.DamageFlashFrames > 0
                 obj.DamageFlashFrames = obj.DamageFlashFrames - ds;
                 if ~isempty(obj.DamageFlashH) && isvalid(obj.DamageFlashH)
-                    alphaVal = obj.DamageFlashFrames / 8;
+                    alphaVal = obj.DamageFlashFrames / 19;
                     obj.DamageFlashH.FaceAlpha = min(0.35, alphaVal * 0.35);
                 end
             end
@@ -619,7 +619,7 @@ classdef FpsRailShooter < GameBase
                 end
                 if aliveCount == 0
                     obj.addScore(300 * obj.Wave);
-                    obj.WavePause = 40;
+                    obj.WavePause = 96;
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
                         obj.WaveTextH.String = "WAVE CLEAR!";
                         obj.WaveTextH.Color = [obj.ColorGreen, 1];
@@ -740,8 +740,8 @@ classdef FpsRailShooter < GameBase
                     q = q(randperm(numel(q)));
             end
             obj.SpawnQueue = q;
-            obj.SpawnTimer = obj.SpawnInterval - 3;
-            obj.SpawnInterval = max(12, 25 - waveNum * 2);
+            obj.SpawnTimer = obj.SpawnInterval - 7;
+            obj.SpawnInterval = max(29, 60 - waveNum * 5);
         end
 
         function spawnMonster(obj, mType)
@@ -762,11 +762,11 @@ classdef FpsRailShooter < GameBase
 
             % Monster stats by type
             switch mType
-                case 1; hp = 3;  spd = 0.010; sizeMult = 1.0;
-                case 2; hp = 8;  spd = 0.006; sizeMult = 1.5;
-                case 3; hp = 2;  spd = 0.018; sizeMult = 0.7;
-                case 4; hp = 25; spd = 0.004; sizeMult = 2.2;
-                otherwise; hp = 3; spd = 0.010; sizeMult = 1.0;
+                case 1; hp = 3;  spd = 0.0042; sizeMult = 1.0;
+                case 2; hp = 8;  spd = 0.0025; sizeMult = 1.5;
+                case 3; hp = 2;  spd = 0.0075; sizeMult = 0.7;
+                case 4; hp = 25; spd = 0.0017; sizeMult = 2.2;
+                otherwise; hp = 3; spd = 0.0042; sizeMult = 1.0;
             end
 
             % Scale HP with wave
@@ -843,7 +843,7 @@ classdef FpsRailShooter < GameBase
             end
 
             % Type-specific death animation length
-            deathFrames = [15, 20, 10, 28];
+            deathFrames = [36, 48, 24, 67];
             dmf = deathFrames(min(mType, 4));
 
             m = struct("type", mType, "hp", hp, "maxHp", hp, ...
@@ -895,19 +895,19 @@ classdef FpsRailShooter < GameBase
                     end
 
                     m.hp = m.hp - dmg;
-                    m.hitFlash = 4;
+                    m.hitFlash = 10;
                     pts = 10 * dmg;
                     obj.addScore(pts);
                     obj.incrementCombo();
 
                     % Muzzle flash
-                    obj.MuzzleFlashFrames = 4;
+                    obj.MuzzleFlashFrames = 10;
                     if ~isempty(obj.MuzzleFlashH) && isvalid(obj.MuzzleFlashH)
                         obj.MuzzleFlashH.FaceAlpha = 0.7;
                     end
 
                     % Crosshair hit indicator (turns red briefly)
-                    obj.CrossHitFlash = 4;
+                    obj.CrossHitFlash = 10;
 
                     % Hit sparks at monster position
                     hitDir = [fingerPos(1) - m.screenX, fingerPos(2) - m.screenY];
@@ -965,8 +965,8 @@ classdef FpsRailShooter < GameBase
             %playerDamage  Monster reached the player -- lose a life.
             obj.Lives = obj.Lives - 1;
             obj.resetCombo();
-            obj.DamageFlashFrames = 10;
-            obj.DamageShakeFrames = 5;
+            obj.DamageFlashFrames = 24;
+            obj.DamageShakeFrames = 12;
             obj.LivesFlashTic = tic;
 
             if ~isempty(obj.DamageFlashH) && isvalid(obj.DamageFlashH)
