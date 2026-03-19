@@ -493,6 +493,17 @@ classdef (Sealed) ArcadeGameLauncher < handle
             if ~isempty(evnt.Modifier)
                 mods = string(evnt.Modifier);
                 if any(mods == "shift")
+                    % Map shifted characters back to digit keys
+                    % (UK: Shift+2="  Shift+3=£, US: Shift+2=@  Shift+3=#)
+                    if strlength(key) == 1 && ~(key >= "0" && key <= "9")
+                        shiftMap = dictionary( ...
+                            ["!", "@", """", "#", "£", "$", "%", "^", "&", "*", "(", ")"], ...
+                            ["1", "2", "2", "3", "3", "4", "5", "6", "7", "8", "9", "0"]);
+                        ch = string(evnt.Character);
+                        if ch ~= "" && shiftMap.isKey(ch)
+                            key = shiftMap(ch);
+                        end
+                    end
                     key = "shift+" + key;
                 elseif any(mods == "alt")
                     key = "alt+" + key;
