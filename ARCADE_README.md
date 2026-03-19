@@ -34,9 +34,9 @@ games.SpaceInvaders().play()
 | 8 | Keyboard | QWERTY layout with dwell-based key press |
 | 9 | Breakout | 5 levels, power-ups, multi-ball, neon bricks |
 | Shift+1 | Flappy Bird | Pipe dodge with aggressive gap/speed scaling |
-| Shift+2 | Fruit Ninja | Slash fruit arcs, centrality scoring, split halves |
+| Shift+2 | Fruit Ninja | Slash fruit arcs, multi-cut bonus (×N), centrality scoring, 8 colors |
 | Shift+3 | Space Invaders | 3 alien types, 5 wave formations, power-ups, shields |
-| Shift+4 | Snake | Cursor-directed, grid-based movement, wrap-around |
+| Shift+4 | Snake | Arrow keys or mouse-directed, grid-based movement, wrap-around |
 | Shift+5 | Asteroids | Wireframe polygons, splitting on destroy, auto-fire |
 | Shift+6 | Orbital Defense | Hex base, asteroid waves, chain-reaction explosions |
 | Shift+7 | Gravity Well | N-body sandbox with 6 colored particles and cursor attractor |
@@ -53,7 +53,7 @@ games.SpaceInvaders().play()
 | Alt+4 | Ripple Tank | Wave equation PDE with diffuse shading, 3 source modes |
 | Alt+5 | Reaction-Diffusion | Gray-Scott model, 5 pattern presets, 5 color schemes |
 | Alt+6 | Wind Tunnel | Lattice Boltzmann D2Q9, Zou-He inlet, cylinder/airfoil obstacles |
-| Alt+7 | Elements | 15-material cellular automaton — sand, water, fire, lava, acid, snow... |
+| Alt+7 | Elements | 15-material cellular automaton — sand, water, fire, lava, acid, snow... Tunable speed (1-6) |
 | Alt+8 | String Harmonics | 1D wave equation, pluck or inject pure harmonics, live spectrum |
 | Alt+9 | Three-Body | Velocity Verlet N-body: figure-8, Lagrange, and freeplay orbits |
 | Num1 | Cloth | Verlet spring-mass grid — curtain, flag, and drum modes |
@@ -73,10 +73,10 @@ games.SpaceInvaders().play()
 | 0 | Game of Life | Conway B3/S23, age-based coloring, Gosper gun, 4 presets |
 | Shift+0 | Lissajous | N x N parametric table with per-cell rainbow trails |
 | Alt+0 | Voronoi | 40 seeds, Delaunay triangulation, Lloyd relaxation |
-| Alt+P | Piano | Playable piano keyboard |
-| Alt+C | Crystal Growth | Crystal growth simulation |
+| Alt+P | Piano | 25-key piano (C3-C5), ADSR synthesis, dwell-based press |
+| Alt+C | Crystal Growth | Directional crystal growth — dendrite, snowflake, coral, competition |
 | Num0 | Fourier Epicycle | DFT decomposition with animated epicycle reconstruction |
-| Shift+Num1 | Ecosystem | Ecosystem simulation |
+| Alt+E | Ecosystem | 5-organism ecology — plants, herbivores, predators, decomposers, toxin |
 
 ---
 
@@ -90,13 +90,16 @@ games.SpaceInvaders().play()
 
 ### In-Game
 - **P** — pause / resume
-- **R** or **0** — restart
+- **R** — restart
+- **0** — in-game reset (mode-specific)
 - **ESC** — end game and show results
-- **M** — cycle sub-modes (physics sims)
+- **M** — cycle sub-modes (or scroll wheel)
 - **N** — cycle variants / interaction mode
 - **B** — toggle visuals
+- **Arrow keys** — cursor movement (games that don't bind them)
 - **Up/Down** — grid density / particle count
 - **Left/Right** — speed / parameters
+- **Scroll wheel** — cycle sub-modes
 
 Each game shows its specific controls in the HUD.
 
