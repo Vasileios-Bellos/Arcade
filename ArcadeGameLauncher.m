@@ -492,17 +492,16 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
             if ~isempty(evnt.Modifier)
                 mods = string(evnt.Modifier);
-                % Map Shift+digit characters back to base digit key
-                ch = evnt.Character;
-                if ~isempty(ch) && isscalar(ch)
-                    shiftChars  = '!@"#£$%^&*()';
-                    shiftDigits = '122334567890';
-                    idx = find(shiftChars == ch, 1);
-                    if ~isempty(idx)
-                        key = string(shiftDigits(idx));
-                    end
-                end
                 if any(mods == "shift")
+                    if ~(strlength(key) == 1 && key >= "1" && key <= "9")
+                        shiftMap = dictionary( ...
+                            ["!", "@", """", "#", "£", "$", "%", "^", "&", "*"], ...
+                            ["1", "2",  "2",  "3", "3",  "4", "5",  "6", "7", "8"]);
+                        ch = string(evnt.Character);
+                        if shiftMap.isKey(ch)
+                            key = shiftMap(ch);
+                        end
+                    end
                     key = "shift+" + key;
                 elseif any(mods == "alt")
                     key = "alt+" + key;
