@@ -490,6 +490,9 @@ classdef (Sealed) ArcadeGameLauncher < handle
             %onKeyPress  Route key events based on current state.
             key = string(evnt.Key);
 
+            % Ignore modifier-only presses (shift/alt/control alone)
+            if any(key == ["shift", "alt", "control"]); return; end
+
             if ~isempty(evnt.Modifier)
                 mods = string(evnt.Modifier);
                 if any(mods == "shift")
