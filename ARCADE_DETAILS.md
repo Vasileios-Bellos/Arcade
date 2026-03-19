@@ -23,16 +23,22 @@ ArcadeGameLauncher
     ScoreManager (persistent .mat file)
 ```
 
-Every game is a `GameBase` subclass. Games implement 4 methods:
+Every game is a `GameBase` subclass. Games implement 4 required + 2 optional methods:
 
-| Method | Called | Purpose |
-|--------|--------|---------|
-| `onInit(ax, displayRange, caps)` | Once | Create graphics, initialize state |
-| `onUpdate(pos)` | Every frame | Physics + rendering. `pos = [x, y]` |
-| `onCleanup()` | Once | Delete all graphics |
-| `onKeyPress(key)` | On keypress | Game-specific keys. Return `true` if handled |
+| Method | Required | Called | Purpose |
+|--------|----------|--------|---------|
+| `onInit(ax, displayRange, caps)` | Yes | Once | Create graphics, initialize state |
+| `onUpdate(pos)` | Yes | Every frame | Physics + rendering. `pos = [x, y]` |
+| `onCleanup()` | Yes | Once | Delete all graphics |
+| `onKeyPress(key)` | Yes | On keypress | Game-specific keys. Return `true` if handled |
+| `onScroll(delta)` | No | On scroll wheel | Cycle sub-modes. `delta` = ±1 |
+| `getResults()` | No | On game end | Return struct with Title + Lines for results screen |
 
 Games are input-agnostic. They receive `[x, y]` and draw on the axes they're given. They never call `drawnow`.
+
+**Frame-rate independence:** The host sets `obj.DtScale` each frame (30-frame ring buffer average, 25 Hz reference). Games use `DtScale` for physics: `vel * ds`, `gravity * ds`, `friction ^ ds`, `phase += rate * ds`. Simulations with substep loops scale `nSub = round(base * ds)` instead of internal dt.
+
+**Resize scaling:** The host sets `obj.FontScale` on figure resize. Games that set MarkerSize or SizeData every frame should multiply by `FontScale` (or `FontScale^2` for SizeData). Static elements are handled automatically by `GameBase.scaleScreenSpaceObjects`.
 
 ---
 
