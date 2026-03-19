@@ -490,7 +490,7 @@ classdef FlickBall < GameBase
             if ~isempty(obj.CoreH) && isvalid(obj.CoreH)
                 obj.CoreH.XData = bx;
                 obj.CoreH.YData = by;
-                coreSize = round(18 * breath);
+                coreSize = round(18 * breath * obj.FontScale);
                 obj.CoreH.MarkerSize = coreSize;
                 coreAlpha = min(1, 0.8 + spd * 0.02);
                 obj.CoreH.Color = [1, 1, 1, coreAlpha];
@@ -502,16 +502,16 @@ classdef FlickBall < GameBase
                 obj.GlowH.XData = bx + gr * cos(obj.ThetaCircle48);
                 obj.GlowH.YData = by + gr * sin(obj.ThetaCircle48);
                 glowAlpha = 0.3 + min(0.5, spd * 0.04);
-                glowWidth = 4 + min(4, spd * 0.3);
+                glowWidth = (4 + min(4, spd * 0.3)) * obj.FontScale;
                 obj.GlowH.Color = [clr, glowAlpha];
-                obj.GlowH.LineWidth = glowWidth;
+                obj.GlowH.LineWidth = max(0.5, glowWidth);
             end
 
             % --- Outer aura ---
             if ~isempty(obj.AuraH) && isvalid(obj.AuraH)
                 obj.AuraH.XData = bx;
                 obj.AuraH.YData = by;
-                auraSize = round(50 * auraScale);
+                auraSize = round(50 * auraScale * obj.FontScale);
                 auraAlpha = 0.1 + min(0.2, spd * 0.015);
                 obj.AuraH.MarkerSize = auraSize;
                 obj.AuraH.Color = [clr, auraAlpha];

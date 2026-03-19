@@ -560,10 +560,11 @@ classdef EmField < GameBase
                 end
 
                 % Update particle scatter
+                fs2 = obj.FontScale^2;
                 if isCyc
-                    coreSize = 30;  glowSize = 120;
+                    coreSize = 30 * fs2;  glowSize = 120 * fs2;
                 else
-                    coreSize = 14;  glowSize = 50;
+                    coreSize = 14 * fs2;  glowSize = 50 * fs2;
                 end
                 if ~isempty(obj.NodeCoreH) && isvalid(obj.NodeCoreH)
                     obj.NodeCoreH.XData = px;

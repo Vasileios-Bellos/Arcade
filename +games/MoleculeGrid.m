@@ -239,8 +239,9 @@ classdef MoleculeGrid < GameBase
                 nodeCol = repmat(obj.ColorCyan, numNodes, 1);
             end
 
-            coreSize = 18 + dispNorm * 12;
-            glowSize = 60 + dispNorm * 30;
+            fs2 = obj.FontScale^2;
+            coreSize = (18 + dispNorm * 12) * fs2;
+            glowSize = (60 + dispNorm * 30) * fs2;
 
             if ~isempty(obj.NodeCoreH) && isvalid(obj.NodeCoreH) ...
                     && numel(obj.NodeCoreH.XData) == numNodes

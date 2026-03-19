@@ -878,9 +878,10 @@ classdef Planets < GameBase
             sOuterS = [400, 1600, 1850, 2100, 2350, 2600, 2900, 3200];
             logSzM = log2(sSzM);
             logSzC = log2(max(0.5, min(100, obj.FingerMass)));
-            coreSize = interp1(logSzM, sCoreS, logSzC, "linear", "extrap");
-            glowSize = interp1(logSzM, sGlowS, logSzC, "linear", "extrap");
-            outerSize = interp1(logSzM, sOuterS, logSzC, "linear", "extrap");
+            fs2 = obj.FontScale^2;
+            coreSize = interp1(logSzM, sCoreS, logSzC, "linear", "extrap") * fs2;
+            glowSize = interp1(logSzM, sGlowS, logSzC, "linear", "extrap") * fs2;
+            outerSize = interp1(logSzM, sOuterS, logSzC, "linear", "extrap") * fs2;
 
             breathPhase = sin(obj.FrameCount * 0.08);
 
