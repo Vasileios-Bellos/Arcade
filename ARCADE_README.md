@@ -24,7 +24,7 @@ games.SpaceInvaders().play()
 
 | Key | Game | Description |
 |-----|------|-------------|
-| 1 | Pointing | Hit random targets, combo scoring, difficulty ramp |
+| 1 | Target Practice | Hit random targets, combo scoring, difficulty ramp |
 | 2 | Tracing | Follow path corridors, coverage tracking |
 | 3 | Catching | Chase 5-tier color-coded fireflies with evasive golden snitch |
 | 4 | Flick Ball | Physics orb — flick it, bounce off walls, speed-to-color gradient |

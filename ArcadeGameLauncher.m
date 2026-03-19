@@ -943,7 +943,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.ComboTextH.Color = obj.ColorGreen * 0.9;
             obj.ComboTextH.FontSize = 13;
             cx = mean(obj.DisplayRange.X);
-            obj.ComboTextH.Position = [cx, obj.DisplayRange.Y(1) + 34, 0];
+            obj.ComboTextH.Position = [cx, obj.DisplayRange.Y(1) + 2, 0];
             obj.ComboTextH.HorizontalAlignment = "center";
             obj.ComboTextH.Visible = "on";
             obj.ComboShowTic = tic;
@@ -998,7 +998,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.RegistryOrder = strings(0);
 
             % === Number keys (1-9) ===
-            obj.registerGame("1", @games.Pointing, "Pointing");
+            obj.registerGame("1", @games.Pointing, "Target Practice");
             obj.registerGame("2", @games.Tracing, "Tracing");
             obj.registerGame("3", @games.Catching, "Catching");
             obj.registerGame("4", @games.FlickBall, "Flick Ball");

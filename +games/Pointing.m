@@ -1,7 +1,8 @@
 classdef Pointing < GameBase
-    %Pointing  Target-hitting accuracy and speed game.
+    %Pointing  Target practice — accuracy and speed game.
     %   Random targets appear on screen. Hit them before they time out.
     %   Targets shrink and timeout decreases as combo grows.
+    %   Also used for pointing accuracy training in the webcam app.
     %
     %   Standalone: games.Pointing().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
@@ -9,7 +10,7 @@ classdef Pointing < GameBase
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Pointing"
+        Name = "Target Practice"
     end
 
     % =================================================================
