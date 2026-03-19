@@ -487,16 +487,15 @@ classdef (Sealed) ArcadeGameLauncher < handle
     methods (Access = private)
 
         function onKeyPress(obj, evnt)
-            %onKeyPress  Route key events based on current state.
-            %   Matches GestureMouse key routing: try modifier+key first,
-            %   fall back to plain key if not handled.
+            %onKeyPress  Route key events — exact GestureMouse pattern.
+            %   1. Try modifier+key (shift+X, alt+X)
+            %   2. If not handled, try plain key
             key = string(evnt.Key);
 
             % Ignore modifier-only presses
             if any(key == ["shift", "alt", "control"]); return; end
 
-            % Try modifier+key first (same logic as GestureMouse.handleKeyPress)
-            modKey = "";
+            % Try modifier+key first
             if ~isempty(evnt.Modifier)
                 if any(strcmp(evnt.Modifier, "shift"))
                     if ~(strlength(key) == 1 && key >= "1" && key <= "9")
@@ -508,17 +507,21 @@ classdef (Sealed) ArcadeGameLauncher < handle
                             key = shiftMap(ch);
                         end
                     end
-                    modKey = "shift+" + key;
+                    if obj.dispatchKey("shift+" + key); return; end
                 elseif any(strcmp(evnt.Modifier, "alt"))
-                    modKey = "alt+" + key;
+                    if obj.dispatchKey("alt+" + key); return; end
                 end
             end
 
-            % Use modifier+key if it exists in registry, else plain key
-            if modKey ~= "" && obj.Registry.isKey(modKey)
-                key = modKey;
-            end
+            % Fall back to plain key
+            obj.dispatchKey(string(evnt.Key));
+        end
 
+        function handled = dispatchKey(obj, key)
+            %dispatchKey  Route a key string to the state machine.
+            %   Returns true if consumed. Called twice per keypress:
+            %   first with modifier+key, then with plain key (fallback).
+            handled = true;
             switch obj.State
                 case "menu"
                     if obj.Registry.isKey(key)
@@ -532,11 +535,15 @@ classdef (Sealed) ArcadeGameLauncher < handle
                         obj.Menu.confirmSelection();
                     elseif key == "escape"
                         obj.close();
+                    else
+                        handled = false;
                     end
 
                 case "countdown"
                     if key == "escape"
                         obj.enterMenu();
+                    else
+                        handled = false;
                     end
 
                 case "active"
@@ -547,14 +554,14 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     elseif key == "escape"
                         obj.enterResults();
                     else
-                        handled = false;
+                        gameHandled = false;
                         if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
-                            handled = obj.ActiveGame.onKeyPress(key);
+                            gameHandled = obj.ActiveGame.onKeyPress(key);
                         end
-                        % Arrow keys for cursor movement (if game didn't handle them)
-                        if ~handled
+                        if ~gameHandled
                             obj.handleArrowPress(key);
                         end
+                        handled = gameHandled;
                     end
 
                 case "paused"
@@ -564,14 +571,21 @@ classdef (Sealed) ArcadeGameLauncher < handle
                         obj.restartGame();
                     elseif key == "escape"
                         obj.enterResults();
+                    else
+                        handled = false;
                     end
 
                 case "results"
                     if key == "r" || key == "return" || key == "space"
                         obj.playAgain();
-                    else
+                    elseif key == "escape"
                         obj.enterMenu();
+                    else
+                        handled = false;
                     end
+
+                otherwise
+                    handled = false;
             end
         end
     end
@@ -1036,6 +1050,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("numpad0", @games.FourierEpicycle, "Fourier Epicycle");
             obj.registerGame("shift+numpad1", @games.Ecosystem, "Ecosystem");
             obj.registerGame("shift+end", @games.Ecosystem, "Ecosystem");
+            obj.registerGame("alt+e", @games.Ecosystem, "Ecosystem");
         end
 
         function registerGame(obj, key, ctor, name)
