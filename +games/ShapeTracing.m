@@ -912,23 +912,14 @@ classdef ShapeTracing < GameBase
 
             % Snap traced band to full path on completion (satisfying finish)
             if isSuccess
-                halfCorridor = obj.CorridorWidth / 2;
-                try
-                    fps = games.PathUtils.buildBandPolyshape( ...
-                        pathData.X, pathData.Y, halfCorridor);
-                    fT = triangulation(fps);
-                    if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
-                        set(obj.PathBandTraced, "Faces", fT.ConnectivityList, ...
-                            "Vertices", fT.Points);
-                    end
-                    [fbx, fby] = boundary(fps);
-                    [fbx, fby] = games.PathUtils.filterGlowBoundary( ...
-                        fbx, fby, obj.CorridorWidth);
-                    if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
-                        set(obj.PathBandTracedGlow, "XData", fbx, "YData", fby);
-                    end
-                catch
-                    % Keep current traced band on failure
+                nAll = numel(pathData.X);
+                px = [obj.CorridorLX(1:nAll), fliplr(obj.CorridorRX(1:nAll))];
+                py = [obj.CorridorLY(1:nAll), fliplr(obj.CorridorRY(1:nAll))];
+                if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
+                    set(obj.PathBandTraced, "XData", px, "YData", py);
+                end
+                if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
+                    set(obj.PathBandTracedGlow, "XData", px, "YData", py);
                 end
             end
 
