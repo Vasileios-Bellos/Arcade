@@ -1,7 +1,7 @@
 classdef Snake < GameBase
-    %Snake  Finger-directed snake game with neon colormap gradient.
-    %   The snake moves on a grid, directed by the finger position relative
-    %   to the head. Eating food grows the body and increases speed. Self-
+    %Snake  Classic snake game on a discrete integer grid with neon colormap.
+    %   The snake moves one cell per step on a grid of integer [col, row]
+    %   positions. Eating food grows the body and increases speed. Self-
     %   collision ends the game. Wrap-around at screen edges.
     %
     %   Standalone: games.Snake().play()
@@ -41,17 +41,32 @@ classdef Snake < GameBase
     % GAME STATE
     % =================================================================
     properties (Access = private)
-        Body            (:,2) double                % [x, y] per segment, head = row 1
-        Direction       (1,2) double = [1, 0]       % current movement direction
-        Speed           (1,1) double = 0.625
-        BaseSpeed       (1,1) double = 0.625
-        CellSize        (1,1) double = 4
-        FoodPos         (1,2) double = [NaN, NaN]
-        MoveAccum       (1,1) double = 0            % sub-cell movement accumulator
+        Body            (:,2) double                % [col, row] integer indices, head = row 1
+        Direction       (1,2) double = [1, 0]       % [dcol, drow] — one of [1,0],[-1,0],[0,1],[0,-1]
+        QueuedDir       (1,2) double = [0, 0]       % buffered next direction (prevents missed turns)
+        FoodPos         (1,2) double = [NaN, NaN]   % [col, row] integer position
+        StepAccum       (1,1) double = 0            % DtScale accumulator for step timing
+        StepInterval    (1,1) double = 4            % DtScale units between steps (decreases with length)
         ColormapRGB     (:,3) double                % 256-row neon colormap for body gradient
-        KeyboardMode    (1,1) logical = false     % true while arrow keys drive direction
-        PrevPos         (1,2) double = [NaN, NaN]  % previous mouse position (for keyboard→mouse handoff)
+        KeyboardMode    (1,1) logical = false       % true while arrow keys drive direction
+        PrevPos         (1,2) double = [NaN, NaN]   % previous mouse/finger position
         GameOver        (1,1) logical = false
+
+        % Grid geometry
+        GridCols        (1,1) double = 25
+        GridRows        (1,1) double = 19
+        CellW           (1,1) double = 1
+        CellH           (1,1) double = 1
+
+        % Grid lines handle
+        GridLinesH      = []                        % line handle for grid overlay
+
+        % Pre-computed marker sizes (data units, set once in onInit)
+        HeadMarkerSz    (1,1) double = 1            % MarkerSize for head segment
+        TailMarkerSz    (1,1) double = 0.5          % MarkerSize for tail segment
+        FoodMarkerSz    (1,1) double = 1            % SizeData for food scatter
+        FoodGlowSz      (1,1) double = 4            % SizeData for food glow scatter
+        HeadGlowSz      (1,1) double = 2            % SizeData for head glow scatter
     end
 
     % =================================================================
@@ -61,7 +76,7 @@ classdef Snake < GameBase
         FoodPatchH                      % scatter — food core
         FoodGlowH                       % scatter — food glow
         BodyPatchH      = {}            % cell array of line handles for body segments
-        BodyPoolSize    (1,1) double = 60  % pre-allocated body segment pool
+        BodyPoolSize    (1,1) double = 100  % pre-allocated body segment pool
         HeadPatchH                      % scatter — head glow overlay
     end
 
@@ -89,58 +104,89 @@ classdef Snake < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
-            obj.CellSize = max(6, round(min(areaW, areaH) * 0.06));
-            obj.BaseSpeed = max(0.4167, obj.CellSize * 0.1458);
-            obj.Speed = obj.BaseSpeed;
-            obj.MoveAccum = 0;
+            % Compute grid dimensions — target ~25 columns, aspect-aware
+            obj.GridCols = max(10, round(25 * areaW / max(areaW, areaH)));
+            obj.GridRows = max(8, round(25 * areaH / max(areaW, areaH)));
+            obj.CellW = areaW / obj.GridCols;
+            obj.CellH = areaH / obj.GridRows;
 
-            % Start with 5-segment snake at grid-aligned center
-            cs = obj.CellSize;
-            cx = dx(1) + round((mean(dx) - dx(1)) / cs) * cs;
-            cy = dy(1) + round((mean(dy) - dy(1)) / cs) * cs;
+            % Step timing
+            obj.StepAccum = 0;
+            obj.StepInterval = 4;
+            obj.QueuedDir = [0, 0];
+
+            % Start with 5-segment snake at grid center, moving right
+            cx = round(obj.GridCols / 2);
+            cy = round(obj.GridRows / 2);
             obj.Body = zeros(5, 2);
             for i = 1:5
-                obj.Body(i, :) = [cx + (i - 1) * cs, cy];
+                obj.Body(i, :) = [cx - (i - 1), cy];   % head at cx, tail extends left
             end
-            obj.Direction = [-1, 0];  % moving left
+            obj.Direction = [1, 0];
+            obj.PrevPos = [NaN, NaN];
+            obj.KeyboardMode = false;
 
             obj.ColormapRGB = obj.buildColormap();
 
-            % Pre-allocate body segment pool (all hidden, activated as snake grows)
+            % Draw subtle grid lines
+            obj.drawGridLines(ax, dx, dy);
+
+            % Compute marker sizes (in data units) — fill most of cell
+            cellData = min(obj.CellW, obj.CellH);
+            obj.HeadMarkerSz = cellData * 0.92;
+            obj.TailMarkerSz = cellData * 0.50;
+
+            % Scatter SizeData is in points^2. Convert data-unit radius to
+            % points using axes pixel extent and DPI. We compute the
+            % conversion factor once and store the final SizeData values.
+            pixPos = getpixelposition(ax);
+            axPxW = pixPos(3);
+            pxPerDataX = axPxW / areaW;
+            dpiVal = get(0, "ScreenPixelsPerInch");
+            ptPerPx = 72 / dpiVal;
+
+            foodRadiusPts = (cellData * 0.45) * pxPerDataX * ptPerPx;
+            obj.FoodMarkerSz = foodRadiusPts^2 * pi;
+            obj.FoodGlowSz = (foodRadiusPts * 2.2)^2 * pi;
+
+            headRadiusPts = (cellData * 0.55) * pxPerDataX * ptPerPx;
+            obj.HeadGlowSz = headRadiusPts^2 * pi;
+
+            % Pre-allocate body segment pool — line handles with square markers
             nPool = obj.BodyPoolSize;
             nInit = size(obj.Body, 1);
-            headSize = cs * 2.4;
-            tailSize = cs * 0.9;
             obj.BodyPatchH = cell(1, nPool);
             for i = 1:nPool
                 if i <= nInit
                     t = (i - 1) / max(1, nInit - 1);
-                    mSize = headSize * (1 - t) + tailSize * t;
+                    mSize = obj.HeadMarkerSz * (1 - t) + obj.TailMarkerSz * t;
                     cmapIdx = max(1, round((1 - t) * (size(obj.ColormapRGB, 1) - 1)) + 1);
                     clr = obj.ColormapRGB(cmapIdx, :);
-                    obj.BodyPatchH{i} = line(ax, obj.Body(i, 1), obj.Body(i, 2), ...
-                        "Marker", "o", "MarkerSize", mSize, ...
-                        "MarkerFaceColor", clr, "MarkerEdgeColor", clr * 0.7, ...
+                    xy = obj.gridToData(obj.Body(i, :));
+                    obj.BodyPatchH{i} = line(ax, xy(1), xy(2), ...
+                        "Marker", "s", "MarkerSize", mSize, ...
+                        "MarkerFaceColor", clr, "MarkerEdgeColor", clr * 0.5, ...
                         "LineStyle", "none", "Tag", "GT_snake");
                 else
                     obj.BodyPatchH{i} = line(ax, NaN, NaN, ...
-                        "Marker", "o", "MarkerSize", tailSize, ...
+                        "Marker", "s", "MarkerSize", obj.TailMarkerSz, ...
                         "MarkerFaceColor", [1 1 1], "MarkerEdgeColor", [0.7 0.7 0.7], ...
                         "LineStyle", "none", "Visible", "off", "Tag", "GT_snake");
                 end
             end
 
-            % Head marker (glow overlay)
-            obj.HeadPatchH = scatter(ax, obj.Body(1, 1), obj.Body(1, 2), ...
-                (cs * 2.4)^2, obj.ColormapRGB(end, :), "filled", ...
-                "MarkerFaceAlpha", 0.8, "Tag", "GT_snake");
+            % Head marker (bright glow overlay on top of body)
+            headXY = obj.gridToData(obj.Body(1, :));
+            obj.HeadPatchH = scatter(ax, headXY(1), headXY(2), ...
+                obj.HeadGlowSz, obj.ColormapRGB(end, :), "filled", ...
+                "MarkerFaceAlpha", 0.55, "Tag", "GT_snake");
 
-            % Pre-allocate food graphics (repositioned in spawnFood, never deleted)
+            % Pre-allocate food graphics (red core + glow)
             obj.FoodGlowH = scatter(ax, NaN, NaN, ...
-                (cs * 6)^2, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.2, ...
+                obj.FoodGlowSz, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.18, ...
                 "Tag", "GT_snake");
             obj.FoodPatchH = scatter(ax, NaN, NaN, ...
-                (cs * 2.5)^2, obj.ColorRed, "filled", "Tag", "GT_snake");
+                obj.FoodMarkerSz, obj.ColorRed, "filled", "Tag", "GT_snake");
 
             % Place first food
             obj.spawnFood();
@@ -154,90 +200,100 @@ classdef Snake < GameBase
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
-            dx = obj.DisplayRange.X;
-            dy = obj.DisplayRange.Y;
-            cs = obj.CellSize;
-            headPos = obj.Body(1, :);
+            cellData = min(obj.CellW, obj.CellH);
 
-            % Determine direction from finger/mouse MOVEMENT direction.
-            % In camera app, fingerPos - head works because finger is close.
-            % With mouse, use movement direction (pos - prevPos) so the
-            % snake turns based on which way you move, not where you are.
-            % Skipped when arrow keys are active.
+            % ----------------------------------------------------------
+            % Direction from finger/mouse MOVEMENT (delta-based)
+            % ----------------------------------------------------------
             if obj.KeyboardMode && ~any(isnan(pos)) && ~any(isnan(obj.PrevPos))
-                if norm(pos - obj.PrevPos) > cs
+                % Exit keyboard mode if mouse moves more than one cell
+                if norm(pos - obj.PrevPos) > cellData
                     obj.KeyboardMode = false;
                 end
             end
+
             if ~obj.KeyboardMode && ~any(isnan(pos)) && ~any(isnan(obj.PrevPos))
                 delta = pos - obj.PrevPos;
-                if norm(delta) > cs * 0.3  % only respond to significant movement
+                if norm(delta) > cellData * 0.25
                     if abs(delta(1)) > abs(delta(2))
                         newDir = [sign(delta(1)), 0];
                     else
                         newDir = [0, sign(delta(2))];
                     end
-                    if ~isequal(newDir + obj.Direction, [0, 0]) && any(newDir ~= 0)
-                        obj.Direction = newDir;
+                    % Buffer the direction — applied at next step
+                    if any(newDir ~= 0)
+                        obj.QueuedDir = newDir;
                     end
                 end
             end
             obj.PrevPos = pos;
 
+            % ----------------------------------------------------------
+            % Step timing — accumulate DtScale, step when threshold met
+            % ----------------------------------------------------------
             ds = obj.DtScale;
-
-            % Accumulate movement
-            obj.MoveAccum = obj.MoveAccum + obj.Speed * ds;
-            if obj.MoveAccum < cs
-                return;  % Not enough movement for a step
+            obj.StepAccum = obj.StepAccum + ds;
+            if obj.StepAccum < obj.StepInterval
+                return;
             end
-            obj.MoveAccum = obj.MoveAccum - cs;
+            obj.StepAccum = obj.StepAccum - obj.StepInterval;
 
-            % Move: new head position
-            newHead = headPos + obj.Direction * cs;
+            % Apply queued direction (prevents 180-degree reversal)
+            if any(obj.QueuedDir ~= 0)
+                if ~isequal(obj.QueuedDir + obj.Direction, [0, 0])
+                    obj.Direction = obj.QueuedDir;
+                end
+                obj.QueuedDir = [0, 0];
+            end
 
-            % Wall wrap-around
-            if newHead(1) < dx(1); newHead(1) = dx(2); end
-            if newHead(1) > dx(2); newHead(1) = dx(1); end
-            if newHead(2) < dy(1); newHead(2) = dy(2); end
-            if newHead(2) > dy(2); newHead(2) = dy(1); end
+            % Move: new head = current head + direction (integer step)
+            headCell = obj.Body(1, :);
+            newHead = headCell + obj.Direction;
 
-            % Self collision (skip 3 neck segments to prevent jitter deaths)
-            for i = 4:size(obj.Body, 1)
-                if norm(newHead - obj.Body(i, :)) < cs * 0.5
+            % Wrap-around on grid edges
+            newHead(1) = mod(newHead(1) - 1, obj.GridCols) + 1;
+            newHead(2) = mod(newHead(2) - 1, obj.GridRows) + 1;
+
+            % Self collision — integer comparison (skip first 3 neck segments)
+            nBody = size(obj.Body, 1);
+            if nBody > 3
+                bodyCheck = obj.Body(4:end, :);
+                if any(bodyCheck(:,1) == newHead(1) & bodyCheck(:,2) == newHead(2))
                     obj.GameOver = true;
                     obj.IsRunning = false;
                     return;
                 end
             end
 
-            % Check food collision
+            % Check food collision (exact integer match)
             ate = false;
-            if ~any(isnan(obj.FoodPos)) && norm(newHead - obj.FoodPos) < cs * 0.5
+            if ~any(isnan(obj.FoodPos)) && isequal(newHead, obj.FoodPos)
                 ate = true;
                 obj.incrementCombo();
                 totalPoints = round(100 * obj.comboMultiplier());
                 obj.addScore(totalPoints);
-                obj.spawnBounceEffect(obj.FoodPos, [0, -1], 0, 5);
+                foodXY = obj.gridToData(obj.FoodPos);
+                obj.spawnBounceEffect(foodXY, [0, -1], totalPoints, 5);
                 obj.spawnFood();
-                % Speed up slightly
-                obj.Speed = obj.BaseSpeed * (1 + 0.03 * size(obj.Body, 1));
+                % Speed up: reduce step interval as snake grows
+                bodyLen = nBody + 1;
+                obj.StepInterval = max(1.5, 4 - (bodyLen - 5) * 0.05);
             end
 
-            % Move body
+            % Advance body
             if ate
                 obj.Body = [newHead; obj.Body];
             else
                 obj.Body = [newHead; obj.Body(1:end-1, :)];
             end
 
-            % Update graphics — position-based taper, colormap stretched to length
+            % Update graphics
             obj.updateBodyGraphics();
         end
 
         function onCleanup(obj)
             %onCleanup  Delete all snake graphics.
-            handles = {obj.HeadPatchH, obj.FoodPatchH, obj.FoodGlowH};
+            handles = {obj.HeadPatchH, obj.FoodPatchH, obj.FoodGlowH, obj.GridLinesH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
@@ -247,6 +303,7 @@ classdef Snake < GameBase
             obj.HeadPatchH = [];
             obj.FoodPatchH = [];
             obj.FoodGlowH = [];
+            obj.GridLinesH = [];
             for k = 1:numel(obj.BodyPatchH)
                 if ~isempty(obj.BodyPatchH{k}) && isvalid(obj.BodyPatchH{k})
                     delete(obj.BodyPatchH{k});
@@ -261,29 +318,21 @@ classdef Snake < GameBase
 
         function handled = onKeyPress(obj, key)
             %onKeyPress  Arrow keys control snake direction.
-            %   Once arrows are used, mouse direction is ignored until
-            %   the mouse moves significantly (handled in onUpdate).
+            %   Direction is buffered and applied at the next step to avoid
+            %   skipping frames or reversing into yourself.
             handled = true;
             switch key
                 case "uparrow"
-                    if obj.Direction(2) ~= 1
-                        obj.Direction = [0, -1];
-                    end
+                    obj.QueuedDir = [0, -1];
                     obj.KeyboardMode = true;
                 case "downarrow"
-                    if obj.Direction(2) ~= -1
-                        obj.Direction = [0, 1];
-                    end
+                    obj.QueuedDir = [0, 1];
                     obj.KeyboardMode = true;
                 case "leftarrow"
-                    if obj.Direction(1) ~= 1
-                        obj.Direction = [-1, 0];
-                    end
+                    obj.QueuedDir = [-1, 0];
                     obj.KeyboardMode = true;
                 case "rightarrow"
-                    if obj.Direction(1) ~= -1
-                        obj.Direction = [1, 0];
-                    end
+                    obj.QueuedDir = [1, 0];
                     obj.KeyboardMode = true;
                 otherwise
                     handled = false;
@@ -305,31 +354,82 @@ classdef Snake < GameBase
     % =================================================================
     methods (Access = private)
 
-        function spawnFood(obj)
-            %spawnFood  Place food at a random grid-aligned position.
+        function xy = gridToData(obj, gridPos)
+            %gridToData  Convert [col, row] integer grid position to data coordinates.
+            %   Returns [x, y] at the center of the grid cell.
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
-            cs = obj.CellSize;
-            margin = cs * 3;
+            xy = [dx(1) + (gridPos(1) - 0.5) * obj.CellW, ...
+                  dy(1) + (gridPos(2) - 0.5) * obj.CellH];
+        end
 
-            % Grid-aligned position, avoiding all snake segments
-            foodXY = [NaN, NaN];
-            for attempt = 1:100 %#ok<FXUP>
-                rawX = dx(1) + margin + rand * (diff(dx) - 2 * margin);
-                rawY = dy(1) + margin + rand * (diff(dy) - 2 * margin);
-                candidate = [dx(1) + round((rawX - dx(1)) / cs) * cs, ...
-                             dy(1) + round((rawY - dy(1)) / cs) * cs];
-                if isempty(obj.Body) || all(vecnorm(obj.Body - candidate, 2, 2) >= cs * 0.5)
-                    foodXY = candidate;
+        function drawGridLines(obj, ax, dx, dy)
+            %drawGridLines  Draw subtle grid overlay.
+            nC = obj.GridCols;
+            nR = obj.GridRows;
+            cw = obj.CellW;
+            ch = obj.CellH;
+
+            % Build NaN-separated line arrays for all grid lines in one handle
+            nLines = (nC + 1) + (nR + 1);
+            xAll = NaN(3 * nLines, 1);
+            yAll = NaN(3 * nLines, 1);
+            idx = 1;
+
+            % Vertical lines
+            for c = 0:nC
+                xVal = dx(1) + c * cw;
+                xAll(idx)   = xVal; yAll(idx)   = dy(1);
+                xAll(idx+1) = xVal; yAll(idx+1) = dy(2);
+                idx = idx + 3;
+            end
+
+            % Horizontal lines
+            for r = 0:nR
+                yVal = dy(1) + r * ch;
+                xAll(idx)   = dx(1); yAll(idx)   = yVal;
+                xAll(idx+1) = dx(2); yAll(idx+1) = yVal;
+                idx = idx + 3;
+            end
+
+            obj.GridLinesH = line(ax, xAll, yAll, ...
+                "Color", [0.15 0.15 0.15], "LineWidth", 0.5, ...
+                "Tag", "GT_snake");
+            uistack(obj.GridLinesH, "bottom");
+        end
+
+        function spawnFood(obj)
+            %spawnFood  Place food at a random empty grid cell.
+            nC = obj.GridCols;
+            nR = obj.GridRows;
+
+            % Try random positions up to 200 times
+            foodCell = [NaN, NaN];
+            for attempt = 1:200 %#ok<BDSCI>
+                candidate = [randi(nC), randi(nR)];
+                if isempty(obj.Body) || ~any(obj.Body(:,1) == candidate(1) & obj.Body(:,2) == candidate(2))
+                    foodCell = candidate;
                     break;
                 end
             end
-            if any(isnan(foodXY))
-                foodXY = [mean(dx), mean(dy)];
-            end
-            obj.FoodPos = foodXY;
 
-            % Reposition pre-allocated food graphics (no delete/create)
+            % Fallback: scan for first empty cell if grid is nearly full
+            if any(isnan(foodCell))
+                for c = 1:nC
+                    for r = 1:nR
+                        if ~any(obj.Body(:,1) == c & obj.Body(:,2) == r)
+                            foodCell = [c, r];
+                            break;
+                        end
+                    end
+                    if ~any(isnan(foodCell)); break; end
+                end
+            end
+
+            obj.FoodPos = foodCell;
+
+            % Reposition pre-allocated food graphics
+            foodXY = obj.gridToData(foodCell);
             if ~isempty(obj.FoodGlowH) && isvalid(obj.FoodGlowH)
                 obj.FoodGlowH.XData = foodXY(1);
                 obj.FoodGlowH.YData = foodXY(2);
@@ -344,50 +444,51 @@ classdef Snake < GameBase
             %updateBodyGraphics  Update body segment positions, sizes, and colors.
             nBody = size(obj.Body, 1);
             cmapSize = size(obj.ColormapRGB, 1);
-            cs = obj.CellSize;
-            pxScale = obj.FontScale;
-            headSize = cs * (2.4 + 0.04 * max(0, nBody - 5)) * pxScale;
-            tailSize = cs * 1.3 * pxScale;
+            headSz = obj.HeadMarkerSz;
+            tailSz = obj.TailMarkerSz;
             nPool = numel(obj.BodyPatchH);
 
-            % Activate/update segments up to nBody, hide rest
+            % Activate/update segments up to nBody, hide the rest
             for i = 1:nPool
-                if i > nPool; break; end
                 h = obj.BodyPatchH{i};
                 if isempty(h) || ~isvalid(h); continue; end
                 if i <= nBody
-                    h.XData = obj.Body(i, 1);
-                    h.YData = obj.Body(i, 2);
+                    xy = obj.gridToData(obj.Body(i, :));
+                    h.XData = xy(1);
+                    h.YData = xy(2);
                     t = (i - 1) / max(1, nBody - 1);
-                    h.MarkerSize = headSize * (1 - t) + tailSize * t;
+                    h.MarkerSize = headSz * (1 - t) + tailSz * t;
                     cmapIdx = max(1, round((1 - t) * (cmapSize - 1)) + 1);
                     clr = obj.ColormapRGB(cmapIdx, :);
                     h.MarkerFaceColor = clr;
-                    h.MarkerEdgeColor = clr * 0.7;
+                    h.MarkerEdgeColor = clr * 0.5;
                     h.Visible = "on";
                 else
                     h.Visible = "off";
                 end
             end
 
-            % If snake exceeds pool (very long game), extend pool
+            % Extend pool if snake exceeds pre-allocated capacity
             if nBody > nPool
                 ax = obj.Ax;
                 if ~isempty(ax) && isvalid(ax)
                     for i = (nPool + 1):nBody
-                        obj.BodyPatchH{i} = line(ax, obj.Body(i, 1), obj.Body(i, 2), ...
-                            "Marker", "o", "MarkerSize", tailSize, ...
+                        xy = obj.gridToData(obj.Body(i, :));
+                        obj.BodyPatchH{i} = line(ax, xy(1), xy(2), ...
+                            "Marker", "s", "MarkerSize", tailSz, ...
                             "MarkerFaceColor", [1 1 1], "MarkerEdgeColor", [0.7 0.7 0.7], ...
                             "LineStyle", "none", "Tag", "GT_snake");
                     end
                 end
             end
 
+            % Update head glow position and color
             if ~isempty(obj.HeadPatchH) && isvalid(obj.HeadPatchH)
-                obj.HeadPatchH.XData = obj.Body(1, 1);
-                obj.HeadPatchH.YData = obj.Body(1, 2);
+                headXY = obj.gridToData(obj.Body(1, :));
+                obj.HeadPatchH.XData = headXY(1);
+                obj.HeadPatchH.YData = headXY(2);
                 obj.HeadPatchH.CData = obj.ColormapRGB(end, :);
-                obj.HeadPatchH.SizeData = headSize^2;
+                obj.HeadPatchH.SizeData = obj.HeadGlowSz;
             end
         end
 
@@ -398,12 +499,10 @@ classdef Snake < GameBase
             if isnumeric(val) && size(val, 2) == 3
                 nIn = size(val, 1);
                 if nIn == 1
-                    % Single RGB — constant color for all segments
                     cmap = repmat(val, nRows, 1);
                 elseif nIn == nRows
                     cmap = val;
                 else
-                    % Nx3 matrix — resample to 256 rows
                     idx = linspace(1, nIn, nRows)';
                     cmap = interp1(1:nIn, val, idx);
                 end

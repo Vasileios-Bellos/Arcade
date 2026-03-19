@@ -386,7 +386,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % Measure frame dt (cap at 100ms to prevent lag-spike jumps)
+            % Measure frame dt (cap at 50ms / 20 FPS floor)
             obj.RawDt = min(toc(obj.FpsLastTic), 0.1);
             obj.FpsLastTic = tic;
             % Update ring buffer for FPS display

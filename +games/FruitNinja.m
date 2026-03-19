@@ -132,7 +132,7 @@ classdef FruitNinja < GameBase
             obj.Sc = min(areaW, areaH) / 180;
 
             obj.Gravity = max(0.025, areaH * 0.000333);
-            obj.SpawnTimer = 120;  % equals initial spawnInterval → first fruit spawns immediately
+            obj.SpawnTimer = 60;  % equals initial spawnInterval → first fruit spawns immediately
             obj.StartTicLocal = tic;
             obj.FruitsSliced = 0;
             obj.FruitsDropped = 0;
@@ -274,7 +274,7 @@ classdef FruitNinja < GameBase
 
             % --- Spawn fruits ---
             obj.SpawnTimer = obj.SpawnTimer + ds;
-            spawnInterval = max(24, 120 - obj.FruitsSliced * 0.36 - obj.Combo * 3.6);
+            spawnInterval = max(12, 60 - obj.FruitsSliced * 0.36 - obj.Combo * 3.6);
             if obj.SpawnTimer >= spawnInterval
                 obj.SpawnTimer = 0;
                 % Occasionally spawn 2-3 fruits as a cluster for multi-cut

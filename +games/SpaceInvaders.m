@@ -627,7 +627,11 @@ classdef SpaceInvaders < GameBase
 
         function r = getResults(obj)
             %getResults  Return space invaders results.
-            r.Title = "SPACE INVADERS";
+            if obj.Wave >= 5 && isempty(obj.Aliens)
+                r.Title = "YOU WIN!";
+            else
+                r.Title = "SPACE INVADERS";
+            end
             r.Lines = {
                 sprintf("Wave: %d", obj.Wave)
             };
