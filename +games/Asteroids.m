@@ -435,7 +435,7 @@ classdef Asteroids < GameBase
                 if ~isempty(obj.ShipCoreH) && isvalid(obj.ShipCoreH)
                     obj.ShipCoreH.Visible = vis;
                 end
-                if obj.InvulnFrames == 0 && ~isempty(obj.ShipCoreH) && isvalid(obj.ShipCoreH)
+                if obj.InvulnFrames <= 0 && ~isempty(obj.ShipCoreH) && isvalid(obj.ShipCoreH)
                     obj.ShipCoreH.Visible = "on";
                 end
             else

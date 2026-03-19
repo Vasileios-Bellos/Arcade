@@ -422,7 +422,7 @@ classdef SpaceInvaders < GameBase
                 if ~isempty(obj.ShipPatchH) && isvalid(obj.ShipPatchH)
                     obj.ShipPatchH.Visible = vis;
                 end
-                if obj.InvulnFrames == 0 && ~isempty(obj.ShipPatchH) && isvalid(obj.ShipPatchH)
+                if obj.InvulnFrames <= 0 && ~isempty(obj.ShipPatchH) && isvalid(obj.ShipPatchH)
                     obj.ShipPatchH.Visible = "on";
                 end
             end

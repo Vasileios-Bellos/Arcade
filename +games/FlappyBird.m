@@ -217,7 +217,7 @@ classdef FlappyBird < GameBase
                 if ~isempty(obj.BirdGlowH) && isvalid(obj.BirdGlowH)
                     obj.BirdGlowH.Visible = vis;
                 end
-                if obj.InvulnFrames == 0
+                if obj.InvulnFrames <= 0
                     if ~isempty(obj.BirdCoreH) && isvalid(obj.BirdCoreH)
                         obj.BirdCoreH.CData = obj.ColorCyan;
                         obj.BirdCoreH.Visible = "on";
