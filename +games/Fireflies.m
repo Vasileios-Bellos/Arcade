@@ -129,12 +129,7 @@ classdef Fireflies < GameBase
 
             % Mouse input needs larger catch radius — finger tracking has
             % a natural ~30px "fat finger" zone from scatter marker + wobble
-            isMouseInput = ~isfield(caps, "smoothedTrace");
-            if isMouseInput
-                obj.CatchRadiusBonus = round(8 * obj.Sc);
-            else
-                obj.CatchRadiusBonus = 0;
-            end
+            obj.CatchRadiusBonus = 0;
 
             % Spawn first firefly
             obj.spawnFirefly();
@@ -340,23 +335,23 @@ classdef Fireflies < GameBase
             if tierRoll < 0.35
                 % Cyan — common, large, slow (35%)
                 clr = obj.ColorCyan;
-                pts = 100; radius = round(14 * sc); spd = bs * 1;
+                pts = 100; radius = round(14 * sc); spd = bs * 1.5;
             elseif tierRoll < 0.65
                 % Green — common (30%)
                 clr = obj.ColorGreen;
-                pts = 200; radius = round(13 * sc); spd = bs * 1.8;
+                pts = 200; radius = round(13 * sc); spd = bs * 2.7;
             elseif tierRoll < 0.85
                 % Magenta — medium (20%)
                 clr = obj.ColorMagenta;
-                pts = 300; radius = round(12 * sc); spd = bs * 2.5;
+                pts = 300; radius = round(12 * sc); spd = bs * 3.75;
             elseif tierRoll < 0.95
                 % Purple — uncommon (10%)
                 clr = obj.ColorPurple;
-                pts = 400; radius = round(11 * sc); spd = bs * 3.2;
+                pts = 400; radius = round(11 * sc); spd = bs * 4.8;
             else
                 % Gold — legendary, small and fast (5%)
                 clr = obj.ColorGold;
-                pts = 500; radius = round(10 * sc); spd = bs * 1.67;
+                pts = 500; radius = round(10 * sc); spd = bs * 3;
             end
 
             isGold = (tierRoll >= 0.95);
