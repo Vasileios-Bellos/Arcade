@@ -488,14 +488,17 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
         function onKeyPress(obj, evnt)
             %onKeyPress  Route key events based on current state.
+            %   Matches GestureMouse key routing: try modifier+key first,
+            %   fall back to plain key if not handled.
             key = string(evnt.Key);
 
-            % Ignore modifier-only presses (shift/alt/control alone)
+            % Ignore modifier-only presses
             if any(key == ["shift", "alt", "control"]); return; end
 
+            % Try modifier+key first (same logic as GestureMouse.handleKeyPress)
+            modKey = "";
             if ~isempty(evnt.Modifier)
-                mods = string(evnt.Modifier);
-                if any(mods == "shift")
+                if any(strcmp(evnt.Modifier, "shift"))
                     if ~(strlength(key) == 1 && key >= "1" && key <= "9")
                         shiftMap = dictionary( ...
                             ["!", "@", """", "#", "£", "$", "%", "^", "&", "*"], ...
@@ -505,16 +508,15 @@ classdef (Sealed) ArcadeGameLauncher < handle
                             key = shiftMap(ch);
                         end
                     end
-                    key = "shift+" + key;
-                elseif any(mods == "alt")
-                    key = "alt+" + key;
+                    modKey = "shift+" + key;
+                elseif any(strcmp(evnt.Modifier, "alt"))
+                    modKey = "alt+" + key;
                 end
             end
 
-            % Fallback: if modified key not in registry, try plain key
-            plainKey = string(evnt.Key);
-            if ~obj.Registry.isKey(key) && obj.Registry.isKey(plainKey)
-                key = plainKey;
+            % Use modifier+key if it exists in registry, else plain key
+            if modKey ~= "" && obj.Registry.isKey(modKey)
+                key = modKey;
             end
 
             switch obj.State
@@ -1033,7 +1035,6 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("numpad9", @games.Lorenz, "Lorenz");
             obj.registerGame("numpad0", @games.FourierEpicycle, "Fourier Epicycle");
             obj.registerGame("shift+numpad1", @games.Ecosystem, "Ecosystem");
-            obj.registerGame("shift+end", @games.Ecosystem, "Ecosystem");  % Windows: Shift+Numpad1 = End
         end
 
         function registerGame(obj, key, ctor, name)
