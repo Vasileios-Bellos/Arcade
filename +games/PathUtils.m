@@ -23,8 +23,8 @@ classdef PathUtils
             if nargin < 5; applyRotation = true; end
             if nargin < 4; corridorWidth = 20; end
 
-            % Small edge margin — band clips naturally at axes boundaries
-            edgeMargin = 25;
+            % Edge margin: ensures corridor (path + half-width) stays on screen
+            edgeMargin = max(25, corridorWidth * 1.5);
             xMin = displayRangeX(1) + edgeMargin;
             xMax = displayRangeX(2) - edgeMargin;
             yMin = displayRangeY(1) + edgeMargin;
