@@ -160,12 +160,14 @@ classdef PathUtils
             end
 
             % Scale to fit within display bounds (preserves shape after
-            % rotation instead of hard-clamping which squashes it)
-            pad = 5;
+            % rotation instead of hard-clamping which squashes it).
+            % Pad must include half corridor width so the rendered band
+            % stays fully on screen. Extra 12 DU at bottom for timer bar.
+            pad = corridorWidth * 0.75 + 5;
             xLo = displayRangeX(1) + pad;
             xHi = displayRangeX(2) - pad;
             yLo = displayRangeY(1) + pad;
-            yHi = displayRangeY(2) - pad;
+            yHi = displayRangeY(2) - pad - 12;
             centX = mean(rawX);
             centY = mean(rawY);
             extR = max(rawX) - centX;
