@@ -19,6 +19,13 @@ classdef (Sealed) ArcadeGameLauncher < handle
     %   See also GameBase, GameHost, GameMenu, GestureMouse
 
     % =================================================================
+    % PUBLIC CONFIGURATION
+    % =================================================================
+    properties
+        ShowFPS         (1,1) logical = true    % show FPS counter during gameplay
+    end
+
+    % =================================================================
     % CORE STATE
     % =================================================================
     properties (SetAccess = private)
@@ -49,6 +56,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         ComboTextH                              % text — combo display
         StatusTextH                             % text — center (countdown/pause/results)
         HudTextH                                % text — bottom HUD from game
+        FpsTextH                                % text — top-right FPS counter
     end
 
     % =================================================================
@@ -65,7 +73,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
         FpsLastTic      uint64                  % tic of previous frame
         DtBuffer        (1,30) double = NaN     % ring buffer of frame dts (30 frames)
         DtBufIdx        (1,1) double = 0        % current write index
-        DtScale         (1,1) double = 1        % avgDt / RefDt — clamped [0.1, 3.0]
+        DtScale         (1,1) double = 1        % rawDt / RefDt
+        RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
         RefPixelSize    (1,2) double = [0, 0]   % axes pixel size at launch (for font scaling)
     end
 
@@ -349,7 +358,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
             % Rebuild HUD
             handles = {obj.ScoreTextH, obj.ComboTextH, ...
-                obj.StatusTextH, obj.HudTextH};
+                obj.StatusTextH, obj.HudTextH, obj.FpsTextH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
@@ -377,10 +386,13 @@ classdef (Sealed) ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % Measure frame dt (EMA on dt, not FPS) and compute speed scale
-            rawDt = toc(obj.FpsLastTic);
+            % Measure frame dt
+            obj.RawDt = toc(obj.FpsLastTic);
             obj.FpsLastTic = tic;
-            [obj.DtScale, obj.DtBuffer, obj.DtBufIdx] = GameBase.computeDtScale(rawDt, obj.DtBuffer, obj.DtBufIdx);
+            % Update ring buffer for FPS display
+            obj.DtBufIdx = mod(obj.DtBufIdx, numel(obj.DtBuffer)) + 1;
+            obj.DtBuffer(obj.DtBufIdx) = obj.RawDt;
+            obj.DtScale = 1;  % default for non-game states (countdown etc.)
 
             try
                 switch obj.State
@@ -405,6 +417,20 @@ classdef (Sealed) ArcadeGameLauncher < handle
                     obj.ScoreDisplayed = min(obj.ScoreDisplayed ...
                         + max(obj.ScoreRollSpeed, gap * 0.3), obj.Score);
                     obj.updateScoreText();
+                end
+
+                % FPS counter (from 30-frame ring buffer)
+                if ~isempty(obj.FpsTextH) && isvalid(obj.FpsTextH)
+                    showIt = obj.ShowFPS && (obj.State == "active" || obj.State == "paused");
+                    if showIt
+                        validDts = obj.DtBuffer(~isnan(obj.DtBuffer));
+                        if ~isempty(validDts)
+                            obj.FpsTextH.String = sprintf("%.0f fps", 1 / mean(validDts));
+                        end
+                        obj.FpsTextH.Visible = "on";
+                    else
+                        obj.FpsTextH.Visible = "off";
+                    end
                 end
 
                 drawnow;
@@ -432,7 +458,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.MousePos(2) = max(obj.DisplayRange.Y(1), min(obj.DisplayRange.Y(2), obj.MousePos(2)));
             end
 
-            obj.ActiveGame.DtScale = obj.DtScale;
+            obj.ActiveGame.DtScale = obj.RawDt * obj.ActiveGame.TargetFPS;
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
 
@@ -878,13 +904,20 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Visible", "off", ...
                 "Tag", "GT_arcHud");
+
+            obj.FpsTextH = text(ax, dx(2) - 4, dy(1) + 2, "", ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", 14, ...
+                "FontWeight", "bold", ...
+                "HorizontalAlignment", "right", ...
+                "VerticalAlignment", "top", "Visible", "off", ...
+                "Tag", "GT_arcFps");
         end
 
         function scaleFonts(obj, pixelScale)
             %scaleFonts  Scale HUD font sizes by pixel scale factor.
-            baseSizes = [14, 13, 28, 11];  % Score, Combo, Status, Hud
-            handles = {obj.ScoreTextH, obj.ComboTextH, obj.StatusTextH, obj.HudTextH};
-            for k = 1:4
+            baseSizes = [14, 13, 28, 11, 10];  % Score, Combo, Status, Hud, Fps
+            handles = {obj.ScoreTextH, obj.ComboTextH, obj.StatusTextH, obj.HudTextH, obj.FpsTextH};
+            for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
                     h.FontSize = max(6, round(baseSizes(k) * pixelScale));

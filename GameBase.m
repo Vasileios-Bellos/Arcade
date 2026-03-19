@@ -38,8 +38,8 @@ classdef (Abstract) GameBase < handle
         FontScale       (1,1) double = 1   % pixel scale for font/marker sizing — set by host on resize
     end
 
-    properties (Constant)
-        RefDt           (1,1) double = 0.040   % reference frame time (25 Hz)
+    properties
+        TargetFPS       (1,1) double = 60      % 25 % FPS the game was designed for — tunable
     end
 
     % =================================================================
@@ -436,31 +436,14 @@ classdef (Abstract) GameBase < handle
             if ~isempty(orphans); delete(orphans); end
         end
 
-        function [dtScale, dtBuffer, dtBufIdx] = computeDtScale(rawDt, dtBuffer, dtBufIdx)
+        function [dtScale, dtBuffer, dtBufIdx] = computeDtScale(rawDt, dtBuffer, dtBufIdx, refDt)
             %computeDtScale  Compute frame-rate-independent speed scale.
-            %   Uses a running-average ring buffer of frame times, then
-            %   divides mean dt by RefDt (0.040s = 25 Hz) to get a
-            %   dimensionless multiplier.
-            %   At 25 FPS: DtScale = 1.0. At 50 FPS: ~0.5. At 12.5 FPS: ~2.0.
-            %
-            %   rawDt     — toc() since last frame (seconds)
-            %   dtBuffer  — ring buffer of recent frame dts (e.g., 30 elements)
-            %   dtBufIdx  — current write index into buffer (1-based)
-            %
-            %   Returns:
-            %   dtScale   — clamped to [0.1, 3.0]
-            %   dtBuffer  — updated buffer
-            %   dtBufIdx  — updated index
-            clampedDt = max(0.004, min(rawDt, 0.100));
+            %   dtScale = rawDt / refDt. Pure per-frame ratio, no averaging,
+            %   no clamping. Ring buffer updated for FPS display only.
+            if nargin < 4; refDt = 0.040; end
             dtBufIdx = mod(dtBufIdx, numel(dtBuffer)) + 1;
-            dtBuffer(dtBufIdx) = clampedDt;
-            validDts = dtBuffer(~isnan(dtBuffer));
-            if isempty(validDts)
-                avgDt = GameBase.RefDt;
-            else
-                avgDt = mean(validDts);
-            end
-            dtScale = max(0.1, min(avgDt / GameBase.RefDt, 3.0));
+            dtBuffer(dtBufIdx) = rawDt;
+            dtScale = rawDt / refDt;
         end
 
         function letterboxAxes(fig, ax, gameAR)
@@ -579,7 +562,7 @@ classdef (Abstract) GameBase < handle
             fig = figure("Color", "k", "WindowState", "maximized", ...
                 "MenuBar", "none", "ToolBar", "none", ...
                 "Name", obj.Name, "NumberTitle", "off");
-            drawnow;  % ensure Position reflects maximized dimensions
+            drawnow; pause(0.3);  % allow window manager to finish maximizing
 
             % Compute display range from figure aspect ratio (Y=480 fixed)
             figPos = fig.Position;
@@ -632,6 +615,12 @@ classdef (Abstract) GameBase < handle
                 "FontWeight", "bold", "HorizontalAlignment", "left", ...
                 "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
 
+            % --- FPS counter ---
+            fpsH = text(ax, range.X(2) - 4, range.Y(1) + 2, "", ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize, ...
+                "FontWeight", "bold", "HorizontalAlignment", "right", ...
+                "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
+
             function onFigResize()
                 if ~isvalid(fig) || ~isvalid(ax); return; end
                 GameBase.letterboxAxes(fig, ax, gameAR);
@@ -654,7 +643,9 @@ classdef (Abstract) GameBase < handle
                     % Measure dt and compute DtScale
                     rawDt = toc(frameTic);
                     frameTic = tic;
-                    [obj.DtScale, dtBuf, dtBufIdx] = GameBase.computeDtScale(rawDt, dtBuf, dtBufIdx);
+                    dtBufIdx = mod(dtBufIdx, numel(dtBuf)) + 1;
+                    dtBuf(dtBufIdx) = rawDt;
+                    obj.DtScale = rawDt * obj.TargetFPS;
 
                     % Arrow key cursor movement
                     if any(arrowHeld)
@@ -671,6 +662,11 @@ classdef (Abstract) GameBase < handle
                     obj.updateHitEffects();
                     % Update score display
                     scoreH.String = sprintf("Score: %d", obj.Score);
+                    % Update FPS display
+                    validDts = dtBuf(~isnan(dtBuf));
+                    if ~isempty(validDts)
+                        fpsH.String = sprintf("%.0f fps", 1 / mean(validDts));
+                    end
                     drawnow;
                 catch me
                     fprintf(2, "[GameBase.play] %s\n", me.message);

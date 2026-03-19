@@ -125,7 +125,7 @@ classdef GameOfLife < GameBase
 
             % Tunable sim rate: accumulate real dt, skip entire frame if
             % not enough time has passed.  Speed 1-6 (SimRate 10-60 Hz).
-            realDt = obj.DtScale * GameBase.RefDt;
+            realDt = obj.DtScale / obj.TargetFPS;
             obj.SimAccum = obj.SimAccum + realDt;
             stepPeriod = 1.0 / obj.SimRate;
             if obj.SimAccum < stepPeriod; return; end

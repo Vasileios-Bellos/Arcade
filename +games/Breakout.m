@@ -88,6 +88,15 @@ classdef Breakout < GameBase
 
         % Display scale factor (1.0 at ~180px reference)
         Sc              (1,1) double = 1
+
+        % Pre-computed circle geometry (avoid linspace/cos/sin per frame)
+        Theta48         (1,48) double       % glow ring (ball, extra balls)
+        CosT48          (1,48) double
+        SinT48          (1,48) double
+        Theta24         (1,24) double       % power-up capsule
+        CosT24          (1,24) double
+        SinT24          (1,24) double
+        PowerUpCapR     (1,1) double = 5    % cached capsule radius
     end
 
     % =================================================================
@@ -144,6 +153,15 @@ classdef Breakout < GameBase
             obj.PaddleW = obj.PaddleBaseW;
             obj.PaddleHt = max(4, round(areaH * 0.03));
             obj.PaddleY = dy(2) - round(areaH * 0.08);
+
+            % Pre-compute circle geometry (avoid per-frame linspace/trig)
+            obj.Theta48 = linspace(0, 2*pi, 48);
+            obj.CosT48 = cos(obj.Theta48);
+            obj.SinT48 = sin(obj.Theta48);
+            obj.Theta24 = linspace(0, 2*pi, 24);
+            obj.CosT24 = cos(obj.Theta24);
+            obj.SinT24 = sin(obj.Theta24);
+            obj.PowerUpCapR = round(5 * obj.Sc);
 
             % Reset state
             obj.Lives = 3;
@@ -1047,10 +1065,8 @@ classdef Breakout < GameBase
 
                 % Update graphics position
                 if ~isempty(pu.patchH) && isvalid(pu.patchH)
-                    theta = linspace(0, 2*pi, 24);
-                    capR = round(5 * obj.Sc);
-                    set(pu.patchH, "XData", pu.x + capR*cos(theta), ...
-                        "YData", pu.y + capR*sin(theta));
+                    set(pu.patchH, "XData", pu.x + obj.PowerUpCapR * obj.CosT24, ...
+                        "YData", pu.y + obj.PowerUpCapR * obj.SinT24);
                 end
                 if ~isempty(pu.glowH) && isvalid(pu.glowH)
                     set(pu.glowH, "XData", pu.x, "YData", pu.y);
@@ -1279,14 +1295,13 @@ classdef Breakout < GameBase
                     end
                 end
                 if ~isempty(eb.glowH) && isvalid(eb.glowH)
-                    theta = linspace(0, 2*pi, 48);
                     if ebFireball
                         glC = obj.ColorRed; glA = 0.7;
                     else
                         glC = ebColor; glA = 0.5;
                     end
-                    set(eb.glowH, "XData", eb.pos(1) + obj.BallRadius*cos(theta), ...
-                        "YData", eb.pos(2) + obj.BallRadius*sin(theta), ...
+                    set(eb.glowH, "XData", eb.pos(1) + obj.BallRadius * obj.CosT48, ...
+                        "YData", eb.pos(2) + obj.BallRadius * obj.SinT48, ...
                         "Color", [glC, glA]);
                 end
                 if ~isempty(eb.coreH) && isvalid(eb.coreH)
@@ -1376,7 +1391,6 @@ classdef Breakout < GameBase
 
             % Glow ring — red outglow during fireball
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
-                theta = linspace(0, 2*pi, 48);
                 if isFireball
                     glowColor = obj.ColorRed;
                     glowAlpha = 0.7;
@@ -1385,8 +1399,8 @@ classdef Breakout < GameBase
                     glowAlpha = 0.5;
                 end
                 set(obj.BallGlowH, ...
-                    "XData", obj.BallPos(1) + ballR * cos(theta), ...
-                    "YData", obj.BallPos(2) + ballR * sin(theta), ...
+                    "XData", obj.BallPos(1) + ballR * obj.CosT48, ...
+                    "YData", obj.BallPos(2) + ballR * obj.SinT48, ...
                     "Color", [glowColor, glowAlpha]);
             end
 

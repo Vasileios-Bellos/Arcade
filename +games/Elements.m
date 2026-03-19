@@ -115,7 +115,7 @@ classdef Elements < GameBase
             %onUpdate  Per-frame update at tunable sim rate.
             %   SimRate (default 30 Hz, left/right arrows 5:5:60).
             %   Accumulates real dt; fires one step per 1/SimRate seconds.
-            realDt = obj.DtScale * GameBase.RefDt;  % actual frame time in seconds
+            realDt = obj.DtScale / obj.TargetFPS;
             obj.SimAccum = obj.SimAccum + realDt;
             stepPeriod = 1.0 / obj.SimRate;
             if obj.SimAccum < stepPeriod; return; end

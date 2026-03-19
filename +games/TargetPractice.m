@@ -153,7 +153,7 @@ classdef TargetPractice < GameBase
             end
 
             % Animate target
-            obj.PulsePhase = obj.PulsePhase + 0.12;
+            obj.PulsePhase = obj.PulsePhase + 0.12 * obj.DtScale;
             obj.animateTarget(elapsed, pos);
 
             % Update time bar
