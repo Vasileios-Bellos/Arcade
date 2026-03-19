@@ -85,8 +85,10 @@ classdef FruitNinja < GameBase
 
         % Swipe tracking (for multi-cut detection)
         SwipeActive     (1,1) logical = false   % true while finger is fast
-        SwipeCutCount   (1,1) double = 0        % fruits cut in current swipe
-        SwipeSlowFrames (1,1) double = 0        % frames below threshold (swipe ends at 3)
+        SwipeGen        (1,1) double = 0        % increments on each new swipe
+        SwipeGenSliced  (1,1) double = 0        % fruits sliced in current swipe gen
+        SwipeSlowFrames (1,1) double = 0        % slow frames accumulator (DtScale-adjusted)
+        FruitSwipeGen   (1,8) double = 0        % swipe generation when fruit was entered
 
         % Trace buffer (own shifting buffer or host-provided)
         GetSmoothedTrace    function_handle = function_handle.empty
@@ -134,8 +136,10 @@ classdef FruitNinja < GameBase
                 "angle", {}, "position", {}, "time", {});
             obj.PrevPos = [NaN, NaN];
             obj.SwipeActive = false;
-            obj.SwipeCutCount = 0;
+            obj.SwipeGen = 0;
+            obj.SwipeGenSliced = 0;
             obj.SwipeSlowFrames = 0;
+            obj.FruitSwipeGen(:) = 0;
 
             % Pre-compute theta for fruit circles
             obj.ThetaCircle24 = linspace(0, 2*pi, 24);
@@ -244,15 +248,16 @@ classdef FruitNinja < GameBase
             %   Fruits sliced during one swipe count as a multi-cut.
             if slashSpeed > slashThresh
                 if ~obj.SwipeActive
+                    % New swipe starting — increment generation
                     obj.SwipeActive = true;
-                    obj.SwipeCutCount = 0;
+                    obj.SwipeGen = obj.SwipeGen + 1;
+                    obj.SwipeGenSliced = 0;
                 end
                 obj.SwipeSlowFrames = 0;
             elseif obj.SwipeActive
-                obj.SwipeSlowFrames = obj.SwipeSlowFrames + 1;
+                obj.SwipeSlowFrames = obj.SwipeSlowFrames + ds;
                 if obj.SwipeSlowFrames >= 3
                     obj.SwipeActive = false;
-                    obj.SwipeCutCount = 0;
                 end
             end
 
@@ -261,11 +266,12 @@ classdef FruitNinja < GameBase
             spawnInterval = max(20, 55 - obj.FruitsSliced * 0.2);
             if obj.SpawnTimer >= spawnInterval
                 obj.SpawnTimer = 0;
-                % Occasionally spawn 2-3 fruits for multi-cut opportunities
+                % Occasionally spawn 2-3 fruits as a cluster for multi-cut
                 if rand < 0.25 && sum(obj.FruitActive) <= 5
                     nSpawn = 2 + (rand < 0.3);  % 70% double, 30% triple
+                    clusterCenterX = dx(1) + areaW * (0.25 + rand * 0.5);
                     for sp = 1:nSpawn
-                        obj.spawnFruit();
+                        obj.spawnFruitNear(clusterCenterX);
                     end
                 else
                     obj.spawnFruit();
@@ -330,6 +336,7 @@ classdef FruitNinja < GameBase
                         if distToFruit < fRadius + 3 && slashSpeed > slashThresh
                             obj.FruitSlashing(kk) = true;
                             obj.FruitEntryAngle(kk) = atan2(pos(2) - fy, pos(1) - fx);
+                            obj.FruitSwipeGen(kk) = obj.SwipeGen;
                         end
                     end
                 end
@@ -600,6 +607,59 @@ classdef FruitNinja < GameBase
             end
         end
 
+        function spawnFruitNear(obj, centerX)
+            %spawnFruitNear  Spawn a fruit near centerX for cluster multi-cuts.
+            ax = obj.Ax;
+            if isempty(ax) || ~isvalid(ax); return; end
+            slot = find(~obj.FruitActive, 1);
+            if isempty(slot); return; end
+
+            dx = obj.DisplayRange.X;
+            dy = obj.DisplayRange.Y;
+            areaW = dx(2) - dx(1);
+            areaH = dy(2) - dy(1);
+
+            fruitColors = {obj.ColorRed, obj.ColorGreen, obj.ColorGold, ...
+                           obj.ColorMagenta, [1, 0.6, 0.15]};
+            clr = fruitColors{randi(numel(fruitColors))};
+            fruitRadius = max(5, round(min(areaW, areaH) * (0.03 + rand * 0.025)));
+
+            % Cluster: X near center ±15% of screen, similar upward velocity
+            xPos = max(dx(1) + fruitRadius, min(dx(2) - fruitRadius, ...
+                centerX + (rand - 0.5) * areaW * 0.3));
+            yPos = dy(2) + fruitRadius;
+            velX = (rand - 0.5) * areaW * 0.008;
+            minVelY = sqrt(2 * obj.Gravity * areaH * 0.55);
+            maxVelY = sqrt(2 * obj.Gravity * areaH * 0.90);
+            velY = -(minVelY + rand * (maxVelY - minVelY));
+
+            theta = obj.ThetaCircle24;
+            circX = xPos + fruitRadius * cos(theta);
+            circY = yPos + fruitRadius * sin(theta);
+
+            obj.FruitX(slot) = xPos;
+            obj.FruitY(slot) = yPos;
+            obj.FruitVx(slot) = velX;
+            obj.FruitVy(slot) = velY;
+            obj.FruitRadius(slot) = fruitRadius;
+            obj.FruitColor{slot} = clr;
+            obj.FruitSlashing(slot) = false;
+            obj.FruitEntryAngle(slot) = NaN;
+            obj.FruitSwipeGen(slot) = 0;
+            obj.FruitActive(slot) = true;
+
+            gH = obj.FruitPoolGlow{slot};
+            if ~isempty(gH) && isvalid(gH)
+                gH.XData = circX; gH.YData = circY;
+                gH.FaceColor = clr; gH.Visible = "on";
+            end
+            pH = obj.FruitPoolPatch{slot};
+            if ~isempty(pH) && isvalid(pH)
+                pH.XData = circX; pH.YData = circY;
+                pH.FaceColor = clr; pH.EdgeColor = clr; pH.Visible = "on";
+            end
+        end
+
         function deactivateFruit(obj, slot)
             %deactivateFruit  Hide fruit and mark slot inactive.
             obj.FruitActive(slot) = false;
@@ -664,15 +724,18 @@ classdef FruitNinja < GameBase
             smallerArc = min(mod(a2 - a1, 2*pi), mod(a1 - a2, 2*pi));
             centrality = 1 - cos(smallerArc / 2);
 
-            % Multi-cut: count fruits sliced during current swipe
-            if obj.SwipeActive
-                obj.SwipeCutCount = obj.SwipeCutCount + 1;
+            % Multi-cut: count fruits sliced in the same swipe generation.
+            % The fruit records which swipe it was entered during (FruitSwipeGen).
+            % This works even if the swipe ended before the exit was detected.
+            fruitGen = obj.FruitSwipeGen(fruitSlot);
+            if fruitGen > 0 && fruitGen == obj.SwipeGen
+                obj.SwipeGenSliced = obj.SwipeGenSliced + 1;
             end
 
             % Scoring: base x centrality bonus x combo x multi-cut bonus
             comboMult = obj.comboMultiplier();
             centralityBonus = 0.5 + centrality;  % 0.5 (edge) to 1.5 (center)
-            multiBonus = 1 + 0.5 * max(0, obj.SwipeCutCount - 1);  % +50% per extra fruit in same swipe
+            multiBonus = 1 + 0.5 * max(0, obj.SwipeGenSliced - 1);  % +50% per extra fruit in same swipe
             points = round(100 * centralityBonus * comboMult * multiBonus);
             obj.addScore(points);
 
