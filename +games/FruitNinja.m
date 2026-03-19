@@ -89,6 +89,8 @@ classdef FruitNinja < GameBase
         SwipeGenSliced  (1,1) double = 0        % fruits sliced in current swipe gen
         SwipeSlowFrames (1,1) double = 0        % slow frames accumulator (DtScale-adjusted)
         FruitSwipeGen   (1,8) double = 0        % swipe generation when fruit was entered
+        MultiCutTextH                            % text handle for "×2" flash
+        MultiCutFade    (1,1) double = 0         % fade countdown (frames)
 
         % Trace buffer (own shifting buffer or host-provided)
         GetSmoothedTrace    function_handle = function_handle.empty
@@ -140,6 +142,15 @@ classdef FruitNinja < GameBase
             obj.SwipeGenSliced = 0;
             obj.SwipeSlowFrames = 0;
             obj.FruitSwipeGen(:) = 0;
+            obj.MultiCutFade = 0;
+
+            % Multi-cut text (pre-allocated, hidden)
+            obj.MultiCutTextH = text(ax, 0, 0, "", ...
+                "Color", [obj.ColorGold, 0.9], ...
+                "FontSize", max(20, round(areaH * 0.08)), ...
+                "FontWeight", "bold", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "middle", "Visible", "off", ...
+                "Tag", "GT_fruitninja");
 
             % Pre-compute theta for fruit circles
             obj.ThetaCircle24 = linspace(0, 2*pi, 24);
@@ -430,6 +441,24 @@ classdef FruitNinja < GameBase
                     glowH.XData = sx;
                     glowH.YData = sy;
                     glowH.Color(4) = alphaVal * 0.5;
+                end
+            end
+
+            % --- Multi-cut text fade ---
+            if obj.MultiCutFade > 0
+                obj.MultiCutFade = obj.MultiCutFade - ds;
+                if obj.MultiCutFade <= 0
+                    if ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
+                        obj.MultiCutTextH.Visible = "off";
+                    end
+                else
+                    fadeAlpha = min(1, obj.MultiCutFade / 8);
+                    if ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
+                        obj.MultiCutTextH.Color = [obj.ColorGold, fadeAlpha];
+                        % Rise upward as it fades
+                        p = obj.MultiCutTextH.Position;
+                        obj.MultiCutTextH.Position = [p(1), p(2) - 1.5 * ds, p(3)];
+                    end
                 end
             end
 
@@ -732,12 +761,21 @@ classdef FruitNinja < GameBase
                 obj.SwipeGenSliced = obj.SwipeGenSliced + 1;
             end
 
-            % Scoring: base x centrality bonus x combo x multi-cut bonus
+            % Scoring: base x centrality bonus x combo x multi-cut multiplier
             comboMult = obj.comboMultiplier();
             centralityBonus = 0.5 + centrality;  % 0.5 (edge) to 1.5 (center)
-            multiBonus = 1 + 0.5 * max(0, obj.SwipeGenSliced - 1);  % +50% per extra fruit in same swipe
-            points = round(100 * centralityBonus * comboMult * multiBonus);
+            multiCut = obj.SwipeGenSliced;  % 1 = normal, 2+ = multi-cut
+            points = round(100 * centralityBonus * comboMult * multiCut);
             obj.addScore(points);
+
+            % Flash multi-cut text (×2, ×3, ...) at fruit position
+            if multiCut >= 2 && ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
+                obj.MultiCutTextH.String = sprintf("%s%d", char(215), multiCut);
+                obj.MultiCutTextH.Position = [fx, fy - fRadius * 2, 0];
+                obj.MultiCutTextH.Color = [obj.ColorGold, 1];
+                obj.MultiCutTextH.Visible = "on";
+                obj.MultiCutFade = 20;  % frames to display
+            end
 
             % Store slice diagnostics
             slashAngle = atan2(sin(a2 - a1), cos(a2 - a1));
