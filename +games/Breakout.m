@@ -113,7 +113,6 @@ classdef Breakout < GameBase
         LivesH
         LivesFlashTic       = []
         LevelTextH
-        DangerPatchH                    % filled rectangle (data-unit height)
         PowerBarH           = {}
         ModeTextH                           % text -- bottom-left HUD label
     end
@@ -190,17 +189,6 @@ classdef Breakout < GameBase
             obj.buildBrickGrid(1);
 
             % --- Create graphics ---
-            % Danger zone at bottom — patch with data-unit height scales with
-            % window size automatically, unlike a fixed-point LineWidth line.
-            dangerH = areaH * 0.012;  % ~5-6 data units at 480 height
-            dangerY = dy(2) - 6;
-            obj.DangerPatchH = patch(ax, ...
-                [dx(1), dx(2), dx(2), dx(1)], ...
-                [dangerY, dangerY, dangerY + dangerH, dangerY + dangerH], ...
-                obj.ColorRed, "EdgeColor", obj.ColorRed, ...
-                "FaceAlpha", 0, "EdgeAlpha", 0, ...
-                "LineWidth", 2, "Tag", "GT_breakout");
-
             % Trail glow + trail
             obj.BallTrailGlowH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.12], "LineWidth", 8, ...
@@ -464,19 +452,6 @@ classdef Breakout < GameBase
             end
 
             % --- Danger zone glow ---
-            if ~isempty(obj.DangerPatchH) && isvalid(obj.DangerPatchH) ...
-                    && ~any(isnan(obj.BallPos))
-                distToBottom = dy(2) - obj.BallPos(2);
-                dangerZone = (dy(2) - dy(1)) * 0.25;
-                if distToBottom < dangerZone && obj.BallVel(2) > 0
-                    intensity = (1 - distToBottom / dangerZone)^0.5;
-                    obj.DangerPatchH.FaceAlpha = intensity * 0.55;
-                    obj.DangerPatchH.EdgeAlpha = intensity;
-                else
-                    obj.DangerPatchH.FaceAlpha = 0;
-                    obj.DangerPatchH.EdgeAlpha = 0;
-                end
-            end
 
             % --- Update power-ups ---
             obj.updatePowerUps();
@@ -509,7 +484,7 @@ classdef Breakout < GameBase
             handles = {obj.BallCoreH, obj.BallGlowH, obj.BallAuraH, ...
                        obj.BallTrailH, obj.BallTrailGlowH, ...
                        obj.PaddleH, obj.PaddleGlowH, ...
-                       obj.LevelTextH, obj.DangerPatchH, ...
+                       obj.LevelTextH, ...
                        obj.ModeTextH};
             for k = 1:numel(handles)
                 h = handles{k};
@@ -520,7 +495,7 @@ classdef Breakout < GameBase
             obj.BallCoreH = []; obj.BallGlowH = []; obj.BallAuraH = [];
             obj.BallTrailH = []; obj.BallTrailGlowH = [];
             obj.PaddleH = []; obj.PaddleGlowH = [];
-            obj.LevelTextH = []; obj.DangerPatchH = [];
+            obj.LevelTextH = [];
             obj.ModeTextH = [];
 
             % Bricks
