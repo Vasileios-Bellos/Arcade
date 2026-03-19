@@ -1033,7 +1033,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("numpad9", @games.Lorenz, "Lorenz");
             obj.registerGame("numpad0", @games.FourierEpicycle, "Fourier Epicycle");
             obj.registerGame("shift+numpad1", @games.Ecosystem, "Ecosystem");
-            obj.registerGame("alt+e", @games.Ecosystem, "Ecosystem");  % fallback
+            obj.registerGame("shift+end", @games.Ecosystem, "Ecosystem");  % Windows: Shift+Numpad1 = End
         end
 
         function registerGame(obj, key, ctor, name)
