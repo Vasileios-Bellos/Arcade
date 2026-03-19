@@ -39,7 +39,7 @@ classdef (Abstract) GameBase < handle
     end
 
     properties
-        RefFPS       (1,1) double = 25      % reference FPS physics constants were tuned at
+        RefFPS       (1,1) double = 60      % reference FPS physics constants were tuned at
     end
 
     % =================================================================
