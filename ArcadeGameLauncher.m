@@ -511,6 +511,12 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 end
             end
 
+            % Fallback: if modified key not in registry, try plain key
+            plainKey = string(evnt.Key);
+            if ~obj.Registry.isKey(key) && obj.Registry.isKey(plainKey)
+                key = plainKey;
+            end
+
             switch obj.State
                 case "menu"
                     if obj.Registry.isKey(key)
