@@ -4,7 +4,7 @@ classdef TargetPractice < GameBase
     %   Targets shrink and timeout decreases as combo grows.
     %   Also used for pointing accuracy training in the webcam app.
     %
-    %   Standalone: games.Pointing().play()
+    %   Standalone: games.TargetPractice().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
@@ -90,22 +90,22 @@ classdef TargetPractice < GameBase
             % --- Target rings ---
             obj.TargetGlow = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "LineWidth", 12, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_pointing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_targetpractice");
             obj.TargetRingOuter = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.6], "LineWidth", 2.5, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_pointing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_targetpractice");
             obj.TargetRingInner = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 0.9], "LineWidth", 1.5, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_pointing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_targetpractice");
             obj.TargetDot = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 1], "Marker", ".", ...
                 "MarkerSize", 8, "LineStyle", "none", ...
-                "Visible", "off", "Tag", "GT_pointing");
+                "Visible", "off", "Tag", "GT_targetpractice");
 
             % --- Trail line (ghost path to target) ---
             obj.TrailLine = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.12], "LineWidth", 1, ...
-                "LineStyle", ":", "Visible", "off", "Tag", "GT_pointing");
+                "LineStyle", ":", "Visible", "off", "Tag", "GT_targetpractice");
 
             % --- Time bar ---
             barY = dy(2) - 8;
@@ -114,12 +114,12 @@ classdef TargetPractice < GameBase
                 [dx(1) dx(2) dx(2) dx(1)], ...
                 [barY barY barY+barH barY+barH], ...
                 [0.3 0.3 0.3], "FaceAlpha", 0.3, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_pointing");
+                "Visible", "off", "Tag", "GT_targetpractice");
             obj.TimeBarFg = patch(ax, ...
                 [dx(1) dx(2) dx(2) dx(1)], ...
                 [barY barY barY+barH barY+barH], ...
                 obj.ColorCyan, "FaceAlpha", 0.7, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_pointing");
+                "Visible", "off", "Tag", "GT_targetpractice");
 
             % Show time bar and spawn first target
             obj.showTimeBar();
@@ -127,7 +127,7 @@ classdef TargetPractice < GameBase
         end
 
         function onUpdate(obj, pos)
-            %onUpdate  Per-frame pointing game logic.
+            %onUpdate  Per-frame target practice game logic.
 
             % Accumulate path length
             if ~any(isnan(pos)) && ~any(isnan(obj.PrevPos))
@@ -180,16 +180,16 @@ classdef TargetPractice < GameBase
             obj.TimeBarFg = [];
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_pointing");
+            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_targetpractice");
         end
 
         function handled = onKeyPress(~, ~)
-            %onKeyPress  No mode-specific keys for pointing.
+            %onKeyPress  No mode-specific keys for target practice.
             handled = false;
         end
 
         function r = getResults(obj)
-            %getResults  Return pointing-specific results.
+            %getResults  Return target practice results.
             r.Title = "TARGET PRACTICE";
             nHit = obj.TargetsHit;
             nTotal = nHit + obj.TargetsMissed;
