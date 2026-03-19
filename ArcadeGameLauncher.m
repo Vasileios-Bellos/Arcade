@@ -494,11 +494,13 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 mods = string(evnt.Modifier);
                 % Map Shift+digit characters back to base digit key
                 ch = evnt.Character;
-                shiftChars  = '!@"#£$%^&*()';
-                shiftDigits = '122334567890';
-                idx = find(shiftChars == ch, 1);
-                if ~isempty(idx)
-                    key = string(shiftDigits(idx));
+                if ~isempty(ch) && isscalar(ch)
+                    shiftChars  = '!@"#£$%^&*()';
+                    shiftDigits = '122334567890';
+                    idx = find(shiftChars == ch, 1);
+                    if ~isempty(idx)
+                        key = string(shiftDigits(idx));
+                    end
                 end
                 if any(mods == "shift")
                     key = "shift+" + key;
