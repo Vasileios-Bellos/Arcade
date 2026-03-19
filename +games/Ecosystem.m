@@ -6,6 +6,9 @@ classdef Ecosystem < GameBase
     %   with directional scanning; decomposers decay and boost plant growth;
     %   toxin kills adjacent life and spreads.
     %
+    %   TODO: Test GPU acceleration at high grid levels — per-cell organism
+    %   logic is massively parallel (neighbor scanning, energy updates).
+    %
     %   Controls:
     %     M     — cycle sub-mode (balanced/bloom/plague/extinction)
     %     N     — cycle spawn type (plant/herbivore/predator/decomposer/toxin)

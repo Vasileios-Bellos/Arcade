@@ -5,6 +5,11 @@ classdef Elements < GameBase
     %   Dual flow modes (laminar/turbulent), density hierarchy with swaps,
     %   concrete curing, snow compaction, 10 spawn patterns in 5 pairs.
     %
+    %   TODO: Test GPU acceleration at high grid levels — per-cell physics
+    %   (gravity, flow, reactions) are massively parallel. Also refactor
+    %   liquid flow into shared method (oil/water/acid have identical
+    %   pipelines, ~800 lines duplication).
+    %
     %   Standalone: games.Elements().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %

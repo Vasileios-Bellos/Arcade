@@ -4,6 +4,11 @@ classdef FluidSim < GameBase
     %   vorticity confinement, RGB dye with cycling hue injection.
     %   Ghost cells (2 per side) hide boundary dead zones.
     %
+    %   TODO: Test GPU acceleration (gpuArray) at high grid levels (8-10).
+    %   GPU crossover measured at ~640x568 on RTX 3070 Ti. At level 10
+    %   (160x120 grid), FFT + advection may benefit. Code reference in
+    %   GestureMouse_current.m backup. Also applies to Dobryakov, Smoke, Fire.
+    %
     %   Controls:
     %       M               — cycle sub-mode (flow/velocity/vorticity/curl/pressure)
     %       N               — cycle injection mode (dye/fire/rainbow/colormap)
