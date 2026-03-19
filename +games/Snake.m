@@ -131,10 +131,10 @@ classdef Snake < GameBase
             % Draw subtle grid lines
             obj.drawGridLines(ax, dx, dy);
 
-            % Compute marker sizes (in data units) — fill most of cell
+            % Marker sizes stored as fractions of cell (converted to points each step)
             cellData = min(obj.CellW, obj.CellH);
-            obj.HeadMarkerSz = cellData * 0.92;
-            obj.TailMarkerSz = cellData * 0.50;
+            obj.HeadMarkerSz = 0.92;   % fraction of cell
+            obj.TailMarkerSz = 0.50;
 
             % Scatter SizeData is in points^2. Convert data-unit radius to
             % points using axes pixel extent and DPI. We compute the
@@ -152,14 +152,20 @@ classdef Snake < GameBase
             headRadiusPts = (cellData * 0.55) * pxPerDataX * ptPerPx;
             obj.HeadGlowSz = headRadiusPts^2 * pi;
 
-            % Pre-allocate body segment pool — line handles with square markers
+            % Convert cell fractions to initial point sizes
+            initCellPts = cellData * pxPerDataX * ptPerPx;
+            initHeadPts = initCellPts * obj.HeadMarkerSz;
+            initTailPts = initCellPts * obj.TailMarkerSz;
+            initFoodPts = initCellPts * 0.45;
+
+            % Pre-allocate body segment pool
             nPool = obj.BodyPoolSize;
             nInit = size(obj.Body, 1);
             obj.BodyPatchH = cell(1, nPool);
             for i = 1:nPool
                 if i <= nInit
                     t = (i - 1) / max(1, nInit - 1);
-                    mSize = obj.HeadMarkerSz * (1 - t) + obj.TailMarkerSz * t;
+                    mSize = initHeadPts * (1 - t) + initTailPts * t;
                     cmapIdx = max(1, round((1 - t) * (size(obj.ColormapRGB, 1) - 1)) + 1);
                     clr = obj.ColormapRGB(cmapIdx, :);
                     xy = obj.gridToData(obj.Body(i, :));
@@ -169,7 +175,7 @@ classdef Snake < GameBase
                         "LineStyle", "none", "Tag", "GT_snake");
                 else
                     obj.BodyPatchH{i} = line(ax, NaN, NaN, ...
-                        "Marker", "o", "MarkerSize", obj.TailMarkerSz, ...
+                        "Marker", "o", "MarkerSize", initTailPts, ...
                         "MarkerFaceColor", [1 1 1], "MarkerEdgeColor", [0.7 0.7 0.7], ...
                         "LineStyle", "none", "Visible", "off", "Tag", "GT_snake");
                 end
@@ -178,15 +184,15 @@ classdef Snake < GameBase
             % Head marker (bright glow overlay on top of body)
             headXY = obj.gridToData(obj.Body(1, :));
             obj.HeadPatchH = scatter(ax, headXY(1), headXY(2), ...
-                obj.HeadGlowSz, obj.ColormapRGB(end, :), "filled", ...
+                (initCellPts * 0.55)^2 * pi, obj.ColormapRGB(end, :), "filled", ...
                 "MarkerFaceAlpha", 0.55, "Tag", "GT_snake");
 
             % Pre-allocate food graphics (red core + glow)
             obj.FoodGlowH = scatter(ax, NaN, NaN, ...
-                obj.FoodGlowSz, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.18, ...
+                (initFoodPts * 2.2)^2 * pi, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.18, ...
                 "Tag", "GT_snake");
             obj.FoodPatchH = scatter(ax, NaN, NaN, ...
-                obj.FoodMarkerSz, obj.ColorRed, "filled", "Tag", "GT_snake");
+                initFoodPts^2 * pi, obj.ColorRed, "filled", "Tag", "GT_snake");
 
             % Place first food
             obj.spawnFood();
@@ -444,9 +450,19 @@ classdef Snake < GameBase
             %updateBodyGraphics  Update body segment positions, sizes, and colors.
             nBody = size(obj.Body, 1);
             cmapSize = size(obj.ColormapRGB, 1);
-            headSz = obj.HeadMarkerSz;
-            tailSz = obj.TailMarkerSz;
             nPool = numel(obj.BodyPatchH);
+
+            % Convert cell-fraction sizes to points using current axes pixel extent
+            ax = obj.Ax;
+            cellData = min(obj.CellW, obj.CellH);
+            pixPos = getpixelposition(ax);
+            areaW = diff(obj.DisplayRange.X);
+            pxPerData = pixPos(3) / areaW;
+            dpiVal = get(0, "ScreenPixelsPerInch");
+            ptPerPx = 72 / dpiVal;
+            cellPts = cellData * pxPerData * ptPerPx;
+            headSz = cellPts * obj.HeadMarkerSz;
+            tailSz = cellPts * obj.TailMarkerSz;
 
             % Activate/update segments up to nBody, hide the rest
             for i = 1:nPool
@@ -488,7 +504,17 @@ classdef Snake < GameBase
                 obj.HeadPatchH.XData = headXY(1);
                 obj.HeadPatchH.YData = headXY(2);
                 obj.HeadPatchH.CData = obj.ColormapRGB(end, :);
-                obj.HeadPatchH.SizeData = obj.HeadGlowSz;
+                headGlowPts = cellPts * 0.55;
+                obj.HeadPatchH.SizeData = headGlowPts^2 * pi;
+            end
+
+            % Update food scatter sizes to match current pixel scale
+            foodPts = cellPts * 0.45;
+            if ~isempty(obj.FoodPatchH) && isvalid(obj.FoodPatchH)
+                obj.FoodPatchH.SizeData = foodPts^2 * pi;
+            end
+            if ~isempty(obj.FoodGlowH) && isvalid(obj.FoodGlowH)
+                obj.FoodGlowH.SizeData = (foodPts * 2.2)^2 * pi;
             end
         end
 
