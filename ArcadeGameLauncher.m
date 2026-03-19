@@ -293,7 +293,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 end
             elseif obj.State == "active"
                 if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
-                    obj.ActiveGame.onScroll(delta);
+                    obj.ActiveGame.onScroll(-delta);
                 end
             end
         end

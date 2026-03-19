@@ -257,10 +257,10 @@ classdef Snake < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_snake");
         end
 
-        function handled = onKeyPress(obj, evnt)
+        function handled = onKeyPress(obj, key)
             %onKeyPress  Arrow keys control snake direction.
             handled = true;
-            switch evnt.Key
+            switch key
                 case "uparrow"
                     if obj.Direction(2) ~= 1  % not going down
                         obj.Direction = [0, -1];
