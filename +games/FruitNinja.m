@@ -33,7 +33,8 @@ classdef FruitNinja < GameBase
         FruitRadius     (1,8) double = 0    % radius per slot
         FruitColor      cell                % {1x8} [r,g,b] per slot
         FruitSlashing   (1,8) logical = false  % finger inside?
-        FruitEntryAngle (1,8) double = NaN  % entry angle per slot
+        FruitEntryAngle (1,8) double = NaN  % entry angle per slot (legacy, recomputed at exit)
+        FruitEntryPos   (8,2) double = NaN  % finger position at entry per slot
         FruitActive     (1,8) logical = false  % is slot in use?
     end
 
@@ -180,6 +181,7 @@ classdef FruitNinja < GameBase
             obj.FruitRadius(:) = 0;
             obj.FruitSlashing(:) = false;
             obj.FruitEntryAngle(:) = NaN;
+            obj.FruitEntryPos(:) = NaN;
             obj.FruitActive(:) = false;
             nanXY = NaN(1, 24);
             for kk = 1:8
@@ -346,7 +348,7 @@ classdef FruitNinja < GameBase
                         % Check if finger entered fruit with some movement
                         if distToFruit < fRadius + 3 && slashSpeed > slashThresh
                             obj.FruitSlashing(kk) = true;
-                            obj.FruitEntryAngle(kk) = atan2(pos(2) - fy, pos(1) - fx);
+                            obj.FruitEntryPos(kk, :) = pos;
                             obj.FruitSwipeGen(kk) = obj.SwipeGen;
                         end
                     end
@@ -744,9 +746,39 @@ classdef FruitNinja < GameBase
             obj.FruitsSliced = obj.FruitsSliced + 1;
             obj.incrementCombo();
 
-            % Entry/exit angles relative to current fruit center
-            a1 = obj.FruitEntryAngle(fruitSlot);
-            a2 = atan2(exitPos(2) - fy, exitPos(1) - fx);
+            % Cut direction from the actual finger trajectory through the
+            % fruit. Uses entry and exit POSITIONS relative to the fruit's
+            % CURRENT center — this gives the true slash line regardless of
+            % how much the fruit moved between entry and exit.
+            entryPos = obj.FruitEntryPos(fruitSlot, :);
+            slashVec = exitPos - entryPos;
+            if norm(slashVec) < 0.1
+                slashVec = [1, 0];  % fallback horizontal
+            end
+            slashVec = slashVec / norm(slashVec);
+
+            % Project entry/exit onto the fruit circle to get cut points.
+            % The slash line passes through or near the fruit center;
+            % intersect it with the circle for the arc split points.
+            % Use the perpendicular from fruit center to the slash line
+            % to find the closest approach, then compute intersection angles.
+            toCenter = [fx, fy] - entryPos;
+            projLen = dot(toCenter, slashVec);
+            closestPt = entryPos + projLen * slashVec;
+            perpDist = norm([fx, fy] - closestPt);
+
+            if perpDist < fRadius
+                % Line intersects circle — compute exact intersection points
+                halfChord = sqrt(fRadius^2 - perpDist^2);
+                intPt1 = closestPt - halfChord * slashVec;
+                intPt2 = closestPt + halfChord * slashVec;
+                a1 = atan2(intPt1(2) - fy, intPt1(1) - fx);
+                a2 = atan2(intPt2(2) - fy, intPt2(1) - fx);
+            else
+                % Line doesn't intersect (edge case) — use angle projection
+                a1 = atan2(entryPos(2) - fy, entryPos(1) - fx);
+                a2 = atan2(exitPos(2) - fy, exitPos(1) - fx);
+            end
 
             % Centrality: how close the chord passes through center.
             % Smaller arc => chord further from center => lower centrality.
@@ -783,17 +815,9 @@ classdef FruitNinja < GameBase
                 "speed", slashSpeed, "angle", rad2deg(slashAngle), ...
                 "position", [fx, fy], "time", toc(obj.StartTicLocal));
 
-            % Cut direction from entry to exit on circle boundary
-            entryOnCircle = [fx + fRadius * cos(a1), fy + fRadius * sin(a1)];
-            exitOnCircle  = [fx + fRadius * cos(a2), fy + fRadius * sin(a2)];
-            slashDir = [exitOnCircle(1) - entryOnCircle(1); ...
-                        exitOnCircle(2) - entryOnCircle(2)];
-            if norm(slashDir) > 0
-                slashDir = slashDir / norm(slashDir);
-            else
-                slashDir = [1; 0];
-            end
-            splitNorm = [-slashDir(2); slashDir(1)];
+            % Split normal: perpendicular to the slash direction.
+            % Halves fly apart along this normal + inherit swipe momentum.
+            splitNorm = [-slashVec(2); slashVec(1)];  % perpendicular to slash
 
             % Build two half-pieces: arc from a1->a2 and arc from a2->a1+2pi
             for side = [1, -1]
@@ -811,8 +835,11 @@ classdef FruitNinja < GameBase
                 halfSlot = find(~obj.HalfActive, 1);
                 if isempty(halfSlot); continue; end  % pool full, skip
 
-                splitVx = fvx + splitNorm(1) * side * 1.5 * obj.Sc;
-                splitVy = fvy + splitNorm(2) * side * 1.5 * obj.Sc - 0.5 * obj.Sc;
+                % Halves inherit fruit velocity + fly apart perpendicular
+                % to slash + carry swipe momentum along slash direction
+                swipePush = min(slashSpeed * 0.3, 5 * obj.Sc);
+                splitVx = fvx + splitNorm(1) * side * 1.5 * obj.Sc + slashVec(1) * swipePush;
+                splitVy = fvy + splitNorm(2) * side * 1.5 * obj.Sc + slashVec(2) * swipePush;
 
                 obj.HalfVerts{halfSlot} = [hx(:), hy(:)];
                 obj.HalfColor{halfSlot} = fColor;
