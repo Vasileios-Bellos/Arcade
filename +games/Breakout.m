@@ -114,7 +114,6 @@ classdef Breakout < GameBase
         LivesFlashTic       = []
         LevelTextH
         DangerPatchH                    % filled rectangle (data-unit height)
-        DangerEdgeH                     % bright line at top edge of danger zone
         PowerBarH           = {}
         ModeTextH                           % text -- bottom-left HUD label
     end
@@ -198,10 +197,8 @@ classdef Breakout < GameBase
             obj.DangerPatchH = patch(ax, ...
                 [dx(1), dx(2), dx(2), dx(1)], ...
                 [dangerY, dangerY, dangerY + dangerH, dangerY + dangerH], ...
-                obj.ColorRed, "EdgeColor", "none", ...
-                "FaceAlpha", 0, "Tag", "GT_breakout");
-            obj.DangerEdgeH = line(ax, [dx(1), dx(2)], ...
-                [dangerY, dangerY], "Color", [obj.ColorRed, 0], ...
+                obj.ColorRed, "EdgeColor", obj.ColorRed, ...
+                "FaceAlpha", 0, "EdgeAlpha", 0, ...
                 "LineWidth", 2, "Tag", "GT_breakout");
 
             % Trail glow + trail
@@ -467,22 +464,17 @@ classdef Breakout < GameBase
             end
 
             % --- Danger zone glow ---
-            hasPatch = ~isempty(obj.DangerPatchH) && isvalid(obj.DangerPatchH);
-            hasEdge  = ~isempty(obj.DangerEdgeH)  && isvalid(obj.DangerEdgeH);
-            if (hasPatch || hasEdge) && ~any(isnan(obj.BallPos))
+            if ~isempty(obj.DangerPatchH) && isvalid(obj.DangerPatchH) ...
+                    && ~any(isnan(obj.BallPos))
                 distToBottom = dy(2) - obj.BallPos(2);
                 dangerZone = (dy(2) - dy(1)) * 0.25;
                 if distToBottom < dangerZone && obj.BallVel(2) > 0
                     intensity = (1 - distToBottom / dangerZone)^0.5;
-                    if hasPatch
-                        obj.DangerPatchH.FaceAlpha = intensity * 0.55;
-                    end
-                    if hasEdge
-                        obj.DangerEdgeH.Color = [obj.ColorRed, intensity];
-                    end
+                    obj.DangerPatchH.FaceAlpha = intensity * 0.55;
+                    obj.DangerPatchH.EdgeAlpha = intensity;
                 else
-                    if hasPatch; obj.DangerPatchH.FaceAlpha = 0; end
-                    if hasEdge;  obj.DangerEdgeH.Color = [obj.ColorRed, 0]; end
+                    obj.DangerPatchH.FaceAlpha = 0;
+                    obj.DangerPatchH.EdgeAlpha = 0;
                 end
             end
 
@@ -517,7 +509,7 @@ classdef Breakout < GameBase
             handles = {obj.BallCoreH, obj.BallGlowH, obj.BallAuraH, ...
                        obj.BallTrailH, obj.BallTrailGlowH, ...
                        obj.PaddleH, obj.PaddleGlowH, ...
-                       obj.LevelTextH, obj.DangerPatchH, obj.DangerEdgeH, ...
+                       obj.LevelTextH, obj.DangerPatchH, ...
                        obj.ModeTextH};
             for k = 1:numel(handles)
                 h = handles{k};
@@ -528,7 +520,7 @@ classdef Breakout < GameBase
             obj.BallCoreH = []; obj.BallGlowH = []; obj.BallAuraH = [];
             obj.BallTrailH = []; obj.BallTrailGlowH = [];
             obj.PaddleH = []; obj.PaddleGlowH = [];
-            obj.LevelTextH = []; obj.DangerPatchH = []; obj.DangerEdgeH = [];
+            obj.LevelTextH = []; obj.DangerPatchH = [];
             obj.ModeTextH = [];
 
             % Bricks
