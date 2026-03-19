@@ -1,17 +1,17 @@
-classdef Catching < GameBase
-    %Catching  Firefly hunt — catch color-coded fireflies on closed orbits.
+classdef Fireflies < GameBase
+    %Fireflies  Firefly hunt — catch color-coded fireflies on closed orbits.
     %   5 tiers (cyan/green/magenta/purple/gold), max 3 on screen.
     %   Path-based closed orbits (loop, figure8) with seamless looping.
     %   Gold snitch uses Lissajous curves with finger evasion AI.
     %   Combo decays 2s after last catch.
     %
-    %   Standalone: games.Catching().play()
+    %   Standalone: games.Fireflies().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Catching"
+        Name = "Fireflies"
     end
 
     % =================================================================
@@ -19,8 +19,8 @@ classdef Catching < GameBase
     % =================================================================
     properties (Access = private)
         % Firefly management
-        BaseSpeed       (1,1) double = 1.75     % base speed (idx/frame), tiers multiply 1x-5x
-        Fireflies                                % active firefly struct array
+        BaseSpeed       (1,1) double = 5.25     % base speed (idx/frame), tiers multiply 1x-3.2x
+        ActiveFF                                 % active firefly struct array
         SpawnCooldown   (1,1) double = 0         % frames until next spawn
         CatchRadiusBonus (1,1) double = 0        % extra catch radius for mouse input
 
@@ -89,7 +89,7 @@ classdef Catching < GameBase
             areaH = diff(displayRange.Y);
             obj.Sc = min(areaW, areaH) / 180;
 
-            obj.Fireflies = [];
+            obj.ActiveFF = [];
             obj.SpawnCooldown = 40;
             obj.CatchStartTic = tic;
             obj.LastCatchTic = tic;
@@ -103,7 +103,7 @@ classdef Catching < GameBase
             obj.ComboTextH = text(ax, 0, 0, "", ...
                 "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_catch");
+                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_fireflies");
 
             % Pre-allocate firefly graphics pool (4 slots, all hidden)
             nPool = 4;
@@ -115,16 +115,16 @@ classdef Catching < GameBase
             for k = 1:nPool
                 obj.FFPoolAuraH{k} = scatter(ax, NaN, NaN, 1, ...
                     "MarkerFaceColor", [1 1 1], "MarkerFaceAlpha", 0.35, ...
-                    "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_catch");
+                    "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_fireflies");
                 obj.FFPoolTrailGlowH{k} = line(ax, NaN, NaN, ...
                     "Color", [1 1 1 0.2], "LineWidth", 1, ...
-                    "Visible", "off", "Tag", "GT_catch");
+                    "Visible", "off", "Tag", "GT_fireflies");
                 obj.FFPoolTrailH{k} = line(ax, NaN, NaN, ...
                     "Color", [1 1 1 0.4], "LineWidth", 2, ...
-                    "Visible", "off", "Tag", "GT_catch");
+                    "Visible", "off", "Tag", "GT_fireflies");
                 obj.FFPoolDotH{k} = scatter(ax, NaN, NaN, 1, ...
                     "MarkerFaceColor", [1 1 1], "MarkerFaceAlpha", 1, ...
-                    "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_catch");
+                    "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_fireflies");
             end
 
             % Mouse input needs larger catch radius — finger tracking has
@@ -149,8 +149,8 @@ classdef Catching < GameBase
             dy = obj.DisplayRange.Y;
 
             % Advance and check each firefly (reverse for safe deletion)
-            for i = numel(obj.Fireflies):-1:1
-                ff = obj.Fireflies(i);
+            for i = numel(obj.ActiveFF):-1:1
+                ff = obj.ActiveFF(i);
                 ff.phase = ff.phase + 0.15 * ds;
 
                 if ff.isSnitch
@@ -214,8 +214,8 @@ classdef Catching < GameBase
                     pidx = max(1, round(ff.idx));
                     ffPos = [ff.pathX(pidx), ff.pathY(pidx)];
 
-                    % Comet tail from path history
-                    trailSpan = 45;
+                    % Comet tail from path history (scales with speed)
+                    trailSpan = round(45 * ff.speed / obj.BaseSpeed);
                     tStart = max(1, pidx - trailSpan);
                     tx = ff.pathX(tStart:pidx);
                     ty = ff.pathY(tStart:pidx);
@@ -237,7 +237,7 @@ classdef Catching < GameBase
                 set(obj.FFPoolTrailH{si}, "XData", tx, "YData", ty);
                 set(obj.FFPoolTrailGlowH{si}, "XData", tx, "YData", ty);
 
-                obj.Fireflies(i) = ff;
+                obj.ActiveFF(i) = ff;
             end
 
             % Combo decay — fade out over 2 seconds, then reset
@@ -260,7 +260,7 @@ classdef Catching < GameBase
 
             % Spawn on cooldown, max 3 on screen
             obj.SpawnCooldown = obj.SpawnCooldown - ds;
-            if obj.SpawnCooldown <= 0 && numel(obj.Fireflies) < 3
+            if obj.SpawnCooldown <= 0 && numel(obj.ActiveFF) < 3
                 obj.spawnFirefly();
                 elapsed = toc(obj.CatchStartTic);
                 obj.SpawnCooldown = max(8, round(30 - elapsed * 0.3));
@@ -289,7 +289,7 @@ classdef Catching < GameBase
             obj.FFPoolTrailH = {};
             obj.FFPoolTrailGlowH = {};
             obj.FFPoolActive = false(1, 4);
-            obj.Fireflies = [];
+            obj.ActiveFF = [];
 
             % Delete combo text
             if ~isempty(obj.ComboTextH) && isvalid(obj.ComboTextH)
@@ -298,11 +298,11 @@ classdef Catching < GameBase
             obj.ComboTextH = [];
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_catch");
+            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_fireflies");
         end
 
         function handled = onKeyPress(~, ~)
-            %onKeyPress  No mode-specific keys for catching.
+            %onKeyPress  No mode-specific keys for fireflies.
             handled = false;
         end
 
@@ -349,19 +349,19 @@ classdef Catching < GameBase
             elseif tierRoll < 0.65
                 % Green — common (30%)
                 clr = obj.ColorGreen;
-                pts = 200; radius = round(13 * sc); spd = bs * 2;
+                pts = 200; radius = round(13 * sc); spd = bs * 1.8;
             elseif tierRoll < 0.85
                 % Magenta — medium (20%)
                 clr = obj.ColorMagenta;
-                pts = 300; radius = round(12 * sc); spd = bs * 3;
+                pts = 300; radius = round(12 * sc); spd = bs * 2.5;
             elseif tierRoll < 0.95
                 % Purple — uncommon (10%)
                 clr = obj.ColorPurple;
-                pts = 400; radius = round(11 * sc); spd = bs * 4;
+                pts = 400; radius = round(11 * sc); spd = bs * 3.2;
             else
                 % Gold — legendary, small and fast (5%)
                 clr = obj.ColorGold;
-                pts = 500; radius = round(10 * sc); spd = bs * 5;
+                pts = 500; radius = round(10 * sc); spd = bs * 1.67;
             end
 
             isGold = (tierRoll >= 0.95);
@@ -403,7 +403,7 @@ classdef Catching < GameBase
                 % Path-based firefly — closed orbits only (loop, figure8)
                 corridorW = round(10 * obj.Sc);
                 for attempt = 1:50 %#ok<FXUP>
-                    p = games.Catching.generatePath(3, drx, dry, corridorW, true);
+                    p = games.Fireflies.generatePath(3, drx, dry, corridorW, true);
                     if ismember(p.Type, ["loop", "figure8"])
                         break
                     end
@@ -446,16 +446,16 @@ classdef Catching < GameBase
 
             obj.FFPoolActive(slot) = true;
 
-            if isempty(obj.Fireflies)
-                obj.Fireflies = ff;
+            if isempty(obj.ActiveFF)
+                obj.ActiveFF = ff;
             else
-                obj.Fireflies(end + 1) = ff;
+                obj.ActiveFF(end + 1) = ff;
             end
         end
 
         function onCatch(obj, idx, hitPos)
             %onCatch  Score a caught firefly with burst effect.
-            ff = obj.Fireflies(idx);
+            ff = obj.ActiveFF(idx);
 
             obj.incrementCombo();
             obj.LastCatchTic = tic;
@@ -474,17 +474,17 @@ classdef Catching < GameBase
             obj.FFPoolTrailH{si}.Visible = "off";
             obj.FFPoolTrailGlowH{si}.Visible = "off";
             obj.FFPoolActive(si) = false;
-            obj.Fireflies(idx) = [];
+            obj.ActiveFF(idx) = [];
 
             % Immediately spawn a replacement (respecting max)
-            if numel(obj.Fireflies) < 3
+            if numel(obj.ActiveFF) < 3
                 obj.spawnFirefly();
             end
         end
 
         function onMiss(obj, idx)
             %onMiss  Firefly reached end of path — loop or reverse.
-            ff = obj.Fireflies(idx);
+            ff = obj.ActiveFF(idx);
 
             gapDist = hypot(ff.pathX(end) - ff.pathX(1), ...
                             ff.pathY(end) - ff.pathY(1));
@@ -495,7 +495,7 @@ classdef Catching < GameBase
                 ff.pathY = fliplr(ff.pathY);
                 ff.idx = 1;
             end
-            obj.Fireflies(idx) = ff;
+            obj.ActiveFF(idx) = ff;
         end
 
         function showComboText(obj, hitPos)
@@ -726,7 +726,7 @@ classdef Catching < GameBase
             end
 
             % Resample to uniform ~1px spacing
-            [X, Y, cumDist] = games.Catching.resampleUniform(rawX, rawY);
+            [X, Y, cumDist] = games.Fireflies.resampleUniform(rawX, rawY);
 
             pathStruct.X = X;
             pathStruct.Y = Y;

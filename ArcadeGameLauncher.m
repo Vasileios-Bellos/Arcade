@@ -6,7 +6,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
     %   GameHost, but driven by mouse input — no webcam required.
     %
     %   Usage:
-    %       ArcadeGameLauncher.launch()
+    %       ArcadeGameLauncher()
     %
     %   Menu Controls:
     %       Up/Down arrows or mouse hover to navigate
@@ -119,20 +119,20 @@ classdef (Sealed) ArcadeGameLauncher < handle
     % =================================================================
     methods (Static)
         function launch()
-            %launch  Open the arcade game launcher.
+            %launch  Open the arcade game launcher (legacy entry point).
             %   ArcadeGameLauncher.launch()
-            launcher = ArcadeGameLauncher();
-            launcher.run();
+            ArcadeGameLauncher();
         end
     end
 
     % =================================================================
     % CONSTRUCTOR & LIFECYCLE
     % =================================================================
-    methods (Access = private)
+    methods (Access = public)
 
         function obj = ArcadeGameLauncher()
-            %ArcadeGameLauncher  Private constructor (use launch()).
+            %ArcadeGameLauncher  Create and run the arcade game launcher.
+            obj.run();
         end
 
         function run(obj)
@@ -1000,7 +1000,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             % === Number keys (1-9) ===
             obj.registerGame("1", @games.TargetPractice, "Target Practice");
             obj.registerGame("2", @games.ShapeTracing, "Shape Tracing");
-            obj.registerGame("3", @games.Catching, "Catching");
+            obj.registerGame("3", @games.Fireflies, "Fireflies");
             obj.registerGame("4", @games.FlickBall, "Flick Ball");
             obj.registerGame("5", @games.Pong, "Pong");
             obj.registerGame("6", @games.Juggling, "Juggling");
