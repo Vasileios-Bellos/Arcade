@@ -138,7 +138,7 @@ classdef Breakout < GameBase
 
             % Scale sizes to display area
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
-            obj.BallBaseSpeed = max(1.5, areaH * 0.018);
+            obj.BallBaseSpeed = max(1.5, areaH * 0.027);
             obj.BallSpeed = obj.BallBaseSpeed;
             obj.PaddleBaseW = max(20, round(areaW * 0.15));
             obj.PaddleW = obj.PaddleBaseW;

@@ -1004,7 +1004,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("4", @games.FlickIt, "Flick It");
             obj.registerGame("5", @games.Pong, "Pong");
             obj.registerGame("6", @games.Juggling, "Juggling");
-            obj.registerGame("7", @games.GlyphTrace, "Glyph Trace");
+            obj.registerGame("7", @games.GlyphTracing, "Glyph Tracing");
             obj.registerGame("8", @games.Keyboard, "Keyboard");
             obj.registerGame("9", @games.Breakout, "Breakout");
 

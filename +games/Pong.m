@@ -415,13 +415,12 @@ classdef Pong < GameBase
             elseif obj.OpponentScore >= obj.WinScore
                 outcome = "YOU LOSE";
             else
-                outcome = sprintf("Player %d - %d CPU", ...
-                    obj.PlayerScore, obj.OpponentScore);
+                outcome = "GAME OVER";
             end
             r.Lines = {
-                sprintf("%s  |  Player %d - %d CPU  |  Best Rally: %d  |  Rallies: %d", ...
+                sprintf("%s  |  Player %d - %d CPU  |  Best Rally: %d", ...
                     outcome, obj.PlayerScore, obj.OpponentScore, ...
-                    obj.MaxRally, obj.TotalRallies)
+                    obj.MaxRally)
             };
         end
     end

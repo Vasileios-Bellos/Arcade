@@ -1,18 +1,18 @@
-classdef GlyphTrace < GameBase
-    %GlyphTrace  Letter/number tracing game with fill coverage and recognition.
+classdef GlyphTracing < GameBase
+    %GlyphTracing  Letter/number tracing game with fill coverage and recognition.
     %   Font-rendered letter shapes are displayed as cyan polyshapes. The
     %   player traces the letter with their finger (or mouse). A polybuffer
     %   around the finger path is intersected with the letter polyshape to
     %   grow a green fill. Completion requires BOTH ~90% fill coverage AND
     %   character recognition match (when hosted with GestureMouse caps).
     %
-    %   Standalone: games.GlyphTrace().play()
+    %   Standalone: games.GlyphTracing().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost, GestureMouse
 
     properties (Constant)
-        Name = "Glyph Trace"
+        Name = "Glyph Tracing"
     end
 
     % =================================================================
@@ -162,12 +162,12 @@ classdef GlyphTrace < GameBase
             obj.TracedFillH = [];
             obj.BandBgGlowH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.4], "LineWidth", 2, ...
-                "Tag", "GT_glyphtrace");
+                "Tag", "GT_glyphtracing");
             obj.ProgressTextH = text(ax, 0, 0, "", ...
                 "Color", obj.ColorWhite * 0.7, "FontSize", 12, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
-                "Tag", "GT_glyphtrace");
+                "Tag", "GT_glyphtracing");
 
             % --- Time bar ---
             barW = (dx(2) - dx(1)) * 0.6;
@@ -178,18 +178,18 @@ classdef GlyphTrace < GameBase
                 [barX, barX + barW, barX + barW, barX], ...
                 [barY, barY, barY + barH, barY + barH], ...
                 [0.3 0.3 0.3], "FaceAlpha", 0.3, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_glyphtrace");
+                "Visible", "off", "Tag", "GT_glyphtracing");
             obj.TimeBarFg = patch(ax, ...
                 [barX, barX + barW, barX + barW, barX], ...
                 [barY, barY, barY + barH, barY + barH], ...
                 obj.ColorCyan, "FaceAlpha", 0.7, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_glyphtrace");
+                "Visible", "off", "Tag", "GT_glyphtracing");
 
             % Combo text (pre-allocated, hidden until needed)
             obj.ComboTextH = text(ax, 0, 0, "", ...
                 "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_glyphtrace");
+                "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_glyphtracing");
 
             obj.showTimeBar();
             obj.spawnNextLetter();
@@ -239,7 +239,7 @@ classdef GlyphTrace < GameBase
             end
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_glyphtrace");
+            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_glyphtracing");
         end
 
         function handled = onKeyPress(~, ~)
@@ -481,7 +481,7 @@ classdef GlyphTrace < GameBase
             bgT = triangulation(obj.LetterPs);
             obj.BandBgH = patch(ax, "Faces", bgT.ConnectivityList, ...
                 "Vertices", bgT.Points, "FaceColor", obj.ColorCyan, ...
-                "FaceAlpha", 0.20, "EdgeColor", "none", "Tag", "GT_glyphtrace");
+                "FaceAlpha", 0.20, "EdgeColor", "none", "Tag", "GT_glyphtracing");
             uistack(obj.BandBgH, "bottom");
             uistack(obj.BandBgH, "up");
 
@@ -491,7 +491,7 @@ classdef GlyphTrace < GameBase
             end
             obj.TracedFillH = patch(ax, "Faces", 1, "Vertices", [0 0], ...
                 "FaceColor", obj.ColorGreen, "FaceAlpha", 0.65, ...
-                "EdgeColor", "none", "Visible", "off", "Tag", "GT_glyphtrace");
+                "EdgeColor", "none", "Visible", "off", "Tag", "GT_glyphtracing");
             uistack(obj.TracedFillH, "bottom");
             uistack(obj.TracedFillH, "up", 2);
 

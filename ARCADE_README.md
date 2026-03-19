@@ -30,7 +30,7 @@ games.SpaceInvaders().play()
 | 4 | Flick It | Physics orb — flick it, bounce off walls, speed-to-color gradient |
 | 5 | Pong | AI opponent with rally escalation and paddle hit angle |
 | 6 | Juggling | Keep balls airborne with flicks, gravity pulls them down |
-| 7 | Glyph Trace | Trace letter-shaped corridors rendered from font outlines |
+| 7 | Glyph Tracing | Trace letter-shaped corridors rendered from font outlines |
 | 8 | Keyboard | QWERTY layout with dwell-based key press |
 | 9 | Breakout | 5 levels, power-ups, multi-ball, neon bricks |
 | Shift+1 | Flappy Bird | Pipe dodge with aggressive gap/speed scaling |
