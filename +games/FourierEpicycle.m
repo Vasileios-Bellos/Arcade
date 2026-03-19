@@ -292,7 +292,6 @@ classdef FourierEpicycle < GameBase
                     obj.updateCompletion();
             end
 
-            obj.updateHitEffects();
             obj.updateMatchFade();
         end
 

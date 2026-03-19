@@ -308,8 +308,6 @@ classdef Juggling < GameBase
             % --- 12. Danger line pulse ---
             obj.renderDeathLine();
 
-            % --- 13. Hit effects ---
-            obj.updateHitEffects();
         end
 
         function onCleanup(obj)

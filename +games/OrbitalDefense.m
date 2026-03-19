@@ -457,8 +457,6 @@ classdef OrbitalDefense < GameBase
                 obj.showWave(obj.Wave);
             end
 
-            % --- Hit effects ---
-            obj.updateHitEffects();
         end
 
         function onCleanup(obj)

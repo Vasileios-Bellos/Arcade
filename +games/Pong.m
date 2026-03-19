@@ -282,7 +282,6 @@ classdef Pong < GameBase
                 obj.BallPhase = obj.BallPhase + 0.08 * ds;
                 obj.updateGraphics();
                 obj.updateComboFade();
-                obj.updateHitEffects();
                 return;
             end
 
@@ -369,7 +368,6 @@ classdef Pong < GameBase
             obj.BallPhase = obj.BallPhase + 0.08 * ds;
             obj.updateGraphics();
             obj.updateComboFade();
-            obj.updateHitEffects();
         end
 
         function onCleanup(obj)

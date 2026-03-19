@@ -269,8 +269,6 @@ classdef Catching < GameBase
             % Animate combo text fade
             obj.updateComboFade();
 
-            % Update hit effects
-            obj.updateHitEffects();
         end
 
         function onCleanup(obj)

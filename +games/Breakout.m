@@ -283,7 +283,6 @@ classdef Breakout < GameBase
                     obj.buildBrickGrid(obj.Level);
                     obj.serveBall();
                 end
-                obj.updateHitEffects();
                 return;
             end
 
@@ -319,7 +318,6 @@ classdef Breakout < GameBase
                     obj.launchBall();
                 end
                 obj.updateBallGraphics();
-                obj.updateHitEffects();
                 return;
             end
 
@@ -478,8 +476,6 @@ classdef Breakout < GameBase
                 end
             end
 
-            % --- Update hit effects ---
-            obj.updateHitEffects();
         end
 
         function onCleanup(obj)
@@ -1222,7 +1218,6 @@ classdef Breakout < GameBase
 
         function updateExtraBalls(obj, dx, dy, px, pw, py, ph)
             %updateExtraBalls  Physics, collision, rendering for extra balls.
-            obj.DtScale = obj.DtScale;
             extraToRemove = [];
             for k = 1:numel(obj.ExtraBalls)
                 eb = obj.ExtraBalls(k);

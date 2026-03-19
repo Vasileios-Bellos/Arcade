@@ -189,7 +189,6 @@ classdef Snake < GameBase
             % Accumulate movement
             obj.MoveAccum = obj.MoveAccum + obj.Speed * ds;
             if obj.MoveAccum < cs
-                obj.updateHitEffects();
                 return;  % Not enough movement for a step
             end
             obj.MoveAccum = obj.MoveAccum - cs;
@@ -208,7 +207,6 @@ classdef Snake < GameBase
                 if norm(newHead - obj.Body(i, :)) < cs * 0.5
                     obj.GameOver = true;
                     obj.IsRunning = false;
-                    obj.updateHitEffects();
                     return;
                 end
             end
@@ -235,8 +233,6 @@ classdef Snake < GameBase
 
             % Update graphics — position-based taper, colormap stretched to length
             obj.updateBodyGraphics();
-
-            obj.updateHitEffects();
         end
 
         function onCleanup(obj)

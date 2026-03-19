@@ -840,7 +840,6 @@ classdef EmField < GameBase
             R    = obj.CycRadius;
             eps2 = obj.Softening^2;
 
-            ds = obj.DtScale;
             nSub  = max(1, round(obj.CycNSub * obj.DtScale));
             nSub  = min(nSub, obj.CycNSub * 4);  % safety cap
             dtSub = obj.CycDtSub;
