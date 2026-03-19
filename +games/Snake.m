@@ -257,9 +257,29 @@ classdef Snake < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_snake");
         end
 
-        function handled = onKeyPress(~, ~)
-            %onKeyPress  No mode-specific keys for snake.
-            handled = false;
+        function handled = onKeyPress(obj, evnt)
+            %onKeyPress  Arrow keys control snake direction.
+            handled = true;
+            switch evnt.Key
+                case "uparrow"
+                    if obj.Direction(2) ~= 1  % not going down
+                        obj.Direction = [0, -1];
+                    end
+                case "downarrow"
+                    if obj.Direction(2) ~= -1  % not going up
+                        obj.Direction = [0, 1];
+                    end
+                case "leftarrow"
+                    if obj.Direction(1) ~= 1  % not going right
+                        obj.Direction = [-1, 0];
+                    end
+                case "rightarrow"
+                    if obj.Direction(1) ~= -1  % not going left
+                        obj.Direction = [1, 0];
+                    end
+                otherwise
+                    handled = false;
+            end
         end
 
         function r = getResults(obj)

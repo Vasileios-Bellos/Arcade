@@ -54,6 +54,7 @@ classdef Tracing < GameBase
 
         % Progress tracking (forward-only)
         TracingProgressIdx  (1,1) double = 0
+        LastSegEnd          (1,1) double = 0   % cache: last rendered traced-band endpoint
 
         % Session stats
         PathsCompleted      (1,1) double = 0
@@ -345,6 +346,7 @@ classdef Tracing < GameBase
             obj.TracingPhase = "preview";
             obj.PreviewTotalFrames = 30;  % ~0.6s sweep
             obj.PreviewFrames = obj.PreviewTotalFrames;
+            obj.LastSegEnd = 0;
 
             pathData = obj.CurrentPath;
 
@@ -732,7 +734,8 @@ classdef Tracing < GameBase
             % --- Traced band: from path start to current progress only ---
             progIdx = obj.TracingProgressIdx;
             segEnd = min(progIdx, numel(pathData.X));
-            if segEnd >= 2
+            if segEnd >= 2 && segEnd ~= obj.LastSegEnd
+                obj.LastSegEnd = segEnd;
                 try
                     tps = games.PathUtils.buildBandPolyshape( ...
                         pathData.X(1:segEnd), pathData.Y(1:segEnd), halfCorridor);
