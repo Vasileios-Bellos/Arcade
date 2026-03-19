@@ -383,12 +383,20 @@ classdef Breakout < GameBase
                 obj.spawnBounceEffect(bouncePos, bounceNormal, 0, mSpeed);
             end
 
-            % --- Paddle collision ---
-            if obj.BallPos(2) >= py && obj.BallPos(2) <= py + ph && ...
-                    obj.BallVel(2) > 0
-                if obj.BallPos(1) >= px - pw/2 && obj.BallPos(1) <= px + pw/2
+            % --- Paddle collision (swept: detect crossing from above) ---
+            crossedPaddle = prePos(2) < py && obj.BallPos(2) >= py && obj.BallVel(2) > 0;
+            atPaddle = obj.BallPos(2) >= py && obj.BallPos(2) <= py + ph && obj.BallVel(2) > 0;
+            if crossedPaddle || atPaddle
+                % Interpolate X at paddle Y crossing
+                if crossedPaddle && obj.BallVel(2) > 0
+                    tHit = (py - prePos(2)) / (obj.BallVel(2) * ds);
+                    hitX = prePos(1) + tHit * obj.BallVel(1) * ds;
+                else
+                    hitX = obj.BallPos(1);
+                end
+                if hitX >= px - pw/2 && hitX <= px + pw/2
                     % Reflect with angle based on hit position
-                    hitOffset = obj.BallPos(1) - px;
+                    hitOffset = hitX - px;
                     normalizedOffset = max(-1, min(1, hitOffset / (pw / 2)));
 
                     maxAngle = pi / 3;  % +/-60 deg
