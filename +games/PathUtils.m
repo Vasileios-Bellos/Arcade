@@ -24,11 +24,12 @@ classdef PathUtils
             if nargin < 4; corridorWidth = 20; end
 
             % Edge margin: ensures corridor (path + half-width) stays on screen
+            % Bottom margin extra 12 DU to stay above timer bar
             edgeMargin = max(25, corridorWidth * 1.5);
             xMin = displayRangeX(1) + edgeMargin;
             xMax = displayRangeX(2) - edgeMargin;
             yMin = displayRangeY(1) + edgeMargin;
-            yMax = displayRangeY(2) - edgeMargin;
+            yMax = displayRangeY(2) - edgeMargin - 12;
 
             xSpan = max(20, xMax - xMin);
             ySpan = max(20, yMax - yMin);

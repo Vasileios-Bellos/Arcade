@@ -1,5 +1,5 @@
-classdef Tracing < GameBase
-    %Tracing  Path-tracing accuracy game.
+classdef ShapeTracing < GameBase
+    %ShapeTracing  Path-tracing accuracy game.
     %   A corridor appears on screen via sweep preview animation. Reach the
     %   start beacon, then trace along the path within the corridor. Paths
     %   increase in difficulty (tighter corridors, complex shapes).
@@ -10,13 +10,13 @@ classdef Tracing < GameBase
     %     T3 = [loop, figure8, spiral]
     %     T4 = [longSpiral]
     %
-    %   Standalone: games.Tracing().play()
+    %   Standalone: games.ShapeTracing().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost, games.PathUtils
 
     properties (Constant)
-        Name = "Tracing"
+        Name = "Shape Tracing"
     end
 
     % =================================================================
@@ -159,22 +159,22 @@ classdef Tracing < GameBase
             % --- Target beacon rings ---
             obj.TargetGlow = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "LineWidth", 12, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
             obj.TargetRingOuter = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.6], "LineWidth", 2.5, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
             obj.TargetRingInner = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 0.9], "LineWidth", 1.5, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
             obj.TargetDot = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 1], "Marker", ".", ...
                 "MarkerSize", 8, "LineStyle", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
 
             % --- Ghost trail to target ---
             obj.TrailLine = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.12], "LineWidth", 1, ...
-                "LineStyle", ":", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", ":", "Visible", "off", "Tag", "GT_shapetracing");
 
             % --- Time bar ---
             barY = dyR(2) - 8;
@@ -183,46 +183,46 @@ classdef Tracing < GameBase
                 [dxR(1) dxR(2) dxR(2) dxR(1)], ...
                 [barY barY barY+barH barY+barH], ...
                 [0.3 0.3 0.3], "FaceAlpha", 0.3, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
             obj.TimeBarFg = patch(ax, ...
                 [dxR(1) dxR(2) dxR(2) dxR(1)], ...
                 [barY barY barY+barH barY+barH], ...
                 obj.ColorCyan, "FaceAlpha", 0.7, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
 
             % --- Corridor patches (bg and traced) ---
             obj.PathBandBg = patch(ax, NaN, NaN, obj.ColorCyan, ...
                 "FaceAlpha", 0.25, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
             obj.PathBandBgGlow = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.7], "LineWidth", 3, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
             obj.PathBandTraced = patch(ax, NaN, NaN, [0.15, 1, 0.35], ...
                 "FaceAlpha", 0.85, "EdgeColor", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
             obj.PathBandTracedGlow = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorGreen, 0.7], "LineWidth", 3, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
 
             % --- Preview sweep dot and glow ---
             obj.PathPreviewGlow = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.3], "Marker", ".", ...
                 "MarkerSize", 24, "LineStyle", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
             obj.PathPreviewDot = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 1], "Marker", ".", ...
                 "MarkerSize", 12, "LineStyle", "none", ...
-                "Visible", "off", "Tag", "GT_tracing");
+                "Visible", "off", "Tag", "GT_shapetracing");
 
             % --- Deviation whisker (finger to nearest path point) ---
             obj.DeviationWhisker = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorGreen, 0.3], "LineWidth", 1, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
 
             % --- Zone circle (corridor visualization around finger) ---
             obj.ZoneCircle = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorGreen, 0.12], "LineWidth", 1, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_tracing");
+                "LineStyle", "-", "Visible", "off", "Tag", "GT_shapetracing");
 
             % Spawn first path
             obj.spawnNextPath();
@@ -281,7 +281,7 @@ classdef Tracing < GameBase
             obj.DirectionArrow = [];
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_tracing");
+            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_shapetracing");
         end
 
         function handled = onKeyPress(~, ~)
@@ -290,8 +290,8 @@ classdef Tracing < GameBase
         end
 
         function r = getResults(obj)
-            %getResults  Return tracing-specific results.
-            r.Title = "TRACING";
+            %getResults  Return shape tracing results.
+            r.Title = "SHAPE TRACING";
             nTotal = obj.PathsCompleted + obj.PathsFailed;
             avgDev = NaN;
             if ~isempty(obj.PathHistory)
@@ -364,7 +364,7 @@ classdef Tracing < GameBase
             obj.PathBandBg = patch(ax, "Faces", 1, ...
                 "Vertices", [0 0], ...
                 "FaceColor", obj.ColorCyan, "FaceAlpha", 0.35, ...
-                "EdgeColor", "none", "Visible", "on", "Tag", "GT_tracing");
+                "EdgeColor", "none", "Visible", "on", "Tag", "GT_shapetracing");
             uistack(obj.PathBandBg, "bottom");
             uistack(obj.PathBandBg, "up");  % above image
 
@@ -492,7 +492,7 @@ classdef Tracing < GameBase
             obj.DirectionArrow = quiver(obj.Ax, pathData.X(1), pathData.Y(1), ...
                 qdx, qdy, 0, ...
                 "Color", obj.ColorGreen, "LineWidth", 2.5, ...
-                "MaxHeadSize", 2, "Visible", "on", "Tag", "GT_tracing");
+                "MaxHeadSize", 2, "Visible", "on", "Tag", "GT_shapetracing");
 
             % Hide preview handles
             if ~isempty(obj.PathPreviewGlow) && isvalid(obj.PathPreviewGlow)
@@ -568,7 +568,7 @@ classdef Tracing < GameBase
             end
             obj.PathBandTraced = patch(ax, "Faces", 1, "Vertices", [0 0], ...
                 "FaceColor", [0.15, 1, 0.35], "FaceAlpha", 0.85, ...
-                "EdgeColor", "none", "Visible", "on", "Tag", "GT_tracing");
+                "EdgeColor", "none", "Visible", "on", "Tag", "GT_shapetracing");
             uistack(obj.PathBandTraced, "bottom");
             uistack(obj.PathBandTraced, "up", 2);  % above image + bg band
 

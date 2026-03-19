@@ -999,7 +999,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
 
             % === Number keys (1-9) ===
             obj.registerGame("1", @games.TargetPractice, "Target Practice");
-            obj.registerGame("2", @games.Tracing, "Tracing");
+            obj.registerGame("2", @games.ShapeTracing, "Shape Tracing");
             obj.registerGame("3", @games.Catching, "Catching");
             obj.registerGame("4", @games.FlickBall, "Flick Ball");
             obj.registerGame("5", @games.Pong, "Pong");
