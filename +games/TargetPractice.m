@@ -121,10 +121,6 @@ classdef TargetPractice < GameBase
                 obj.ColorCyan, "FaceAlpha", 0.7, "EdgeColor", "none", ...
                 "Visible", "off", "Tag", "GT_targetpractice");
 
-            % Crosshair cursor for this game
-            fig = ancestor(ax, "figure");
-            if ~isempty(fig); fig.Pointer = "crosshair"; end
-
             % Show time bar and spawn first target
             obj.showTimeBar();
             obj.spawnTarget();
@@ -165,11 +161,7 @@ classdef TargetPractice < GameBase
         end
 
         function onCleanup(obj)
-            %onCleanup  Delete all graphics, restore pointer.
-            if ~isempty(obj.Ax) && isvalid(obj.Ax)
-                fig = ancestor(obj.Ax, "figure");
-                if ~isempty(fig) && isvalid(fig); fig.Pointer = "arrow"; end
-            end
+            %onCleanup  Delete all graphics.
             handles = {obj.TargetGlow, obj.TargetRingOuter, ...
                 obj.TargetRingInner, obj.TargetDot, obj.TrailLine, ...
                 obj.TimeBarBg, obj.TimeBarFg};
