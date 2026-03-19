@@ -137,13 +137,13 @@ All games run at the same perceived speed regardless of the machine's actual fra
 
 ### How it works
 
-Each game has a `TargetFPS` property (default 60) — the frame rate at which `DtScale = 1.0` and the game runs at its designed speed. Every frame:
+Each game has a `RefFPS` property (default 25) — the reference frame rate the physics constants were calibrated at. At `RefFPS`, `DtScale = 1.0`. Every frame:
 
 1. The host measures `rawDt` — actual seconds since the last frame (via `toc`)
-2. Computes `DtScale = rawDt × TargetFPS`
+2. Computes `DtScale = rawDt × RefFPS`
 3. Sets `DtScale` on the game before calling `onUpdate`
 
-At the target FPS, `DtScale = 1.0` — identical to unscaled frame-based code. At half the target FPS, `DtScale = 2.0` — each frame moves objects twice as far. The product `DtScale × actual_FPS` is always equal to `TargetFPS`, so total movement per second is constant.
+At the target FPS, `DtScale = 1.0` — identical to unscaled frame-based code. At half the target FPS, `DtScale = 2.0` — each frame moves objects twice as far. The product `DtScale × actual_FPS` is always equal to `RefFPS`, so total movement per second is constant.
 
 ### Scaling rules inside games
 
@@ -160,18 +160,18 @@ Where `ds = obj.DtScale`.
 
 ### Tuning at runtime
 
-`TargetFPS` is a public property on every game. Change it live to speed up or slow down:
+`RefFPS` is a public property on every game. Change it live to speed up or slow down:
 
 ```matlab
 % Through the arcade launcher
 a = ArcadeGameLauncher();
 % ... start a game, then:
-a.ActiveGame.TargetFPS = 30;   % 2× slower than default
+a.ActiveGame.RefFPS = 12;   % 2× slower than default
 
 % Through standalone play
 g = games.FlickIt();
 g.play();
-g.TargetFPS = 120;  % 2× faster than default
+g.RefFPS = 50;  % 2× faster than default
 ```
 
 ### FPS display

@@ -34,12 +34,12 @@ classdef (Abstract) GameBase < handle
     % FRAME-RATE INDEPENDENCE
     % =================================================================
     properties
-        DtScale         (1,1) double = 1   % avgDt / RefDt — set by host each frame (30-frame ring buffer)
+        DtScale         (1,1) double = 1   % rawDt * RefFPS — set by host each frame
         FontScale       (1,1) double = 1   % pixel scale for font/marker sizing — set by host on resize
     end
 
     properties
-        TargetFPS       (1,1) double = 60      % 25 % FPS the game was designed for — tunable
+        RefFPS       (1,1) double = 25      % reference FPS physics constants were tuned at
     end
 
     % =================================================================
@@ -436,16 +436,6 @@ classdef (Abstract) GameBase < handle
             if ~isempty(orphans); delete(orphans); end
         end
 
-        function [dtScale, dtBuffer, dtBufIdx] = computeDtScale(rawDt, dtBuffer, dtBufIdx, refDt)
-            %computeDtScale  Compute frame-rate-independent speed scale.
-            %   dtScale = rawDt / refDt. Pure per-frame ratio, no averaging,
-            %   no clamping. Ring buffer updated for FPS display only.
-            if nargin < 4; refDt = 0.040; end
-            dtBufIdx = mod(dtBufIdx, numel(dtBuffer)) + 1;
-            dtBuffer(dtBufIdx) = rawDt;
-            dtScale = rawDt / refDt;
-        end
-
         function letterboxAxes(fig, ax, gameAR)
             %letterboxAxes  Adjust axes Position to maintain game aspect ratio.
             %   Adds black bars (letterbox/pillarbox) when figure AR does not
@@ -653,7 +643,7 @@ classdef (Abstract) GameBase < handle
                     frameTic = tic;
                     dtBufIdx = mod(dtBufIdx, numel(dtBuf)) + 1;
                     dtBuf(dtBufIdx) = rawDt;
-                    obj.DtScale = rawDt * obj.TargetFPS;
+                    obj.DtScale = rawDt * obj.RefFPS;
 
                     % Arrow key cursor movement
                     if any(arrowHeld)

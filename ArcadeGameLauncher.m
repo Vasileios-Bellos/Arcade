@@ -73,7 +73,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
         FpsLastTic      uint64                  % tic of previous frame
         DtBuffer        (1,30) double = NaN     % ring buffer of frame dts (30 frames)
         DtBufIdx        (1,1) double = 0        % current write index
-        DtScale         (1,1) double = 1        % rawDt / RefDt
+        DtScale         (1,1) double = 1        % rawDt * RefFPS
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
         RefPixelSize    (1,2) double = [0, 0]   % axes pixel size at launch (for font scaling)
     end
@@ -458,7 +458,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.MousePos(2) = max(obj.DisplayRange.Y(1), min(obj.DisplayRange.Y(2), obj.MousePos(2)));
             end
 
-            obj.ActiveGame.DtScale = obj.RawDt * obj.ActiveGame.TargetFPS;
+            obj.ActiveGame.DtScale = obj.RawDt * obj.ActiveGame.RefFPS;
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
 
