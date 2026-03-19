@@ -190,7 +190,7 @@ classdef Pointing < GameBase
 
         function r = getResults(obj)
             %getResults  Return pointing-specific results.
-            r.Title = "POINTING";
+            r.Title = "TARGET PRACTICE";
             nHit = obj.TargetsHit;
             nTotal = nHit + obj.TargetsMissed;
             accuracy = 0;
