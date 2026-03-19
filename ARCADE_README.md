@@ -2,19 +2,30 @@
 
 43 games and physics simulations in pure MATLAB. No toolboxes required.
 
+## Launching Games
+
+### Arcade Launcher (recommended)
+Fullscreen neon menu with score tracking, combos, FPS counter, and high scores.
 ```matlab
-ArcadeGameLauncher.launch()
+ArcadeGameLauncher()
 ```
 
-A fullscreen neon menu opens. Pick a game with the keyboard or mouse.
-
-Any game can also be launched directly:
-
+### Standalone
+Any game can run on its own — creates a fullscreen figure with mouse/keyboard input, FPS counter, score and combo display.
 ```matlab
 games.FlickIt().play()
+games.Breakout().play()
 games.Smoke().play()
-games.SpaceInvaders().play()
 ```
+
+### Webcam (finger tracking)
+Games run inside the GestureMouse camera app, controlled by finger position.
+```matlab
+gm = GestureMouse(ShowFPS=true);
+% press G to open the game menu, hover to select
+```
+
+All three modes use the same game classes and the same FPS scaling.
 
 ---
 
@@ -117,6 +128,55 @@ ScoreManager.getAll()               % view all records
 ScoreManager.clearGame("FlickIt")   % reset one game
 ScoreManager.clearAll()             % reset everything
 ```
+
+---
+
+## Frame-Rate Independence
+
+All games run at the same perceived speed regardless of the machine's actual frame rate. The system measures the real time elapsed each frame and scales all game physics proportionally.
+
+### How it works
+
+Each game has a `TargetFPS` property (default 60) — the frame rate at which `DtScale = 1.0` and the game runs at its designed speed. Every frame:
+
+1. The host measures `rawDt` — actual seconds since the last frame (via `toc`)
+2. Computes `DtScale = rawDt × TargetFPS`
+3. Sets `DtScale` on the game before calling `onUpdate`
+
+At the target FPS, `DtScale = 1.0` — identical to unscaled frame-based code. At half the target FPS, `DtScale = 2.0` — each frame moves objects twice as far. The product `DtScale × actual_FPS` is always equal to `TargetFPS`, so total movement per second is constant.
+
+### Scaling rules inside games
+
+| Quantity | Frame-based (unscaled) | FPS-scaled |
+|----------|----------------------|------------|
+| Velocity | `pos += vel` | `pos += vel * ds` |
+| Gravity | `vel += g` | `vel += g * ds` |
+| Friction | `vel *= 0.99` | `vel *= 0.99 ^ ds` |
+| Phase / animation | `phase += 0.1` | `phase += 0.1 * ds` |
+| Frame timer | `timer -= 1` | `timer -= ds` |
+| Substep count | `nSub = 10` | `nSub = round(10 * ds)` |
+
+Where `ds = obj.DtScale`.
+
+### Tuning at runtime
+
+`TargetFPS` is a public property on every game. Change it live to speed up or slow down:
+
+```matlab
+% Through the arcade launcher
+a = ArcadeGameLauncher();
+% ... start a game, then:
+a.ActiveGame.TargetFPS = 30;   % 2× slower than default
+
+% Through standalone play
+g = games.FlickIt();
+g.play();
+g.TargetFPS = 120;  % 2× faster than default
+```
+
+### FPS display
+
+The arcade launcher shows a real-time FPS counter (top-right) during gameplay, computed from a 30-frame ring buffer of frame times. Toggle with the `ShowFPS` property. The standalone `play()` mode also shows FPS.
 
 ---
 

@@ -598,7 +598,27 @@ classdef (Abstract) GameBase < handle
 
             fig.SizeChangedFcn = @(~, ~) onFigResize();
 
-            % Timer for physics ticking
+            % --- Score HUD ---
+            scoreH = text(ax, range.X(1) + 2, range.Y(1) + 2, "Score: 0", ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize, ...
+                "FontWeight", "bold", "HorizontalAlignment", "left", ...
+                "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
+
+            % --- Combo HUD ---
+            comboH = text(ax, mean(range.X), range.Y(1) + 2, "", ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize - 1, ...
+                "FontWeight", "bold", "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "top", "Visible", "off", ...
+                "Tag", "GT_standaloneHUD");
+            prevCombo = 0;
+
+            % --- FPS counter ---
+            fpsH = text(ax, range.X(2) - 4, range.Y(1) + 2, "", ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize, ...
+                "FontWeight", "bold", "HorizontalAlignment", "right", ...
+                "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
+
+            % Timer for physics ticking (must be after HUD so closures capture handles)
             dtBuf = NaN(1, 30);
             dtBufIdx = 0;
             frameTic = tic;
@@ -608,18 +628,6 @@ classdef (Abstract) GameBase < handle
             start(tmr);
 
             fig.CloseRequestFcn = @(~, ~) cleanup();
-
-            % --- Score HUD ---
-            scoreH = text(ax, range.X(1) + 2, range.Y(1) + 2, "Score: 0", ...
-                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize, ...
-                "FontWeight", "bold", "HorizontalAlignment", "left", ...
-                "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
-
-            % --- FPS counter ---
-            fpsH = text(ax, range.X(2) - 4, range.Y(1) + 2, "", ...
-                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize, ...
-                "FontWeight", "bold", "HorizontalAlignment", "right", ...
-                "VerticalAlignment", "top", "Tag", "GT_standaloneHUD");
 
             function onFigResize()
                 if ~isvalid(fig) || ~isvalid(ax); return; end
@@ -662,6 +670,14 @@ classdef (Abstract) GameBase < handle
                     obj.updateHitEffects();
                     % Update score display
                     scoreH.String = sprintf("Score: %d", obj.Score);
+                    % Update combo display
+                    if obj.Combo >= 2 && obj.Combo ~= prevCombo
+                        comboH.String = sprintf("%dx Combo", obj.Combo);
+                        comboH.Visible = "on";
+                    elseif obj.Combo == 0 && prevCombo > 0
+                        comboH.Visible = "off";
+                    end
+                    prevCombo = obj.Combo;
                     % Update FPS display
                     validDts = dtBuf(~isnan(dtBuf));
                     if ~isempty(validDts)
