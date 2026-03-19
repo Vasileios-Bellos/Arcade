@@ -50,6 +50,8 @@ classdef Snake < GameBase
         MoveAccum       (1,1) double = 0            % sub-cell movement accumulator
         ColormapRGB     (:,3) double                % 256-row neon colormap for body gradient
         DataToPts       (1,1) double = 1            % data units → screen points conversion
+        KeyboardMode    (1,1) logical = false     % true while arrow keys drive direction
+        PrevPos         (1,2) double = [NaN, NaN]  % previous mouse position (for keyboard→mouse handoff)
         GameOver        (1,1) logical = false
     end
 
@@ -163,8 +165,15 @@ classdef Snake < GameBase
             cs = obj.CellSize;
             headPos = obj.Body(1, :);
 
-            % Determine direction from finger position relative to head
-            if ~any(isnan(pos))
+            % Determine direction from finger/mouse position relative to head.
+            % Skipped when arrow keys are active. Mouse reclaims control
+            % when it moves more than 1 cell from last position.
+            if obj.KeyboardMode && ~any(isnan(pos)) && ~any(isnan(obj.PrevPos))
+                if norm(pos - obj.PrevPos) > cs
+                    obj.KeyboardMode = false;
+                end
+            end
+            if ~obj.KeyboardMode && ~any(isnan(pos))
                 delta = pos - headPos;
                 if abs(delta(1)) > abs(delta(2))
                     newDir = [sign(delta(1)), 0];
@@ -176,6 +185,7 @@ classdef Snake < GameBase
                     obj.Direction = newDir;
                 end
             end
+            obj.PrevPos = pos;
 
             ds = obj.DtScale;
 
@@ -258,24 +268,30 @@ classdef Snake < GameBase
 
         function handled = onKeyPress(obj, key)
             %onKeyPress  Arrow keys control snake direction.
+            %   Once arrows are used, mouse direction is ignored until
+            %   the mouse moves significantly (handled in onUpdate).
             handled = true;
             switch key
                 case "uparrow"
-                    if obj.Direction(2) ~= 1  % not going down
+                    if obj.Direction(2) ~= 1
                         obj.Direction = [0, -1];
                     end
+                    obj.KeyboardMode = true;
                 case "downarrow"
-                    if obj.Direction(2) ~= -1  % not going up
+                    if obj.Direction(2) ~= -1
                         obj.Direction = [0, 1];
                     end
+                    obj.KeyboardMode = true;
                 case "leftarrow"
-                    if obj.Direction(1) ~= 1  % not going right
+                    if obj.Direction(1) ~= 1
                         obj.Direction = [-1, 0];
                     end
+                    obj.KeyboardMode = true;
                 case "rightarrow"
-                    if obj.Direction(1) ~= -1  % not going left
+                    if obj.Direction(1) ~= -1
                         obj.Direction = [1, 0];
                     end
+                    obj.KeyboardMode = true;
                 otherwise
                     handled = false;
             end
