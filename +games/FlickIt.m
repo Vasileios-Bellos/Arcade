@@ -277,7 +277,7 @@ classdef FlickIt < GameBase
 
         function r = getResults(obj)
             %getResults  Return flick ball session results.
-            r.Title = "FLICK BALL";
+            r.Title = "FLICK IT";
             r.Lines = {
                 sprintf("Flicks: %d  |  Bounces: %d  |  Max Speed: %.0f", ...
                     obj.TotalFlicks, obj.TotalBounces, obj.MaxSpeed * 10)

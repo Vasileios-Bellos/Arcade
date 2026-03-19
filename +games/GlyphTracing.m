@@ -249,7 +249,7 @@ classdef GlyphTracing < GameBase
 
         function r = getResults(obj)
             %getResults  Return glyph trace results.
-            r.Title = "GLYPH TRACE";
+            r.Title = "GLYPH TRACING";
             nTotal = obj.LettersCompleted + obj.LettersFailed;
             accuracy = 0;
             if nTotal > 0

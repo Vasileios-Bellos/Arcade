@@ -60,6 +60,7 @@ classdef FruitNinja < GameBase
         SlashPoolCore   cell                % {1x6} line handles (core)
         SlashPoolGlow   cell                % {1x6} line handles (glow)
         SlashFrames     (1,6) double = 0
+        SlashAge        (1,6) double = 0      % actual frame count (not ds-scaled) for buffer shift tracking
         SlashFadeFrames (1,6) double = 0
         SlashIdxStart   (1,6) double = 0
         SlashIdxEnd     (1,6) double = 0
@@ -217,6 +218,7 @@ classdef FruitNinja < GameBase
             obj.SlashPoolCore = cell(1, 6);
             obj.SlashPoolGlow = cell(1, 6);
             obj.SlashFrames(:) = 0;
+            obj.SlashAge(:) = 0;
             obj.SlashFadeFrames(:) = 0;
             obj.SlashIdxStart(:) = 0;
             obj.SlashIdxEnd(:) = 0;
@@ -402,6 +404,7 @@ classdef FruitNinja < GameBase
                 if ~obj.SlashActive(kk); continue; end
 
                 obj.SlashFrames(kk) = obj.SlashFrames(kk) + ds;
+                obj.SlashAge(kk) = obj.SlashAge(kk) + 1;  % buffer shifts once per frame, not by ds
 
                 if obj.SlashFrames(kk) > obj.SlashFadeFrames(kk)
                     obj.deactivateSlash(kk);
@@ -412,7 +415,7 @@ classdef FruitNinja < GameBase
                 % so subtract age to track the same physical points.
                 % During growing phase (buffer not full), no shift occurs.
                 if obj.TraceBufferIdx >= obj.TraceBufferMax
-                    age = obj.SlashFrames(kk) - 1;
+                    age = obj.SlashAge(kk) - 1;
                 else
                     age = 0;
                 end
@@ -890,6 +893,7 @@ classdef FruitNinja < GameBase
             if ~isempty(slashSlot)
                 fadeFrames = 29;
                 obj.SlashFrames(slashSlot) = 0;
+                obj.SlashAge(slashSlot) = 0;
                 obj.SlashFadeFrames(slashSlot) = fadeFrames;
                 obj.SlashIdxStart(slashSlot) = idxStart;
                 obj.SlashIdxEnd(slashSlot) = idxEnd;
