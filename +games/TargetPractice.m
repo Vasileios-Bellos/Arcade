@@ -7,6 +7,10 @@ classdef TargetPractice < GameBase
     %   Standalone: games.TargetPractice().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
+    %   TODO: Target timeout uses wall-clock time (toc), not DtScale. If RefFPS
+    %         is changed to slow/speed the game, timeout duration stays the same.
+    %         Consider scaling timeout by RefFPS ratio for full consistency.
+    %
     %   See also GameBase, GameHost
 
     properties (Constant)
