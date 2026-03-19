@@ -489,13 +489,10 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function onKeyPress(obj, evnt)
             %onKeyPress  Route key events based on current state.
             key = string(evnt.Key);
-            fprintf("[KEY] Key='%s' Char='%s' Mod={%s}\n", evnt.Key, evnt.Character, strjoin(string(evnt.Modifier), ","));
 
             if ~isempty(evnt.Modifier)
                 mods = string(evnt.Modifier);
-                % MATLAB evnt.Key is unreliable on non-US keyboards
-                % (e.g., UK Shift+3 → Key='0', Char='£'). Use Character
-                % to recover the physical digit key.
+                % Map Shift+digit characters back to base digit key
                 ch = evnt.Character;
                 shiftChars  = '!@"#£$%^&*()';
                 shiftDigits = '122334567890';
