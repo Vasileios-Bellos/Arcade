@@ -489,21 +489,21 @@ classdef (Sealed) ArcadeGameLauncher < handle
         function onKeyPress(obj, evnt)
             %onKeyPress  Route key events based on current state.
             key = string(evnt.Key);
+            fprintf("[KEY] Key='%s' Char='%s' Mod={%s}\n", evnt.Key, evnt.Character, strjoin(string(evnt.Modifier), ","));
 
             if ~isempty(evnt.Modifier)
                 mods = string(evnt.Modifier);
+                % MATLAB evnt.Key is unreliable on non-US keyboards
+                % (e.g., UK Shift+3 → Key='0', Char='£'). Use Character
+                % to recover the physical digit key.
+                ch = evnt.Character;
+                shiftChars  = '!@"#£$%^&*()';
+                shiftDigits = '122334567890';
+                idx = find(shiftChars == ch, 1);
+                if ~isempty(idx)
+                    key = string(shiftDigits(idx));
+                end
                 if any(mods == "shift")
-                    % Map shifted characters back to digit keys
-                    % (UK: Shift+2="  Shift+3=£, US: Shift+2=@  Shift+3=#)
-                    if strlength(key) == 1 && ~(key >= "0" && key <= "9")
-                        shiftMap = dictionary( ...
-                            ["!", "@", """", "#", "£", "$", "%", "^", "&", "*", "(", ")"], ...
-                            ["1", "2", "2", "3", "3", "4", "5", "6", "7", "8", "9", "0"]);
-                        ch = string(evnt.Character);
-                        if ch ~= "" && shiftMap.isKey(ch)
-                            key = shiftMap(ch);
-                        end
-                    end
                     key = "shift+" + key;
                 elseif any(mods == "alt")
                     key = "alt+" + key;
