@@ -113,9 +113,8 @@ classdef Snake < GameBase
             % Pre-allocate body segment pool (all hidden, activated as snake grows)
             nPool = obj.BodyPoolSize;
             nInit = size(obj.Body, 1);
-            d2p = obj.DataToPts;
-            headSize = cs * 2.4 * d2p;
-            tailSize = cs * 0.9 * d2p;
+            headSize = cs * 2.4;
+            tailSize = cs * 0.9;
             obj.BodyPatchH = cell(1, nPool);
             for i = 1:nPool
                 if i <= nInit
@@ -135,17 +134,17 @@ classdef Snake < GameBase
                 end
             end
 
-            % Head marker (glow overlay — SizeData in screen points²)
+            % Head marker (glow overlay)
             obj.HeadPatchH = scatter(ax, obj.Body(1, 1), obj.Body(1, 2), ...
-                (cs * 2.4 * d2p)^2, obj.ColormapRGB(end, :), "filled", ...
+                (cs * 2.4)^2, obj.ColormapRGB(end, :), "filled", ...
                 "MarkerFaceAlpha", 0.8, "Tag", "GT_snake");
 
             % Pre-allocate food graphics (repositioned in spawnFood, never deleted)
             obj.FoodGlowH = scatter(ax, NaN, NaN, ...
-                (cs * 6 * d2p)^2, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.2, ...
+                (cs * 6)^2, obj.ColorRed, "filled", "MarkerFaceAlpha", 0.2, ...
                 "Tag", "GT_snake");
             obj.FoodPatchH = scatter(ax, NaN, NaN, ...
-                (cs * 2.5 * d2p)^2, obj.ColorRed, "filled", "Tag", "GT_snake");
+                (cs * 2.5)^2, obj.ColorRed, "filled", "Tag", "GT_snake");
 
             % Place first food
             obj.spawnFood();
@@ -342,9 +341,8 @@ classdef Snake < GameBase
             nBody = size(obj.Body, 1);
             cmapSize = size(obj.ColormapRGB, 1);
             cs = obj.CellSize;
-            d2p = obj.DataToPts;
-            headSize = cs * (2.4 + 0.04 * max(0, nBody - 5)) * d2p;
-            tailSize = cs * 1.3 * d2p;
+            headSize = cs * (2.4 + 0.04 * max(0, nBody - 5));
+            tailSize = cs * 1.3;
             nPool = numel(obj.BodyPatchH);
 
             % Activate/update segments up to nBody, hide rest
