@@ -249,7 +249,10 @@ classdef SpaceInvaders < GameBase
 
         function onUpdate(obj, pos)
             %onUpdate  Per-frame space invaders update.
-            if obj.GameOver; return; end
+            if obj.GameOver
+                obj.IsRunning = false;
+                return;
+            end
 
             ds = obj.DtScale;
 

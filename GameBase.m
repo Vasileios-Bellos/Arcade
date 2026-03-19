@@ -640,7 +640,7 @@ classdef (Abstract) GameBase < handle
                 if ~obj.IsRunning; return; end
                 try
                     % Measure dt and compute DtScale
-                    rawDt = toc(frameTic);
+                    rawDt = min(toc(frameTic), 0.1);
                     frameTic = tic;
                     dtBufIdx = mod(dtBufIdx, numel(dtBuf)) + 1;
                     dtBuf(dtBufIdx) = rawDt;
