@@ -343,15 +343,11 @@ classdef Juggling < GameBase
         function r = getResults(obj)
             %getResults  Return juggling-specific results.
             r.Title = "JUGGLING";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             % Capture current ball's streak before results
             bestStreak = max(obj.BestStreak, obj.BallFlicks);
             r.Lines = {
-                sprintf("Time: %.1fs  |  Total Flicks: %d  |  Best Flick Streak: %d  |  Best Combo: %d", ...
-                    elapsed, obj.Flicks, bestStreak, obj.MaxCombo)
+                sprintf("Total Flicks: %d  |  Best Flick Streak: %d", ...
+                    obj.Flicks, bestStreak)
             };
         end
     end

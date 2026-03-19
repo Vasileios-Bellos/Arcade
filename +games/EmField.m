@@ -717,15 +717,14 @@ classdef EmField < GameBase
         function r = getResults(obj)
             %getResults  Return EM-field-specific results.
             r.Title = "EM FIELD";
-            elapsed = toc(obj.StartTic);
             if obj.SubMode == "cyclotron"
                 r.Lines = {sprintf( ...
-                    "Cyclotron B=%.2f  |  Extracted: %d  |  Charge: %s  |  Time: %.0fs", ...
-                    obj.BUniform, obj.CycExtractions, obj.FingerMode, elapsed)};
+                    "Cyclotron B=%.2f  |  Extracted: %d  |  Charge: %s", ...
+                    obj.BUniform, obj.CycExtractions, obj.FingerMode)};
             else
                 r.Lines = {sprintf( ...
-                    "E-Field: %s  |  Grid: %dx%d  |  Charge: %s  |  Time: %.0fs", ...
-                    obj.SubMode, obj.GridNx, obj.GridNy, obj.FingerMode, elapsed)};
+                    "E-Field: %s  |  Grid: %dx%d  |  Charge: %s", ...
+                    obj.SubMode, obj.GridNx, obj.GridNy, obj.FingerMode)};
             end
         end
 

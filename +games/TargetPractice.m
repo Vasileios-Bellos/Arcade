@@ -201,8 +201,8 @@ classdef TargetPractice < GameBase
                 avgTime = mean([hitEntries.hitTime]);
             end
             r.Lines = {
-                sprintf("Targets: %d/%d (%.0f%%)  |  Avg: %.2fs  |  Max Combo: %d", ...
-                    nHit, nTotal, accuracy, avgTime, obj.MaxCombo)
+                sprintf("Targets: %d/%d (%.0f%%)  |  Avg: %.2fs", ...
+                    nHit, nTotal, accuracy, avgTime)
             };
         end
     end

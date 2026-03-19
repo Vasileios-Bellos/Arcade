@@ -331,14 +331,13 @@ classdef CrystalGrowth < GameBase
         function r = getResults(obj)
             %getResults  Return crystal growth results.
             r.Title = "CRYSTAL GROWTH";
-            elapsed = toc(obj.StartTic);
             totalCells = 0;
             if ~isempty(obj.Grid)
                 totalCells = nnz(obj.Grid > 0);
             end
             r.Lines = {
-                sprintf("Cells: %d  |  Grown: %d  |  Mode: %s  |  Time: %.0fs", ...
-                    totalCells, obj.TotalGrown, obj.SubMode, elapsed)
+                sprintf("Cells: %d  |  Grown: %d  |  Mode: %s", ...
+                    totalCells, obj.TotalGrown, obj.SubMode)
             };
         end
     end

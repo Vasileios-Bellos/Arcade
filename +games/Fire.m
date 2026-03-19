@@ -383,10 +383,8 @@ classdef Fire < GameBase
         function r = getResults(obj)
             %getResults  Return fire-specific results.
             r.Title = "FIRE";
-            elapsed = toc(obj.StartTic);
             r.Lines = {
-                sprintf("Grid: %dx%d  |  Mode: %s  |  Time: %.0fs", ...
-                    obj.GridW, obj.GridH, obj.SubMode, elapsed)
+                sprintf("Grid: %dx%d  |  Mode: %s", obj.GridW, obj.GridH, obj.SubMode)
             };
         end
 

@@ -412,11 +412,8 @@ classdef Voronoi < GameBase
         function r = getResults(obj)
             %getResults  Return Voronoi results.
             r.Title = "VORONOI";
-            elapsed = 0;
-            if ~isempty(obj.StartTic); elapsed = toc(obj.StartTic); end
             r.Lines = {
-                sprintf("Seeds: %d  |  Mode: %s  |  Time: %.0fs", ...
-                    obj.SeedCount, obj.SubMode, elapsed)
+                sprintf("Seeds: %d  |  Mode: %s", obj.SeedCount, obj.SubMode)
             };
         end
 

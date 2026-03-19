@@ -614,18 +614,14 @@ classdef StringHarmonics < GameBase
         function r = getResults(obj)
             %getResults  Return string harmonics results.
             r.Title = "STRING HARMONICS";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             avgVel = 0;
             if ~isempty(obj.PluckVels)
                 avgVel = mean(obj.PluckVels);
             end
             r.Lines = {
-                sprintf("%s  |  Plucks: %d  |  Avg speed: %.2f  |  Peak: %.3f  |  Mutes: %d  |  Time: %.1fs", ...
+                sprintf("%s  |  Plucks: %d  |  Avg Speed: %.2f  |  Peak: %.3f  |  Mutes: %d", ...
                     upper(obj.SubMode), obj.PluckCount, avgVel, ...
-                    obj.PeakAmp, obj.MuteCount, elapsed)
+                    obj.PeakAmp, obj.MuteCount)
             };
         end
 

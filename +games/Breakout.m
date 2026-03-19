@@ -556,16 +556,11 @@ classdef Breakout < GameBase
                 statusStr = sprintf("SCORE: %d", obj.Score);
             end
 
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
-
             r.Lines = {
                 statusStr
-                sprintf("Level: %d/%d  |  Bricks: %d  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
+                sprintf("Level: %d/%d  |  Bricks: %d", ...
                     min(obj.Level, obj.MaxLevel), obj.MaxLevel, ...
-                    obj.BricksDestroyed, obj.Score, elapsed, obj.MaxCombo)
+                    obj.BricksDestroyed)
             };
         end
 

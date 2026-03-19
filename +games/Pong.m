@@ -418,14 +418,10 @@ classdef Pong < GameBase
                 outcome = sprintf("Player %d - %d CPU", ...
                     obj.PlayerScore, obj.OpponentScore);
             end
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("%s  |  Player %d - %d CPU  |  Rally: %d  |  Rallies: %d  |  Time: %.0fs", ...
+                sprintf("%s  |  Player %d - %d CPU  |  Best Rally: %d  |  Rallies: %d", ...
                     outcome, obj.PlayerScore, obj.OpponentScore, ...
-                    obj.MaxRally, obj.TotalRallies, elapsed)
+                    obj.MaxRally, obj.TotalRallies)
             };
         end
     end

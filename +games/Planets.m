@@ -407,13 +407,9 @@ classdef Planets < GameBase
         function r = getResults(obj)
             %getResults  Return planets-specific results.
             r.Title = "SOLAR SYSTEM";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Sim Time: %.2f yr  |  Bound: %d/8  |  Score: %d  |  Wall: %.0fs", ...
-                    obj.SimTime, obj.BoundCount, obj.Score, elapsed)
+                sprintf("Sim Time: %.2f yr  |  Bound: %d/8", ...
+                    obj.SimTime, obj.BoundCount)
             };
         end
 

@@ -706,14 +706,9 @@ classdef FpsRailShooter < GameBase
             else
                 statusStr = sprintf("WAVE %d CLEAR", obj.Wave);
             end
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
                 statusStr
-                sprintf("Wave: %d  |  Kills: %d  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.Wave, obj.KillCount, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Wave: %d  |  Kills: %d", obj.Wave, obj.KillCount)
             };
         end
     end

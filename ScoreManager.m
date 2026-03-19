@@ -5,8 +5,8 @@ classdef (Sealed) ScoreManager
     %   for new games on first play — no registration needed.
     %
     %   Usage:
-    %       [isNew, prev] = ScoreManager.submit("FlickBall", 5000, 45, 120);
-    %       rec = ScoreManager.get("FlickBall");
+    %       [isNew, prev] = ScoreManager.submit("FlickIt", 5000, 45, 120);
+    %       rec = ScoreManager.get("FlickIt");
     %       ScoreManager.clearAll();
     %
     %   See also GameHost, ArcadeGameLauncher, GameBase
@@ -104,8 +104,8 @@ classdef (Sealed) ScoreManager
 
         function id = classToId(className)
             %classToId  Extract game ID from full class name.
-            %   "games.FlickBall" -> "FlickBall"
-            %   "FlickBall"       -> "FlickBall"
+            %   "games.FlickIt" -> "FlickIt"
+            %   "FlickIt"       -> "FlickIt"
             s = string(className);
             dotIdx = strfind(s, ".");
             if isempty(dotIdx)

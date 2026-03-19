@@ -720,16 +720,12 @@ classdef WindTunnel < GameBase
         function r = getResults(obj)
             %getResults  Return wind tunnel results.
             r.Title = "WIND TUNNEL";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             nu = (obj.Tau - 0.5) / 3;
             charLen = max(1, obj.ObstCharLen);
             Re = obj.UIn * charLen / max(nu, 1e-6);
             r.Lines = {
-                sprintf("Re%s%.0f  |  Grid: %dx%d  |  Peak Speed: %.3f  |  Time: %.0fs", ...
-                    char(8776), Re, obj.GridW, obj.GridH, obj.PeakSpeed, elapsed)
+                sprintf("Re%s%.0f  |  Grid: %dx%d  |  Peak Speed: %.3f", ...
+                    char(8776), Re, obj.GridW, obj.GridH, obj.PeakSpeed)
             };
         end
 

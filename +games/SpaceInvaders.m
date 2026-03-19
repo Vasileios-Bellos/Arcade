@@ -625,14 +625,8 @@ classdef SpaceInvaders < GameBase
         function r = getResults(obj)
             %getResults  Return space invaders results.
             r.Title = "SPACE INVADERS";
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            else
-                elapsed = 0;
-            end
             r.Lines = {
-                sprintf("Wave: %d  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.Wave, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Wave: %d", obj.Wave)
             };
         end
     end

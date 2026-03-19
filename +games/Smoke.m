@@ -342,13 +342,8 @@ classdef Smoke < GameBase
         function r = getResults(obj)
             %getResults  Return smoke-specific results.
             r.Title = "SMOKE";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Grid: %dx%d  |  Mode: %s  |  Time: %.0fs", ...
-                    obj.GridW, obj.GridH, obj.SubMode, elapsed)
+                sprintf("Grid: %dx%d  |  Mode: %s", obj.GridW, obj.GridH, obj.SubMode)
             };
         end
 

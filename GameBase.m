@@ -5,11 +5,11 @@ classdef (Abstract) GameBase < handle
     %   4 abstract methods: onInit, onUpdate, onCleanup, onKeyPress.
     %
     %   Standalone usage:
-    %       game = games.FlickBall();
+    %       game = games.FlickIt();
     %       game.play();   % opens figure, uses mouse input
     %
     %   Hosted usage (inside GestureMouse via GameHost):
-    %       game = games.FlickBall();
+    %       game = games.FlickIt();
     %       game.onInit(ax, displayRange);
     %       game.onUpdate(fingerPos);  % called each frame by host
     %       game.onCleanup();
@@ -72,7 +72,7 @@ classdef (Abstract) GameBase < handle
     % GAME IDENTITY (override in subclasses)
     % =================================================================
     properties (Constant, Abstract)
-        Name            string          % display name (e.g., "Flick Ball")
+        Name            string          % display name (e.g., "Flick It")
     end
 
     % =================================================================

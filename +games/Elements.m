@@ -1284,15 +1284,11 @@ classdef Elements < GameBase
         function r = getResults(obj)
             %getResults  Return Elements results struct.
             r.Title = obj.Name;
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             totalCells = 0;
             if ~isempty(obj.CellGrid)
                 totalCells = nnz(obj.CellGrid > 0);
             end
-            r.Lines = {sprintf("Cells: %d  |  Time: %.0fs", totalCells, elapsed)};
+            r.Lines = {sprintf("Cells: %d", totalCells)};
         end
 
     end

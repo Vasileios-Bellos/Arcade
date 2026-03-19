@@ -13,6 +13,11 @@ classdef ShapeTracing < GameBase
     %   Standalone: games.ShapeTracing().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
+    %   TODO: Traced corridor jumps abruptly at tight corners due to
+    %         polybuffer recalculation on the growing sub-path. Investigate
+    %         smoother progressive reveal (e.g., pre-compute full corridor
+    %         once, reveal by alpha mask or clip region instead of rebuilding).
+    %
     %   See also GameBase, GameHost, games.PathUtils
 
     properties (Constant)
@@ -55,12 +60,6 @@ classdef ShapeTracing < GameBase
         % Progress tracking (forward-only)
         TracingProgressIdx  (1,1) double = 0
         LastSegEnd          (1,1) double = 0   % cache: last rendered traced-band endpoint
-
-        % Pre-computed corridor boundaries (computed once per path in enterPreview)
-        CorridorLX          (1,:) double       % left boundary X
-        CorridorLY          (1,:) double       % left boundary Y
-        CorridorRX          (1,:) double       % right boundary X
-        CorridorRY          (1,:) double       % right boundary Y
 
         % Session stats
         PathsCompleted      (1,1) double = 0
@@ -304,8 +303,8 @@ classdef ShapeTracing < GameBase
                 avgDev = mean([obj.PathHistory.avgDeviation], "omitnan");
             end
             r.Lines = {
-                sprintf("Paths: %d/%d  |  Avg Dev: %.1fpx  |  Max Combo: %d", ...
-                    obj.PathsCompleted, nTotal, avgDev, obj.MaxCombo)
+                sprintf("Paths: %d/%d  |  Avg Deviation: %.1fpx", ...
+                    obj.PathsCompleted, nTotal, avgDev)
             };
         end
     end
@@ -356,13 +355,6 @@ classdef ShapeTracing < GameBase
 
             pathData = obj.CurrentPath;
 
-            % Pre-compute corridor boundaries ONCE per path.
-            % During tracing, the traced band is built by indexing into
-            % these arrays — no polybuffer/polyshape needed per frame.
-            halfW = obj.CorridorWidth / 2;
-            [obj.CorridorLX, obj.CorridorLY, obj.CorridorRX, obj.CorridorRY] = ...
-                games.PathUtils.computeCorridorBounds(pathData.X, pathData.Y, halfW);
-
             % Start with empty background glow
             if ~isempty(obj.PathBandBgGlow) && isvalid(obj.PathBandBgGlow)
                 set(obj.PathBandBgGlow, "XData", NaN, "YData", NaN, ...
@@ -374,9 +366,10 @@ classdef ShapeTracing < GameBase
             if ~isempty(obj.PathBandBg) && isvalid(obj.PathBandBg)
                 delete(obj.PathBandBg);
             end
-            obj.PathBandBg = patch(ax, NaN, NaN, obj.ColorCyan, ...
-                "FaceAlpha", 0.35, "EdgeColor", "none", ...
-                "Visible", "on", "Tag", "GT_shapetracing");
+            obj.PathBandBg = patch(ax, "Faces", 1, ...
+                "Vertices", [0 0], ...
+                "FaceColor", obj.ColorCyan, "FaceAlpha", 0.35, ...
+                "EdgeColor", "none", "Visible", "on", "Tag", "GT_shapetracing");
             uistack(obj.PathBandBg, "bottom");
             uistack(obj.PathBandBg, "up");  % above image
 
@@ -427,14 +420,17 @@ classdef ShapeTracing < GameBase
             end
 
             try
-                % Use pre-computed corridor boundaries (no polybuffer)
-                px = [obj.CorridorLX(1:sweepIdx), fliplr(obj.CorridorRX(1:sweepIdx))];
-                py = [obj.CorridorLY(1:sweepIdx), fliplr(obj.CorridorRY(1:sweepIdx))];
+                % Polybuffer throughout — avoids transition artifacts
+                ps = games.PathUtils.buildBandPolyshape( ...
+                    pathData.X(1:sweepIdx), pathData.Y(1:sweepIdx), halfW);
+                triObj = triangulation(ps);
                 if ~isempty(obj.PathBandBg) && isvalid(obj.PathBandBg)
-                    set(obj.PathBandBg, "XData", px, "YData", py);
+                    set(obj.PathBandBg, "Faces", triObj.ConnectivityList, ...
+                        "Vertices", triObj.Points);
                 end
-                bx = px;
-                by = py;
+                [bx, by] = boundary(ps);
+                [bx, by] = games.PathUtils.filterGlowBoundary( ...
+                    bx, by, obj.CorridorWidth);
                 if ~isempty(obj.PathBandBgGlow) && isvalid(obj.PathBandBgGlow)
                     set(obj.PathBandBgGlow, "XData", bx, "YData", by);
                 end
@@ -488,7 +484,7 @@ classdef ShapeTracing < GameBase
 
             % Show trail line to guide finger to start
             if ~isempty(obj.TrailLine) && isvalid(obj.TrailLine)
-                obj.TrailLine.Visible = "on";
+                obj.TrailLine.Visible = "off";
             end
 
             % Direction arrow at path start pointing along first segment
@@ -567,7 +563,7 @@ classdef ShapeTracing < GameBase
                 obj.ZoneCircle.Visible = "on";
             end
             if ~isempty(obj.DeviationWhisker) && isvalid(obj.DeviationWhisker)
-                obj.DeviationWhisker.Visible = "on";
+                obj.DeviationWhisker.Visible = "off";
             end
 
             % Recreate traced band as Faces/Vertices patch
@@ -742,21 +738,29 @@ classdef ShapeTracing < GameBase
                 zoneColor = obj.ColorGold;
             end
 
-            % --- Traced band: from path start to current progress ---
-            %     Uses pre-computed corridor boundaries (no polybuffer per frame).
+            % --- Traced band: from path start to current progress only ---
             progIdx = obj.TracingProgressIdx;
             segEnd = min(progIdx, numel(pathData.X));
             if segEnd >= 2 && segEnd ~= obj.LastSegEnd
                 obj.LastSegEnd = segEnd;
-                % Build polygon from pre-computed left/right boundaries
-                px = [obj.CorridorLX(1:segEnd), fliplr(obj.CorridorRX(1:segEnd))];
-                py = [obj.CorridorLY(1:segEnd), fliplr(obj.CorridorRY(1:segEnd))];
-                if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
-                    set(obj.PathBandTraced, "XData", px, "YData", py, ...
-                        "FaceAlpha", 0.75 + 0.15 * progress);
-                end
-                if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
-                    set(obj.PathBandTracedGlow, "XData", px, "YData", py);
+                try
+                    tps = games.PathUtils.buildBandPolyshape( ...
+                        pathData.X(1:segEnd), pathData.Y(1:segEnd), halfCorridor);
+                    tT = triangulation(tps);
+                    if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
+                        set(obj.PathBandTraced, "Faces", tT.ConnectivityList, ...
+                            "Vertices", tT.Points, ...
+                            "FaceAlpha", 0.75 + 0.15 * progress);
+                    end
+                    [tbx, tby] = boundary(tps);
+                    [tbx, tby] = games.PathUtils.filterGlowBoundary( ...
+                        tbx, tby, obj.CorridorWidth);
+                    if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
+                        set(obj.PathBandTracedGlow, ...
+                            "XData", tbx, "YData", tby);
+                    end
+                catch
+                    % Skip update on polyshape failure
                 end
             end
 
@@ -912,14 +916,23 @@ classdef ShapeTracing < GameBase
 
             % Snap traced band to full path on completion (satisfying finish)
             if isSuccess
-                nAll = numel(pathData.X);
-                px = [obj.CorridorLX(1:nAll), fliplr(obj.CorridorRX(1:nAll))];
-                py = [obj.CorridorLY(1:nAll), fliplr(obj.CorridorRY(1:nAll))];
-                if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
-                    set(obj.PathBandTraced, "XData", px, "YData", py);
-                end
-                if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
-                    set(obj.PathBandTracedGlow, "XData", px, "YData", py);
+                halfCorridor = obj.CorridorWidth / 2;
+                try
+                    fps = games.PathUtils.buildBandPolyshape( ...
+                        pathData.X, pathData.Y, halfCorridor);
+                    fT = triangulation(fps);
+                    if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
+                        set(obj.PathBandTraced, "Faces", fT.ConnectivityList, ...
+                            "Vertices", fT.Points);
+                    end
+                    [fbx, fby] = boundary(fps);
+                    [fbx, fby] = games.PathUtils.filterGlowBoundary( ...
+                        fbx, fby, obj.CorridorWidth);
+                    if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
+                        set(obj.PathBandTracedGlow, "XData", fbx, "YData", fby);
+                    end
+                catch
+                    % Keep current traced band on failure
                 end
             end
 
@@ -952,12 +965,10 @@ classdef ShapeTracing < GameBase
             if isSuccess
                 obj.ScoredCentroid = [mean(pathData.X), mean(pathData.Y)];
                 if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced)
-                    obj.ScoredTracedVerts = [obj.PathBandTraced.XData(:), ...
-                                             obj.PathBandTraced.YData(:)];
+                    obj.ScoredTracedVerts = obj.PathBandTraced.Vertices;
                 end
                 if ~isempty(obj.PathBandBg) && isvalid(obj.PathBandBg)
-                    obj.ScoredBgVerts = [obj.PathBandBg.XData(:), ...
-                                        obj.PathBandBg.YData(:)];
+                    obj.ScoredBgVerts = obj.PathBandBg.Vertices;
                 end
                 if ~isempty(obj.PathBandTracedGlow) && isvalid(obj.PathBandTracedGlow)
                     obj.ScoredTracedGlowXY = { ...
@@ -1011,20 +1022,18 @@ classdef ShapeTracing < GameBase
                 scx = obj.ScoredCentroid(1);
                 scy = obj.ScoredCentroid(2);
 
-                % Expand traced band (XData/YData based)
+                % Expand traced band vertices
                 if ~isempty(obj.PathBandTraced) && isvalid(obj.PathBandTraced) ...
                         && ~isempty(obj.ScoredTracedVerts)
                     expanded = [scx; scy]' + (obj.ScoredTracedVerts - [scx, scy]) * scaleFactor;
-                    obj.PathBandTraced.XData = expanded(:, 1)';
-                    obj.PathBandTraced.YData = expanded(:, 2)';
+                    obj.PathBandTraced.Vertices = expanded;
                 end
 
-                % Expand bg band (XData/YData based)
+                % Expand bg band vertices
                 if ~isempty(obj.PathBandBg) && isvalid(obj.PathBandBg) ...
                         && ~isempty(obj.ScoredBgVerts)
                     expanded = [scx; scy]' + (obj.ScoredBgVerts - [scx, scy]) * scaleFactor;
-                    obj.PathBandBg.XData = expanded(:, 1)';
-                    obj.PathBandBg.YData = expanded(:, 2)';
+                    obj.PathBandBg.Vertices = expanded;
                 end
 
                 % Expand traced glow outline
@@ -1187,7 +1196,7 @@ classdef ShapeTracing < GameBase
                 obj.TrailLine.YData = [fingerPos(2), tcy];
                 trailAlpha = 0.08 + 0.06 * (1 - urgency);
                 obj.TrailLine.Color = [ringColor, trailAlpha];
-                obj.TrailLine.Visible = "on";
+                obj.TrailLine.Visible = "off";
             end
         end
 

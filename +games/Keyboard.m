@@ -156,14 +156,9 @@ classdef Keyboard < GameBase
         function r = getResults(obj)
             %getResults  Return keyboard-specific results.
             r.Title = "KEYBOARD";
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            else
-                elapsed = 0;
-            end
             r.Lines = {
-                sprintf("Keys: %d  |  Time: %.0fs  |  Text: %s", ...
-                    obj.TotalPresses, elapsed, obj.TypedText)
+                sprintf("Keys: %d  |  Text: %s", ...
+                    obj.TotalPresses, obj.TypedText)
             };
         end
     end

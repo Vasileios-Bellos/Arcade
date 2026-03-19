@@ -426,10 +426,9 @@ classdef Dobryakov < GameBase
         function r = getResults(obj)
             %getResults  Return Dobryakov-specific results.
             r.Title = "DOBRYAKOV FLUID";
-            elapsed = toc(obj.StartTic);
             r.Lines = {
-                sprintf("Dye Injected: %.0f  |  Peak Vorticity: %.1f  |  Score: %d  |  Time: %.0fs", ...
-                    obj.TotalDyeInjected, obj.PeakVorticity, obj.Score, elapsed)
+                sprintf("Dye Injected: %.0f  |  Peak Vorticity: %.1f", ...
+                    obj.TotalDyeInjected, obj.PeakVorticity)
             };
         end
 

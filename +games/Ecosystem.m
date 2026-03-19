@@ -555,7 +555,6 @@ classdef Ecosystem < GameBase
         function r = getResults(obj)
             %getResults  Return ecosystem results.
             r.Title = "ECOSYSTEM";
-            elapsed = toc(obj.StartTic);
             g = obj.Grid;
             nPlant = 0; nHerb = 0; nPred = 0; nDecomp = 0;
             if ~isempty(g)
@@ -563,8 +562,8 @@ classdef Ecosystem < GameBase
                 nPred = nnz(g == 3);  nDecomp = nnz(g == 4);
             end
             r.Lines = {
-                sprintf("Plant:%d  Herb:%d  Pred:%d  Decomp:%d  |  Peak:%d  |  %s  |  %.0fs", ...
-                    nPlant, nHerb, nPred, nDecomp, obj.PeakPop, obj.SubMode, elapsed)
+                sprintf("Plant:%d  Herb:%d  Pred:%d  Decomp:%d  |  Peak:%d  |  %s", ...
+                    nPlant, nHerb, nPred, nDecomp, obj.PeakPop, obj.SubMode)
             };
         end
     end

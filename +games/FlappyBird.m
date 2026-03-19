@@ -320,13 +320,8 @@ classdef FlappyBird < GameBase
         function r = getResults(obj)
             %getResults  Return flappy-bird-specific results.
             r.Title = "FLAPPY BIRD";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Pipes: %d  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.PipesCleared, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Pipes: %d", obj.PipesCleared)
             };
         end
     end

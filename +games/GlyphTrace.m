@@ -256,9 +256,8 @@ classdef GlyphTrace < GameBase
                 accuracy = obj.LettersCompleted / nTotal * 100;
             end
             r.Lines = {
-                sprintf("Characters: %d/%d (%.0f%%)  |  Score: %d  |  Max Combo: %d", ...
-                    obj.LettersCompleted, numel(obj.Sequence), accuracy, ...
-                    obj.Score, obj.MaxCombo)
+                sprintf("Characters: %d/%d (%.0f%%)", ...
+                    obj.LettersCompleted, numel(obj.Sequence), accuracy)
             };
         end
     end

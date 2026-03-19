@@ -347,10 +347,8 @@ classdef Piano < GameBase
         function r = getResults(obj)
             %getResults  Return piano-specific results.
             r.Title = "PIANO";
-            elapsed = toc(obj.StartTic);
             r.Lines = {
-                sprintf("Notes Played: %d  |  Time: %.0fs", ...
-                    obj.NotesPlayed, elapsed)
+                sprintf("Notes Played: %d", obj.NotesPlayed)
             };
         end
     end

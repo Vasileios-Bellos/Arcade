@@ -510,8 +510,7 @@ classdef Boids < GameBase
             %getResults  Return boids-specific results.
             r.Title = "BOIDS";
             r.Lines = {
-                sprintf("Score: %d  |  Max Combo: %d  |  N=%d  |  Mode: %s", ...
-                    obj.Score, obj.MaxCombo, obj.Count, upper(obj.SubMode))
+                sprintf("N=%d  |  Mode: %s", obj.Count, upper(obj.SubMode))
             };
         end
 

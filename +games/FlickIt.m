@@ -1,18 +1,18 @@
-classdef FlickBall < GameBase
-    %FlickBall  Physics-based flick ball game with wall bounces.
+classdef FlickIt < GameBase
+    %FlickIt  Physics-based flick ball game with wall bounces.
     %   A ball sits at the center of the screen. Move your finger through
     %   it with velocity to flick it. The ball bounces off walls with
     %   parametric collision detection. Re-flicking a moving ball builds
     %   combo. Speed-to-color gradient, 3-layer rendering (core + glow +
     %   aura), and a 30-frame comet trail provide visual feedback.
     %
-    %   Standalone: games.FlickBall().play()
+    %   Standalone: games.FlickIt().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Flick Ball"
+        Name = "Flick It"
     end
 
     % =================================================================
@@ -278,14 +278,9 @@ classdef FlickBall < GameBase
         function r = getResults(obj)
             %getResults  Return flick ball session results.
             r.Title = "FLICK BALL";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Flicks: %d  |  Bounces: %d  |  Max Speed: %.0f  |  Max Combo: %d", ...
-                    obj.TotalFlicks, obj.TotalBounces, obj.MaxSpeed * 10, obj.MaxCombo)
-                sprintf("Time: %.1fs", elapsed)
+                sprintf("Flicks: %d  |  Bounces: %d  |  Max Speed: %.0f", ...
+                    obj.TotalFlicks, obj.TotalBounces, obj.MaxSpeed * 10)
             };
         end
 

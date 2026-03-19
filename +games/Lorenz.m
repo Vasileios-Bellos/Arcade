@@ -428,13 +428,8 @@ classdef Lorenz < GameBase
         function r = getResults(obj)
             %getResults  Return Lorenz-specific results.
             r.Title = "LORENZ";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Mode: %s  |  Particles: %d  |  Time: %.0fs", ...
-                    obj.SubMode, obj.TracerCount, elapsed)
+                sprintf("Mode: %s  |  Particles: %d", obj.SubMode, obj.TracerCount)
             };
         end
 

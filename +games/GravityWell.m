@@ -332,15 +332,8 @@ classdef GravityWell < GameBase
 
         function r = getResults(obj)
             %getResults  Return gravity well results.
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Title = "GRAVITY WELL";
-            r.Lines = {
-                sprintf("Score: %d  |  Max Combo: %d  |  Time: %.0fs", ...
-                    obj.Score, obj.MaxCombo, elapsed)
-            };
+            r.Lines = {};
         end
 
     end

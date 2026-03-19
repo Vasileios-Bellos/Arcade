@@ -518,14 +518,13 @@ classdef FruitNinja < GameBase
         function r = getResults(obj)
             %getResults  Return fruit ninja results.
             r.Title = "FRUIT NINJA";
-            elapsed = toc(obj.StartTicLocal);
             avgCent = 0;
             if ~isempty(obj.SliceHistory)
                 avgCent = mean([obj.SliceHistory.centrality]);
             end
             r.Lines = {
-                sprintf("Sliced: %d  |  Dropped: %d  |  Score: %d  |  Accuracy: %.0f%%  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.FruitsSliced, obj.FruitsDropped, obj.Score, avgCent * 100, elapsed, obj.MaxCombo)
+                sprintf("Sliced: %d  |  Dropped: %d  |  Accuracy: %.0f%%", ...
+                    obj.FruitsSliced, obj.FruitsDropped, avgCent * 100)
             };
         end
     end

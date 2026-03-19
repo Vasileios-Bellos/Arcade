@@ -294,13 +294,8 @@ classdef Snake < GameBase
             %getResults  Return snake-specific results.
             r.Title = "SNAKE";
             bodyLen = size(obj.Body, 1);
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Length: %d  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    bodyLen, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Length: %d", bodyLen)
             };
         end
     end

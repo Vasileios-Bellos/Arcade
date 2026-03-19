@@ -614,13 +614,8 @@ classdef NewtonsCradle < GameBase
         function r = getResults(obj)
             %getResults  Return Newton's cradle results.
             r.Title = "NEWTON'S CRADLE";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("N=%d  |  Mode: %s  |  Time: %.0fs", ...
-                    obj.BallCount, obj.SubMode, elapsed)
+                sprintf("N=%d  |  Mode: %s", obj.BallCount, obj.SubMode)
             };
         end
 

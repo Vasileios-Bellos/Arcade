@@ -386,13 +386,8 @@ classdef FourierEpicycle < GameBase
         function r = getResults(obj)
             %getResults  Return Fourier-specific results.
             r.Title = "FOURIER EPICYCLE";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("%s  |  Score: %d  |  Max Combo: %d  |  Time: %.1fs", ...
-                    upper(obj.SubMode), obj.Score, obj.MaxCombo, elapsed)
+                sprintf("%s", upper(obj.SubMode))
             };
         end
 

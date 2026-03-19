@@ -757,14 +757,16 @@ classdef (Sealed) ArcadeGameLauncher < handle
                 obj.ComboTextH.Position = [cx, cy + diff(dy) * 0.02, 0];
                 obj.ComboTextH.HorizontalAlignment = "center";
                 detailLines = {};
+                % Line 1: game-specific details
                 if isfield(results, "Lines") && ~isempty(results.Lines)
                     detailLines = cellstr(results.Lines);
                 end
+                % Line 2: score / combo / time
                 elapsed = toc(obj.SessionStartTic);
                 detailLines{end + 1} = sprintf( ...
                     "Score: %d  |  Max Combo: %d  |  Time: %.0fs", ...
                     obj.Score, obj.MaxCombo, elapsed);
-                % High score tracking
+                % Line 3: high score
                 if strlength(gameId) > 0
                     [isNewHigh, ~] = ScoreManager.submit( ...
                         gameId, obj.Score, obj.MaxCombo, elapsed);
@@ -773,10 +775,8 @@ classdef (Sealed) ArcadeGameLauncher < handle
                             "★  NEW HIGH SCORE: %d  ★", obj.Score);
                     else
                         hsRec = ScoreManager.get(gameId);
-                        if hsRec.highScore > obj.Score
-                            detailLines{end + 1} = sprintf( ...
-                                "High Score: %d", hsRec.highScore);
-                        end
+                        detailLines{end + 1} = sprintf( ...
+                            "High Score: %d", hsRec.highScore);
                     end
                 end
                 detailLines{end + 1} = "";
@@ -1001,7 +1001,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("1", @games.TargetPractice, "Target Practice");
             obj.registerGame("2", @games.ShapeTracing, "Shape Tracing");
             obj.registerGame("3", @games.Fireflies, "Fireflies");
-            obj.registerGame("4", @games.FlickBall, "Flick Ball");
+            obj.registerGame("4", @games.FlickIt, "Flick It");
             obj.registerGame("5", @games.Pong, "Pong");
             obj.registerGame("6", @games.Juggling, "Juggling");
             obj.registerGame("7", @games.GlyphTrace, "Glyph Trace");

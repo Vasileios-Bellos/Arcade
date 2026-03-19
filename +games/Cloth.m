@@ -413,9 +413,8 @@ classdef Cloth < GameBase
         function r = getResults(obj)
             %getResults  Return cloth-specific results.
             r.Title = "CLOTH";
-            elapsed = toc(obj.SimStartTic);
             r.Lines = {
-                sprintf("Mode: %s  |  Time: %.0fs", obj.SubMode, elapsed)
+                sprintf("Mode: %s", obj.SubMode)
             };
         end
 

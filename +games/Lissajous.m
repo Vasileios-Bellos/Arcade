@@ -417,11 +417,8 @@ classdef Lissajous < GameBase
         function r = getResults(obj)
             %getResults  Return Lissajous results.
             r.Title = "LISSAJOUS";
-            elapsed = 0;
-            if ~isempty(obj.StartTic); elapsed = toc(obj.StartTic); end
             r.Lines = {
-                sprintf("Frames: %d  |  Time: %.0fs", ...
-                    obj.FrameCount, elapsed)
+                sprintf("Frames: %d", obj.FrameCount)
             };
         end
 

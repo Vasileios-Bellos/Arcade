@@ -510,10 +510,8 @@ classdef DoublePendulum < GameBase
         function r = getResults(obj)
             %getResults  Return double-pendulum-specific results.
             r.Title = "DOUBLE PENDULUM";
-            elapsed = toc(obj.StartTic);
             r.Lines = {
-                sprintf("N=%d  |  Mode: %s  |  Time: %.0fs", ...
-                    obj.PendulumCount, obj.SubMode, elapsed)
+                sprintf("N=%d  |  Mode: %s", obj.PendulumCount, obj.SubMode)
             };
         end
 

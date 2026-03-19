@@ -313,13 +313,8 @@ classdef Fireflies < GameBase
             nTotal = nHit + obj.FirefliesMissed;
             accuracy = 0;
             if nTotal > 0; accuracy = nHit / nTotal * 100; end
-            elapsed = 0;
-            if ~isempty(obj.CatchStartTic)
-                elapsed = toc(obj.CatchStartTic);
-            end
             r.Lines = {
-                sprintf("Caught: %d/%d (%.0f%%)  |  Time: %.0fs  |  Max Combo: %d", ...
-                    nHit, nTotal, accuracy, elapsed, obj.MaxCombo)
+                sprintf("Caught: %d/%d (%.0f%%)", nHit, nTotal, accuracy)
             };
         end
     end

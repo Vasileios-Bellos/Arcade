@@ -302,11 +302,9 @@ classdef GameOfLife < GameBase
         function r = getResults(obj)
             %getResults  Return Game of Life results.
             r.Title = "GAME OF LIFE";
-            elapsed = 0;
-            if ~isempty(obj.StartTic); elapsed = toc(obj.StartTic); end
             r.Lines = {
-                sprintf("Gen: %d  |  Peak Pop: %d  |  Time: %.0fs", ...
-                    obj.Generation, obj.PeakPop, elapsed)
+                sprintf("Generations: %d  |  Peak Population: %d", ...
+                    obj.Generation, obj.PeakPop)
             };
         end
 

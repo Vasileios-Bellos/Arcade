@@ -386,18 +386,13 @@ classdef ShieldGuardian < GameBase
         function r = getResults(obj)
             %getResults  Return shield guardian results.
             r.Title = "SHIELD GUARDIAN";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             if obj.Lives <= 0
                 statusStr = "GAME OVER";
             else
                 statusStr = sprintf("SURVIVED (Lives: %d)", obj.Lives);
             end
             r.Lines = {
-                sprintf("Wave: %d  |  %s  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.Wave, statusStr, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Wave: %d  |  %s", obj.Wave, statusStr)
             };
         end
     end

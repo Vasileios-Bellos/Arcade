@@ -525,13 +525,8 @@ classdef OrbitalDefense < GameBase
         function r = getResults(obj)
             %getResults  Return orbital defense results.
             r.Title = "ORBITAL DEFENSE";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Wave: %d  |  Lives: %d  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.Wave, obj.Lives, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Wave: %d  |  Lives: %d", obj.Wave, obj.Lives)
             };
         end
     end

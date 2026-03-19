@@ -447,9 +447,8 @@ classdef ThreeBody < GameBase
         function r = getResults(obj)
             %getResults  Return three-body-specific results.
             r.Title = "THREE-BODY";
-            elapsed = toc(obj.SessionStartTic);
             r.Lines = {
-                sprintf("Mode: %s  |  Time: %.0fs", obj.SubMode, elapsed)
+                sprintf("Mode: %s", obj.SubMode)
             };
         end
 

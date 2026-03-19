@@ -259,14 +259,9 @@ classdef ReactionDiffusion < GameBase
 
         function r = getResults(obj)
             %getResults  Return reaction-diffusion results.
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Title = "REACTION-DIFFUSION";
             r.Lines = {
-                sprintf("Peak Catalyst: %.2f  |  Time: %.0fs", ...
-                    obj.PeakV, elapsed)
+                sprintf("Peak Catalyst: %.2f", obj.PeakV)
             };
         end
 

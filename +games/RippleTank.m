@@ -312,13 +312,8 @@ classdef RippleTank < GameBase
         function r = getResults(obj)
             %getResults  Return ripple tank results.
             r.Title = "RIPPLE TANK";
-            elapsed = 0;
-            if ~isempty(obj.StartTic)
-                elapsed = toc(obj.StartTic);
-            end
             r.Lines = {
-                sprintf("Peak Amplitude: %.2f  |  Time: %.0fs", ...
-                    obj.PeakAmp, elapsed)
+                sprintf("Peak Amplitude: %.2f", obj.PeakAmp)
             };
         end
 

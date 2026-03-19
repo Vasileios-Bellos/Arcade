@@ -11,7 +11,7 @@ A fullscreen neon menu opens. Pick a game with the keyboard or mouse.
 Any game can also be launched directly:
 
 ```matlab
-games.FlickBall().play()
+games.FlickIt().play()
 games.Smoke().play()
 games.SpaceInvaders().play()
 ```
@@ -27,7 +27,7 @@ games.SpaceInvaders().play()
 | 1 | Target Practice | Hit random targets, combo scoring, difficulty ramp |
 | 2 | Shape Tracing | Follow path corridors, coverage tracking |
 | 3 | Fireflies | Chase 5-tier color-coded fireflies with evasive golden snitch |
-| 4 | Flick Ball | Physics orb — flick it, bounce off walls, speed-to-color gradient |
+| 4 | Flick It | Physics orb — flick it, bounce off walls, speed-to-color gradient |
 | 5 | Pong | AI opponent with rally escalation and paddle hit angle |
 | 6 | Juggling | Keep balls airborne with flicks, gravity pulls them down |
 | 7 | Glyph Trace | Trace letter-shaped corridors rendered from font outlines |
@@ -112,9 +112,9 @@ Scores persist across MATLAB sessions in `ScoreManager_scores.mat`. Per-game tra
 New games are tracked automatically on first play — no setup needed.
 
 ```matlab
-ScoreManager.get("FlickBall")       % view one game's record
+ScoreManager.get("FlickIt")         % view one game's record
 ScoreManager.getAll()               % view all records
-ScoreManager.clearGame("FlickBall") % reset one game
+ScoreManager.clearGame("FlickIt")   % reset one game
 ScoreManager.clearAll()             % reset everything
 ```
 

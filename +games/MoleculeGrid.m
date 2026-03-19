@@ -348,10 +348,8 @@ classdef MoleculeGrid < GameBase
         function r = getResults(obj)
             %getResults  Return molecule-grid-specific results.
             r.Title = "MOLECULE GRID";
-            elapsed = toc(obj.GridStartTic);
             r.Lines = {
-                sprintf("Peak Energy: %.1f  |  Score: %d  |  Time: %.0fs  |  Max Combo: %d", ...
-                    obj.PeakEnergy, obj.Score, elapsed, obj.MaxCombo)
+                sprintf("Peak Energy: %.1f", obj.PeakEnergy)
             };
         end
 
