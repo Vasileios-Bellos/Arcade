@@ -90,7 +90,7 @@ classdef Snake < GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
-            obj.CellSize = max(6, round(min(areaW, areaH) * 0.025));
+            obj.CellSize = max(6, round(min(areaW, areaH) * 0.06));
             % Scale factor: data units to screen points for MarkerSize/SizeData
             axPix = getpixelposition(ax);
             pxPerData = axPix(4) / areaH;
@@ -165,24 +165,27 @@ classdef Snake < GameBase
             cs = obj.CellSize;
             headPos = obj.Body(1, :);
 
-            % Determine direction from finger/mouse position relative to head.
-            % Skipped when arrow keys are active. Mouse reclaims control
-            % when it moves more than 1 cell from last position.
+            % Determine direction from finger/mouse MOVEMENT direction.
+            % In camera app, fingerPos - head works because finger is close.
+            % With mouse, use movement direction (pos - prevPos) so the
+            % snake turns based on which way you move, not where you are.
+            % Skipped when arrow keys are active.
             if obj.KeyboardMode && ~any(isnan(pos)) && ~any(isnan(obj.PrevPos))
                 if norm(pos - obj.PrevPos) > cs
                     obj.KeyboardMode = false;
                 end
             end
-            if ~obj.KeyboardMode && ~any(isnan(pos))
-                delta = pos - headPos;
-                if abs(delta(1)) > abs(delta(2))
-                    newDir = [sign(delta(1)), 0];
-                else
-                    newDir = [0, sign(delta(2))];
-                end
-                % Prevent 180-degree reversal
-                if ~isequal(newDir + obj.Direction, [0, 0]) && any(newDir ~= 0)
-                    obj.Direction = newDir;
+            if ~obj.KeyboardMode && ~any(isnan(pos)) && ~any(isnan(obj.PrevPos))
+                delta = pos - obj.PrevPos;
+                if norm(delta) > cs * 0.3  % only respond to significant movement
+                    if abs(delta(1)) > abs(delta(2))
+                        newDir = [sign(delta(1)), 0];
+                    else
+                        newDir = [0, sign(delta(2))];
+                    end
+                    if ~isequal(newDir + obj.Direction, [0, 0]) && any(newDir ~= 0)
+                        obj.Direction = newDir;
+                    end
                 end
             end
             obj.PrevPos = pos;
@@ -218,7 +221,7 @@ classdef Snake < GameBase
 
             % Check food collision
             ate = false;
-            if ~any(isnan(obj.FoodPos)) && norm(newHead - obj.FoodPos) < cs * 1.0
+            if ~any(isnan(obj.FoodPos)) && norm(newHead - obj.FoodPos) < cs * 0.5
                 ate = true;
                 obj.incrementCombo();
                 totalPoints = round(100 * obj.comboMultiplier());
