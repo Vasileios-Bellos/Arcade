@@ -49,7 +49,6 @@ classdef Snake < GameBase
         FoodPos         (1,2) double = [NaN, NaN]
         MoveAccum       (1,1) double = 0            % sub-cell movement accumulator
         ColormapRGB     (:,3) double                % 256-row neon colormap for body gradient
-        DataToPts       (1,1) double = 1            % data units → screen points conversion
         KeyboardMode    (1,1) logical = false     % true while arrow keys drive direction
         PrevPos         (1,2) double = [NaN, NaN]  % previous mouse position (for keyboard→mouse handoff)
         GameOver        (1,1) logical = false
@@ -91,11 +90,6 @@ classdef Snake < GameBase
             areaH = diff(dy);
 
             obj.CellSize = max(6, round(min(areaW, areaH) * 0.06));
-            % Scale factor: data units to screen points for MarkerSize/SizeData
-            axPix = getpixelposition(ax);
-            pxPerData = axPix(4) / areaH;
-            dpiVal = get(0, "ScreenPixelsPerInch");
-            obj.DataToPts = pxPerData * 72 / dpiVal;
             obj.BaseSpeed = max(1.0, obj.CellSize * 0.35);
             obj.Speed = obj.BaseSpeed;
             obj.MoveAccum = 0;
