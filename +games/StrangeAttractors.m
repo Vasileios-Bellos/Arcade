@@ -1,5 +1,5 @@
-classdef Lorenz < GameBase
-    %Lorenz  Strange attractor visualization with RK4 integration.
+classdef StrangeAttractors < GameBase
+    %StrangeAttractors  Strange attractor visualization with RK4 integration.
     %   40 tracers (default, 10-70 via Up/Down) in 4 strange attractors:
     %   Lorenz, Rossler, Thomas, Aizawa. Per-attractor 3D-to-2D projection
     %   with rotating viewpoint. Ribbon trail patches with movmean smoothing.
@@ -13,13 +13,13 @@ classdef Lorenz < GameBase
     %     Left/Right  — speed [0.25, 0.5, 1, 2, 3]x
     %     0           — reset particles to current attractor ICs
     %
-    %   Standalone: games.Lorenz().play()
+    %   Standalone: games.StrangeAttractors().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Lorenz"
+        Name = "Strange Attractors"
     end
 
     % =================================================================
@@ -63,7 +63,7 @@ classdef Lorenz < GameBase
     % =================================================================
     methods
         function onInit(obj, ax, displayRange, ~)
-            %onInit  Create Lorenz attractor graphics and seed particles.
+            %onInit  Create strange attractor graphics and seed particles.
             arguments
                 obj
                 ax
@@ -101,7 +101,7 @@ classdef Lorenz < GameBase
             obj.BgImageH = image(ax, "XData", dxRange, "YData", dyRange, ...
                 "CData", zeros(2, 2, 3, "uint8"), ...
                 "AlphaData", ones(2, 2) * 0.92, ...
-                "AlphaDataMapping", "none", "Tag", "GT_lorenz");
+                "AlphaDataMapping", "none", "Tag", "GT_strangeattractors");
             try
                 uistack(obj.BgImageH, "bottom");
                 uistack(obj.BgImageH, "up");
@@ -119,7 +119,7 @@ classdef Lorenz < GameBase
                     "FaceColor", "interp", "FaceAlpha", "interp", ...
                     "EdgeColor", "none", ...
                     "AlphaDataMapping", "none", ...
-                    "Tag", "GT_lorenz");
+                    "Tag", "GT_strangeattractors");
             end
             obj.TrailH = trailArr;
             obj.GlowH = [];
@@ -132,13 +132,13 @@ classdef Lorenz < GameBase
             end
             obj.ParticleH = scatter(ax, NaN(N, 1), NaN(N, 1), 35, ...
                 cdata, "filled", "MarkerFaceAlpha", 0.9, ...
-                "Tag", "GT_lorenz");
+                "Tag", "GT_strangeattractors");
 
             % HUD text
             obj.HudTextH = text(ax, dxRange(1) + 5, dyRange(2) - 5, ...
                 "", ...
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 8, ...
-                "VerticalAlignment", "bottom", "Tag", "GT_lorenz");
+                "VerticalAlignment", "bottom", "Tag", "GT_strangeattractors");
 
             % Seed the default attractor
             obj.SubMode = "lorenz";
@@ -321,7 +321,7 @@ classdef Lorenz < GameBase
         end
 
         function onCleanup(obj)
-            %onCleanup  Delete all Lorenz attractor graphics.
+            %onCleanup  Delete all strange attractor graphics.
             if ~isempty(obj.TrailH)
                 for k = 1:numel(obj.TrailH)
                     if isvalid(obj.TrailH(k)); delete(obj.TrailH(k)); end
@@ -339,7 +339,7 @@ classdef Lorenz < GameBase
             end
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_lorenz");
+            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_strangeattractors");
 
             obj.TrailH = [];
             obj.GlowH = [];
@@ -367,7 +367,7 @@ classdef Lorenz < GameBase
         end
 
         function handled = onKeyPress(obj, key)
-            %onKeyPress  Handle Lorenz-specific key events.
+            %onKeyPress  Handle StrangeAttractors-specific key events.
             handled = true;
             switch key
                 case "m"
@@ -426,8 +426,8 @@ classdef Lorenz < GameBase
         end
 
         function r = getResults(obj)
-            %getResults  Return Lorenz-specific results.
-            r.Title = "LORENZ";
+            %getResults  Return StrangeAttractors-specific results.
+            r.Title = "STRANGE ATTRACTORS";
             r.Lines = {
                 sprintf("Mode: %s  |  Particles: %d", obj.SubMode, obj.TracerCount)
             };

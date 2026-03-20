@@ -1079,7 +1079,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("numpad6", @games.NewtonsCradle, "Newton's Cradle");
             obj.registerGame("numpad7", @games.EmField, "EM Field");
             obj.registerGame("numpad8", @games.Planets, "Planets");
-            obj.registerGame("numpad9", @games.Lorenz, "Lorenz");
+            obj.registerGame("numpad9", @games.StrangeAttractors, "Strange Attractors");
             obj.registerGame("numpad0", @games.FourierEpicycle, "Fourier Epicycle");
             obj.registerGame("alt+e", @games.Ecosystem, "Ecosystem");
         end

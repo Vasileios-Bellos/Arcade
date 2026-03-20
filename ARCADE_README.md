@@ -75,7 +75,7 @@ All three modes use the same game classes and the same FPS scaling.
 | Num6 | Newton's Cradle | RK4 with elastic collision, chrome balls, 6 configurations |
 | Num7 | EM Field | Coulomb field quiver plot + cyclotron particle accelerator |
 | Num8 | Planets | Full N-body solar system (10 bodies) with Velocity Verlet |
-| Num9 | Lorenz | 4 strange attractors — Lorenz, Rossler, Thomas, Aizawa |
+| Num9 | Strange Attractors | 4 strange attractors — Lorenz, Rossler, Thomas, Aizawa |
 
 ### Art / Misc
 
