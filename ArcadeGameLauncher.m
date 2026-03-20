@@ -352,40 +352,15 @@ classdef ArcadeGameLauncher < handle
                 return;
             end
 
-            % Menu state: adapt coordinate system to new window size
-            obj.computeDisplayRange();
-            obj.Ax.XLim = obj.DisplayRange.X;
-            obj.Ax.YLim = obj.DisplayRange.Y;
+            % Menu state: letterbox like games do (fixed display range)
+            menuAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
+            pbaspect(obj.Ax, [menuAR 1 1]);
 
-            % Stop timer during rebuild to prevent re-entrant onFrame
-            restartTimer = false;
-            if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer) ...
-                    && strcmp(obj.RenderTimer.Running, "on")
-                stop(obj.RenderTimer);
-                restartTimer = true;
-            end
-
-            % Rebuild menu
-            if ~isempty(obj.Menu)
-                obj.Menu.resize(obj.DisplayRange);
-            end
-
-            % Rebuild HUD
-            handles = {obj.ScoreTextH, obj.ComboTextH, ...
-                obj.StatusTextH, obj.HudTextH, obj.FpsTextH};
-            for k = 1:numel(handles)
-                h = handles{k};
-                if ~isempty(h) && isvalid(h)
-                    delete(h);
-                end
-            end
-            obj.createHUD();
-            obj.hideGameplayHUD();
-
-            drawnow;
-
-            if restartTimer
-                start(obj.RenderTimer);
+            % Scale screen-space objects (text, markers) based on pixel size
+            if obj.RefPixelSize(1) > 0
+                axPx = getpixelposition(obj.Ax);
+                pixelScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
+                GameBase.scaleScreenSpaceObjects(obj.Ax, pixelScale);
             end
         end
     end

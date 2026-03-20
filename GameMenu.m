@@ -472,20 +472,15 @@ classdef (Sealed) GameMenu < handle
             tag = obj.TagPrefix;
 
             % --- Starfield ---
+            % Starfield as a single line with dot markers (scales via scaleScreenSpaceObjects)
             nStars = max(20, round(90 * obj.LayoutScale));
             sx = dx(1) + rand(nStars, 1) * rangeW;
             sy = dy(1) + rand(nStars, 1) * rangeH;
-            ssz = (10 + rand(nStars, 1) * 40) * obj.LayoutScale^2;
-            try
-                obj.StarfieldH = scatter(ax, sx, sy, ssz, ...
-                    ones(nStars, 1) * [0.35 0.40 0.55], "filled", ...
-                    "MarkerFaceAlpha", 0.50, "Tag", tag + "Star");
-            catch
-                % Timer interrupt during scatter creation — retry without alpha
-                obj.StarfieldH = scatter(ax, sx, sy, ssz, ...
-                    ones(nStars, 1) * [0.35 0.40 0.55], "filled", ...
-                    "Tag", tag + "Star");
-            end
+            obj.StarfieldH = line(ax, sx, sy, ...
+                "LineStyle", "none", "Marker", ".", ...
+                "MarkerSize", 3, "Color", [0.35 0.40 0.55 0.4], ...
+                "Tag", tag + "Star");
+            uistack(obj.StarfieldH, "bottom");
 
             % --- Title (large) ---
             s = obj.LayoutScale;
