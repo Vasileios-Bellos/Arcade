@@ -1133,32 +1133,30 @@ classdef (Sealed) GameMenu < handle
         end
 
         function spawnComet(obj, k, dx, dy, rangeW, rangeH)
-            %spawnComet  Initialize comet k from a random edge, any diagonal direction.
-            % Pick random edge and position along it
-            edge = randi(4);  % 1=top, 2=bottom, 3=left, 4=right
+            %spawnComet  Spawn from top or sides, always diagonal (never vertical/upward).
+            %   Top: diagonal down-left or down-right (30-60 deg from vertical)
+            %   Left side: diagonal down-right (30-60 deg below horizontal)
+            %   Right side: diagonal down-left (30-60 deg below horizontal)
+            %   Never from bottom. Never vertical. Always has horizontal component.
+            edge = randi(3);  % 1=top, 2=left, 3=right (no bottom)
             switch edge
-                case 1  % top
-                    startX = dx(1) + rand() * rangeW;
+                case 1  % top edge
+                    startX = dx(1) + (0.1 + rand() * 0.8) * rangeW;
                     startY = dy(1);
-                case 2  % bottom
-                    startX = dx(1) + rand() * rangeW;
-                    startY = dy(2);
-                case 3  % left
+                    % Diagonal downward: 30-60 deg from vertical, random left or right
+                    angleDeg = 30 + rand() * 30;  % 30-60 from vertical
+                    if rand() > 0.5; angleDeg = -angleDeg; end
+                    angle = pi/2 + angleDeg * pi / 180;  % convert to math angle
+                case 2  % left edge (upper 70%)
                     startX = dx(1);
-                    startY = dy(1) + rand() * rangeH;
-                case 4  % right
+                    startY = dy(1) + rand() * rangeH * 0.7;
+                    % Diagonal down-right: 20-50 deg below horizontal
+                    angle = (20 + rand() * 30) * pi / 180;
+                case 3  % right edge (upper 70%)
                     startX = dx(2);
-                    startY = dy(1) + rand() * rangeH;
-            end
-
-            % Direction: inward diagonal (30-60 deg from edge normal)
-            % Always points into the screen
-            baseAngle = (30 + rand() * 30) * pi / 180;
-            switch edge
-                case 1; angle = pi/2 + (rand()-0.5) * baseAngle;   % downward-ish
-                case 2; angle = -pi/2 + (rand()-0.5) * baseAngle;  % upward-ish
-                case 3; angle = (rand()-0.5) * baseAngle;           % rightward-ish
-                case 4; angle = pi + (rand()-0.5) * baseAngle;      % leftward-ish
+                    startY = dy(1) + rand() * rangeH * 0.7;
+                    % Diagonal down-left: 20-50 deg below horizontal
+                    angle = pi - (20 + rand() * 30) * pi / 180;
             end
             speed = (0.6 + rand() * 0.4) * max(rangeW, rangeH);
             vx = speed * cos(angle);
