@@ -86,13 +86,18 @@ classdef Asteroids < GameBase
             obj.Rocks = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                 "radius", {}, "tier", {}, "angle", {}, "spin", {}, "patchH", {});
 
-            % Ship graphics (doubled radius)
-            shipR = max(4, round(min(diff(dx), diff(dy)) * 0.04));
+            % Ship graphics — convert data-unit radius to points for SizeData
+            shipRData = max(4, round(min(diff(dx), diff(dy)) * 0.04));
+            pixPos = getpixelposition(ax);
+            pxPerData = pixPos(3) / diff(dx);
+            dpiVal = get(0, "ScreenPixelsPerInch");
+            ptPerPx = 72 / dpiVal;
+            shipRPts = shipRData * pxPerData * ptPerPx;
             obj.ShipGlowH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
-                (shipR * 4)^2, obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.2, ...
+                (shipRPts * 3)^2, obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.2, ...
                 "Tag", "GT_asteroids");
             obj.ShipCoreH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
-                (shipR * 1.5)^2, obj.ColorCyan, "filled", "Tag", "GT_asteroids");
+                (shipRPts * 1.2)^2, obj.ColorCyan, "filled", "Tag", "GT_asteroids");
             obj.ShipTrailH = line(ax, NaN, NaN, "Color", [obj.ColorCyan, 0.4], ...
                 "LineWidth", 2, "Tag", "GT_asteroids");
 
@@ -303,7 +308,7 @@ classdef Asteroids < GameBase
             if norm(aimDir) > 0
                 aimDir = aimDir / norm(aimDir);
             end
-            bSpeed = max(1.25, min(diff(dx), diff(dy)) * 0.0125);
+            bSpeed = max(2.5, min(diff(dx), diff(dy)) * 0.025);
             bvx = aimDir(1) * bSpeed;
             bvy = aimDir(2) * bSpeed;
             sx = obj.ShipPos(1);
