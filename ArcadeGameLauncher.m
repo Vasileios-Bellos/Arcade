@@ -164,7 +164,6 @@ classdef ArcadeGameLauncher < handle
                 "Subtitle", menuSubtitle);
 
             obj.enterMenu();
-            obj.Menu.scaleFonts();
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
             obj.startTimer();
         end
