@@ -508,11 +508,8 @@ classdef SpaceInvaders < GameBase
                 flashElapsed = toc(obj.LivesFlashTic);
                 showDur = 0.6;
                 fadeDur = 0.4;
-                if flashElapsed < showDur
-                    obj.LivesTextH.Color = obj.ColorRed;
-                elseif flashElapsed < showDur + fadeDur
-                    fadeAlpha = 1 - (flashElapsed - showDur) / fadeDur;
-                    obj.LivesTextH.Color = [obj.ColorRed, max(0, fadeAlpha)];
+                if flashElapsed < showDur + fadeDur
+                    obj.LivesTextH.Visible = "on";
                 else
                     obj.LivesTextH.Visible = "off";
                     obj.LivesFlashTic = [];
