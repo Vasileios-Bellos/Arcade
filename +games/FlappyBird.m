@@ -124,7 +124,7 @@ classdef FlappyBird < GameBase
                 obj.FlpBirdY = mean(dy);
                 obj.FlpBirdVelY = 0;
                 obj.FlpGravity = areaH * 0.0008;       % tuned for ~480-height display
-                obj.FlpFlapImpulse = -areaH * 0.018;    % upward burst (negative in YDir=reverse)
+                obj.FlpFlapImpulse = -areaH * 0.013;    % upward burst (negative in YDir=reverse)
                 obj.FlpFlapPending = false;
             end
 

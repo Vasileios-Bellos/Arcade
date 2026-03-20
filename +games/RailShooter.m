@@ -708,7 +708,7 @@ classdef RailShooter < GameBase
             end
             r.Lines = {
                 statusStr
-                sprintf("Wave: %d  |  Kills: %d", obj.Wave, obj.KillCount)
+                sprintf("Wave: %d  |  Cleared: %d", obj.Wave, obj.KillCount)
             };
         end
     end
