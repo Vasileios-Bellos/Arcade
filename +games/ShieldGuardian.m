@@ -42,7 +42,9 @@ classdef ShieldGuardian < GameBase
     % =================================================================
     properties (Access = private)
         CorePos         (1,2) double = [NaN, NaN]
-        CoreRadius      (1,1) double = 18
+        CoreRadius      (1,1) double = 6         % data-unit radius of core orb
+        HitboxRadius    (1,1) double = 5         % data-unit radius of hitbox disc
+        ShieldRadius    (1,1) double = 8         % data-unit radius of shield arc
         Lives           (1,1) double = 3
         MaxLives        (1,1) double = 3
         ShieldAngle     (1,1) double = 0        % shield center angle (radians)
@@ -50,7 +52,6 @@ classdef ShieldGuardian < GameBase
         Wave            (1,1) double = 1
         SpawnTimer      (1,1) double = 0
         GameOver        (1,1) logical = false
-        CachedPtsToData (1,1) double = 1        % points-to-data conversion factor
     end
 
     % =================================================================
@@ -88,6 +89,7 @@ classdef ShieldGuardian < GameBase
             dy = displayRange.Y;
             areaW = diff(dx);
             areaH = diff(dy);
+            minDim = min(areaW, areaH);
 
             obj.CorePos = [mean(dx), mean(dy)];
             obj.Lives = 3;
@@ -109,33 +111,27 @@ classdef ShieldGuardian < GameBase
             obj.ProjColor(:) = 0;
             obj.ProjType(:) = "";
 
-            % Core sizing
-            coreR = max(18, round(min(areaW, areaH) * 0.12));
-            obj.CoreRadius = coreR;
+            % Data-unit radii (small — ~4% of display for core, ~6% for shield)
+            obj.CoreRadius = max(3, minDim * 0.04);
+            obj.ShieldRadius = max(5, minDim * 0.06);
+            obj.HitboxRadius = obj.ShieldRadius * 0.9;
 
-            % Shield radius (same as GestureTrainer original)
-            shieldR = max(12, round(min(areaW, areaH) * 0.12));
+            % Compute initial SizeData from data-unit radii
+            [coreSz, ~] = obj.computeSizeData(ax, displayRange, obj.CoreRadius);
+            [hitSz, ~] = obj.computeSizeData(ax, displayRange, obj.HitboxRadius);
 
-            % Cache DPI/pixel conversion (expensive calls done once)
-            axPix = getpixelposition(ax);
-            dpiVal = get(0, "ScreenPixelsPerInch");
-            pxPerData = axPix(4) / areaH;
-            obj.CachedPtsToData = dpiVal / (72 * pxPerData);
-
-            % Hitbox disc (scatter sized to collision radius in data units)
-            hitboxR = shieldR * 0.9;
-            hitboxPts = hitboxR * pxPerData * 72 / dpiVal;
+            % Hitbox disc (translucent background behind core)
             obj.HitboxCircleH = scatter(ax, obj.CorePos(1), obj.CorePos(2), ...
-                hitboxPts^2 * pi, obj.ColorCyan, "filled", ...
+                hitSz, obj.ColorCyan, "filled", ...
                 "MarkerFaceAlpha", 0.6, "Tag", "GT_shieldguardian");
 
-            % Core orb (fully opaque center — convert data radius to screen points)
-            corePts = coreR * pxPerData * 72 / dpiVal;
+            % Core orb (fully opaque center)
             obj.CorePatchH = scatter(ax, obj.CorePos(1), obj.CorePos(2), ...
-                corePts^2 * pi, obj.ColorCyan, "filled", "MarkerFaceAlpha", 1.0, ...
+                coreSz, obj.ColorCyan, "filled", "MarkerFaceAlpha", 1.0, ...
                 "Tag", "GT_shieldguardian");
 
             % Shield arc
+            shieldR = obj.ShieldRadius;
             shieldTheta = linspace(-obj.ShieldArc / 2, obj.ShieldArc / 2, 20);
             sx = obj.CorePos(1) + shieldR * cos(shieldTheta);
             sy = obj.CorePos(2) + shieldR * sin(shieldTheta);
@@ -158,14 +154,15 @@ classdef ShieldGuardian < GameBase
                 "Tag", "GT_shieldguardian");
 
             % Pre-allocate projectile pool (20 scatter pairs, all hidden)
+            % Use a small placeholder SizeData — updated dynamically each frame
             obj.ProjPoolScatter = cell(1, 20);
             obj.ProjPoolGlow = cell(1, 20);
-            defaultSz = max(40, coreR^2 * pi);
+            placeholderSz = 40;
             for k = 1:20
-                obj.ProjPoolGlow{k} = scatter(ax, NaN, NaN, defaultSz * 3, ...
+                obj.ProjPoolGlow{k} = scatter(ax, NaN, NaN, placeholderSz, ...
                     obj.ColorRed, "filled", "MarkerFaceAlpha", 0.12, ...
                     "Visible", "off", "Tag", "GT_shieldguardian");
-                obj.ProjPoolScatter{k} = scatter(ax, NaN, NaN, defaultSz, ...
+                obj.ProjPoolScatter{k} = scatter(ax, NaN, NaN, placeholderSz, ...
                     obj.ColorRed, "filled", "MarkerFaceAlpha", 0.8, ...
                     "Visible", "off", "Tag", "GT_shieldguardian");
             end
@@ -182,12 +179,25 @@ classdef ShieldGuardian < GameBase
 
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
-            areaW = diff(dx);
-            areaH = diff(dy);
             corePos = obj.CorePos;
+            shieldR = obj.ShieldRadius;
+            hitboxR = obj.HitboxRadius;
 
-            % Use cached points-to-data conversion
-            ptsToData = obj.CachedPtsToData;
+            % --- Recompute SizeData from data-unit radii (resize-safe) ---
+            pixPos = getpixelposition(ax);
+            pxPerData = pixPos(3) / diff(dx);
+            dpiVal = get(0, "ScreenPixelsPerInch");
+            ptPerPx = 72 / dpiVal;
+
+            % Update core orb and hitbox SizeData
+            if ~isempty(obj.CorePatchH) && isvalid(obj.CorePatchH)
+                corePts = obj.CoreRadius * pxPerData * ptPerPx;
+                obj.CorePatchH.SizeData = corePts^2 * pi;
+            end
+            if ~isempty(obj.HitboxCircleH) && isvalid(obj.HitboxCircleH)
+                hitPts = hitboxR * pxPerData * ptPerPx;
+                obj.HitboxCircleH.SizeData = hitPts^2 * pi;
+            end
 
             % --- Update shield angle based on finger position ---
             if ~any(isnan(pos))
@@ -196,7 +206,6 @@ classdef ShieldGuardian < GameBase
             end
 
             % --- Update shield graphics ---
-            shieldR = max(12, round(min(areaW, areaH) * 0.12));
             shieldTheta = linspace( ...
                 obj.ShieldAngle - obj.ShieldArc / 2, ...
                 obj.ShieldAngle + obj.ShieldArc / 2, 20);
@@ -217,10 +226,24 @@ classdef ShieldGuardian < GameBase
                 obj.spawnProjectile();
             end
 
-            % --- Move projectiles (iterate active pool slots in reverse) ---
-            hitboxR = shieldR * 0.9;
+            % --- Update projectile SizeData for all active slots ---
             activeIdx = find(obj.ProjActive);
+            for ii = 1:numel(activeIdx)
+                k = activeIdx(ii);
+                rData = obj.ProjRadius(k);
+                rPts = rData * pxPerData * ptPerPx;
+                coreSz = rPts^2 * pi;
+                sH = obj.ProjPoolScatter{k};
+                if ~isempty(sH) && isvalid(sH)
+                    sH.SizeData = coreSz;
+                end
+                gH = obj.ProjPoolGlow{k};
+                if ~isempty(gH) && isvalid(gH)
+                    gH.SizeData = coreSz * 3;
+                end
+            end
 
+            % --- Move projectiles (iterate active pool slots in reverse) ---
             for ii = numel(activeIdx):-1:1
                 k = activeIdx(ii);
 
@@ -245,7 +268,7 @@ classdef ShieldGuardian < GameBase
                 distToCore = sqrt((px - corePos(1))^2 + (py - corePos(2))^2);
 
                 % --- Shield deflection ---
-                if distToCore < shieldR + 3 && distToCore > shieldR - 5
+                if distToCore < shieldR + 2 && distToCore > shieldR - 3
                     projAngle = atan2(py - corePos(2), px - corePos(1));
                     angleDiff = mod(projAngle - obj.ShieldAngle + pi, 2*pi) - pi;
                     if abs(angleDiff) < obj.ShieldArc / 2
@@ -268,7 +291,7 @@ classdef ShieldGuardian < GameBase
                     end
                 end
 
-                % --- Core hit (hitbox = glow radius) ---
+                % --- Core hit (hitbox radius, data units) ---
                 if distToCore < hitboxR && obj.ProjType(k) ~= "deflected"
                     obj.Lives = obj.Lives - 1;
                     obj.resetCombo();
@@ -302,6 +325,7 @@ classdef ShieldGuardian < GameBase
                 end
 
                 % --- Deflected hitting another projectile (chain) ---
+                % ProjRadius is in data units — compare directly to distance
                 if obj.ProjType(k) == "deflected"
                     activeJ = find(obj.ProjActive);
                     for jj = numel(activeJ):-1:1
@@ -310,7 +334,7 @@ classdef ShieldGuardian < GameBase
                         if obj.ProjType(j) ~= "deflected" && ...
                                 sqrt((px - obj.ProjX(j))^2 + ...
                                      (py - obj.ProjY(j))^2) ...
-                                < (obj.ProjRadius(k) + obj.ProjRadius(j)) * ptsToData
+                                < (obj.ProjRadius(k) + obj.ProjRadius(j))
                             obj.addScore(50);
                             obj.incrementCombo();
                             obj.spawnBounceEffect( ...
@@ -405,6 +429,8 @@ classdef ShieldGuardian < GameBase
         function spawnProjectile(obj)
             %spawnProjectile  Spawn a projectile from a random edge aimed at core.
             %   Activates the first available slot from the pre-allocated pool.
+            %   ProjRadius stores data-unit radii; SizeData is recomputed each
+            %   frame in onUpdate for resize safety.
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
@@ -416,6 +442,7 @@ classdef ShieldGuardian < GameBase
             dy = obj.DisplayRange.Y;
             areaW = diff(dx);
             areaH = diff(dy);
+            minDim = min(areaW, areaH);
 
             % Spawn from just beyond visible edge (direction-dependent)
             spawnAngle = rand * 2 * pi;
@@ -424,7 +451,7 @@ classdef ShieldGuardian < GameBase
             absCos = max(abs(cos(spawnAngle)), 1e-6);
             absSin = max(abs(sin(spawnAngle)), 1e-6);
             edgeDist = min(halfW / absCos, halfH / absSin);
-            spawnR = edgeDist + 15;  % 15 data-unit margin beyond edge
+            spawnR = edgeDist + 10;
             x = obj.CorePos(1) + spawnR * cos(spawnAngle);
             y = obj.CorePos(2) + spawnR * sin(spawnAngle);
 
@@ -438,32 +465,33 @@ classdef ShieldGuardian < GameBase
             sa = sin(spreadVal);
             aimed = [toCore(1)*ca - toCore(2)*sa, toCore(1)*sa + toCore(2)*ca];
 
-            baseSpeed = max(0.333, min(areaW, areaH) * 0.0083) ...
+            baseSpeed = max(0.333, minDim * 0.0083) ...
                 * (1 + obj.Wave * 0.1);
 
             % Random type: fast (red), normal (magenta), heavy (orange)
+            % Radii are in data units (~1-2% of display)
             pType = randi(3);
             switch pType
                 case 1  % Fast: small, red, 1.5x speed
                     clr = obj.ColorRed;
                     speedMult = 1.5;
-                    radiusVal = max(4, obj.CoreRadius * 0.2);
+                    radiusData = max(0.8, minDim * 0.008);
                 case 2  % Normal: medium, magenta, 1x speed
                     clr = obj.ColorMagenta;
                     speedMult = 1.0;
-                    radiusVal = max(6, obj.CoreRadius * 0.3);
+                    radiusData = max(1.2, minDim * 0.012);
                 case 3  % Heavy: large, orange, 0.6x speed
                     clr = obj.ColorOrange;
                     speedMult = 0.6;
-                    radiusVal = max(8, obj.CoreRadius * 0.45);
+                    radiusData = max(1.5, minDim * 0.018);
             end
 
             speedVal = baseSpeed * speedMult;
             vx = aimed(1) * speedVal;
             vy = aimed(2) * speedVal;
-            % Convert data-unit radius to screen points for SizeData
-            radiusPts = radiusVal / obj.CachedPtsToData;
-            markerSz = max(40, radiusPts^2 * pi);
+
+            % Compute initial SizeData for immediate display
+            [coreSz, ~] = obj.computeSizeData(ax, obj.DisplayRange, radiusData);
 
             % Populate pool slot
             obj.ProjX(slot) = x;
@@ -472,19 +500,19 @@ classdef ShieldGuardian < GameBase
             obj.ProjVy(slot) = vy;
             obj.ProjType(slot) = "incoming";
             obj.ProjSpeed(slot) = speedVal;
-            obj.ProjRadius(slot) = radiusVal;
+            obj.ProjRadius(slot) = radiusData;
             obj.ProjColor(slot, :) = clr;
             obj.ProjActive(slot) = true;
 
             % Activate pool scatter handles
             sH = obj.ProjPoolScatter{slot};
             if ~isempty(sH) && isvalid(sH)
-                set(sH, "XData", x, "YData", y, "SizeData", markerSz, ...
+                set(sH, "XData", x, "YData", y, "SizeData", coreSz, ...
                     "CData", clr, "Visible", "on");
             end
             gH = obj.ProjPoolGlow{slot};
             if ~isempty(gH) && isvalid(gH)
-                set(gH, "XData", x, "YData", y, "SizeData", markerSz * 3, ...
+                set(gH, "XData", x, "YData", y, "SizeData", coreSz * 3, ...
                     "CData", clr, "Visible", "on");
             end
         end
@@ -500,6 +528,27 @@ classdef ShieldGuardian < GameBase
             if ~isempty(gH) && isvalid(gH)
                 set(gH, "XData", NaN, "YData", NaN, "Visible", "off");
             end
+        end
+    end
+
+    % =================================================================
+    % STATIC HELPERS
+    % =================================================================
+    methods (Static, Access = private)
+        function [sz, rPts] = computeSizeData(ax, displayRange, rData)
+            %computeSizeData  Convert data-unit radius to scatter SizeData.
+            %   SizeData is in points^2. This uses getpixelposition and DPI to
+            %   produce correct screen-space sizing that adapts to window resize.
+            %
+            %   [sz, rPts] = computeSizeData(ax, displayRange, rData)
+            %     rData  — radius in data units
+            %     sz     — SizeData value (points^2)
+            %     rPts   — radius in typographic points
+            pixPos = getpixelposition(ax);
+            pxPerData = pixPos(3) / diff(displayRange.X);
+            dpiVal = get(0, "ScreenPixelsPerInch");
+            rPts = rData * pxPerData * 72 / dpiVal;
+            sz = rPts^2 * pi;
         end
     end
 end
