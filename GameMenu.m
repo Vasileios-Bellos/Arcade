@@ -1111,50 +1111,46 @@ classdef (Sealed) GameMenu < handle
                 obj.CometH(k).YData = trailY;
                 obj.CometH(k).Visible = "on";
 
-                % Fade trail color based on progress (fade out in last 40%)
-                fadeOut = 1.0 - max(0, (obj.CometProgress(k) - 0.6) / 0.4);
-                obj.CometH(k).Color = [0.35 0.43 0.50] * (0.3 + 0.7 * fadeOut);
+                % Fade: gradual in (first 15%) and gradual out (last 60%)
+                p = obj.CometProgress(k);
+                if p < 0.15
+                    fade = p / 0.15;           % 0→1 over first 15%
+                elseif p > 0.4
+                    fade = 1.0 - (p - 0.4) / 0.6;  % 1→0 over last 60%
+                else
+                    fade = 1.0;
+                end
+                fade = max(0, fade);
+                obj.CometH(k).Color = [0.35 0.43 0.50] * (0.2 + 0.8 * fade);
 
                 % Head dot
                 obj.CometHeadH(k).XData = headX;
                 obj.CometHeadH(k).YData = headY;
                 obj.CometHeadH(k).Visible = "on";
-                headBright = 0.5 + 0.5 * fadeOut;
-                obj.CometHeadH(k).Color = [0.70 0.85 1.0] * headBright;
+                obj.CometHeadH(k).Color = [0.70 0.85 1.0] * (0.3 + 0.7 * fade);
             end
         end
 
         function spawnComet(obj, k, dx, dy, rangeW, rangeH)
-            %spawnComet  Initialize comet k with random start edge, direction, duration.
-            % Pick a random edge (0=top, 1=right, 2=bottom, 3=left)
-            % Bias toward top and sides for natural "falling star" look
-            edgeChoice = randi(3);  % 1=top, 2=left, 3=right (no bottom spawn)
+            %spawnComet  Initialize comet k from upper region, streaking diagonally down.
+            % Start in upper 20% of screen, random X
+            startX = dx(1) + (0.1 + rand() * 0.8) * rangeW;
+            startY = dy(1) + rand() * rangeH * 0.2;
 
-            switch edgeChoice
-                case 1  % Top edge
-                    startX = dx(1) + rand() * rangeW;
-                    startY = dy(1) + rangeH * 0.05;
-                case 2  % Left edge (upper half)
-                    startX = dx(1) + rangeW * 0.05;
-                    startY = dy(1) + rand() * rangeH * 0.5;
-                case 3  % Right edge (upper half)
-                    startX = dx(2) - rangeW * 0.05;
-                    startY = dy(1) + rand() * rangeH * 0.5;
+            % Direction: steep diagonal downward (55-75 deg from horizontal)
+            % Randomly left or right
+            angle = (55 + rand() * 20) * pi / 180;
+            if rand() > 0.5
+                angle = pi - angle;  % streak left instead of right
             end
-
-            % Direction: mostly diagonal downward
-            angle = pi / 4 + (rand() - 0.5) * pi / 3;  % 15-75 degrees from horizontal
-            if edgeChoice == 3
-                angle = pi - angle;  % Mirror for right edge (travel leftward)
-            end
-            speed = (0.5 + rand() * 0.3) * max(rangeW, rangeH);  % 50-80% of screen per second
+            speed = (0.6 + rand() * 0.4) * max(rangeW, rangeH);
             vx = speed * cos(angle);
             vy = speed * sin(angle);
 
             obj.CometPos(:, k) = [startX; startY];
             obj.CometVel(:, k) = [vx; vy];
             obj.CometProgress(k) = 0;
-            obj.CometDuration(k) = 0.6 + rand() * 0.6;  % 0.6-1.2 seconds
+            obj.CometDuration(k) = 1.0 + rand() * 0.8;  % 1.0-1.8 seconds
             obj.CometActive(k) = true;
         end
     end
