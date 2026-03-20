@@ -1053,59 +1053,61 @@ classdef Tetris < GameBase
 
         function renderNext(obj)
             %renderNext  Show the next 3 pieces in the preview box.
-            %   Equal spacing: total shape rows counted, remaining box space
-            %   divided equally among 4 gaps (top, between1, between2, bottom).
-            %   Even-width pieces (I=4, O=2) offset left by half a cell.
+            %   Equal spacing: remaining vertical space after shapes is divided
+            %   equally among 4 slots (top, gap1, gap2, bottom).
+            %   Even-width pieces offset left by half a cell.
             baseCenterX = obj.NextBoxX + obj.NextBoxW / 2;
             nPreview = min(3, numel(obj.NextQueue));
 
-            % Compute per-piece row spans and column widths
-            pieceRowSpan = zeros(1, nPreview);
-            pieceWidth = zeros(1, nPreview);
+            % Compute per-piece heights and widths from offsets
+            pieceH = zeros(1, nPreview);   % height in cells
+            pieceW = zeros(1, nPreview);   % width in cells
+            pieceMinR = zeros(1, nPreview);
             for p = 1:nPreview
                 off = obj.PieceCells{obj.NextQueue(p)}(:, :, 1);
-                pieceRowSpan(p) = double(max(off(:, 1)) - min(off(:, 1))) + 1;
-                pieceWidth(p) = double(max(off(:, 2)) - min(off(:, 2))) + 1;
+                minR = double(min(off(:, 1)));
+                maxR = double(max(off(:, 1)));
+                pieceH(p) = maxR - minR + 1;
+                pieceMinR(p) = minR;
+                pieceW(p) = double(max(off(:, 2)) - min(off(:, 2))) + 1;
             end
 
-            % Total shape rows and equal gap calculation
-            totalShapeH = sum(pieceRowSpan) * obj.CellH;
-            nGaps = nPreview + 1;  % 4 gaps: top, between1, between2, bottom
-            gapH = (obj.NextBoxH - totalShapeH) / nGaps;
+            % Equal gap = remaining space / 4
+            totalShapeH = sum(pieceH) * obj.CellH;
+            gapH = (obj.NextBoxH - totalShapeH) / (nPreview + 1);
 
-            % Place each piece with equal gaps
-            curY = obj.NextBoxY + gapH;  % top gap
+            % Place pieces by top edge (no center math)
+            topY = obj.NextBoxY + gapH;  % top of first piece
 
             for p = 1:nPreview
                 offsets = obj.PieceCells{obj.NextQueue(p)}(:, :, 1);
                 clr = obj.PieceClrs(obj.NextQueue(p), :);
                 brightClr = min(1, clr * 1.4);
 
-                % Center Y of this piece
-                pieceCenterY = curY + (pieceRowSpan(p) / 2) * obj.CellH;
-
                 % Even-width pieces shift left by half a cell
                 cx = baseCenterX;
-                if mod(pieceWidth(p), 2) == 0
+                if mod(pieceW(p), 2) == 0
                     cx = cx - obj.CellW / 2;
                 end
 
+                % Place each cell: y = topY + (dr - minDr) * CellH
+                minR = pieceMinR(p);
                 for k = 1:4
                     dr = double(offsets(k, 1));
                     dc = double(offsets(k, 2));
-                    [xv, yv] = obj.miniCellVerts(cx, pieceCenterY, dr, dc);
+                    x0 = cx + (dc - 0.5) * obj.CellW;
+                    y0 = topY + (dr - minR) * obj.CellH;
+                    xv = [x0, x0 + obj.CellW, x0 + obj.CellW, x0];
+                    yv = [y0, y0, y0 + obj.CellH, y0 + obj.CellH];
                     if isvalid(obj.NextCell(p, k))
-                        obj.NextCell(p, k).XData = xv;
-                        obj.NextCell(p, k).YData = yv;
-                        obj.NextCell(p, k).FaceColor = clr;
-                        obj.NextCell(p, k).FaceAlpha = 0.75;
-                        obj.NextCell(p, k).EdgeColor = brightClr;
-                        obj.NextCell(p, k).Visible = "on";
+                        set(obj.NextCell(p, k), "XData", xv, "YData", yv, ...
+                            "FaceColor", clr, "FaceAlpha", 0.75, ...
+                            "EdgeColor", brightClr, "Visible", "on");
                     end
                 end
 
-                % Advance past this piece + one equal gap
-                curY = curY + pieceRowSpan(p) * obj.CellH + gapH;
+                % Advance: this piece height + one gap
+                topY = topY + pieceH(p) * obj.CellH + gapH;
             end
 
             % Hide unused slots
