@@ -52,7 +52,7 @@ All three modes use the same game classes and the same FPS scaling.
 | Shift+6 | Orbital Defense | Hex base, asteroid waves, chain-reaction explosions |
 | Shift+7 | Gravity Well | N-body sandbox with 6 colored particles and cursor attractor |
 | Shift+8 | Shield Guardian | Rotate a shield arc to deflect projectiles, protect core HP |
-| Shift+9 | FPS Rail Shooter | Pseudo-3D depth scaling, 4 monster types, screen shake |
+| Shift+9 | Rail Shooter | Pseudo-3D depth scaling, 4 monster types, screen shake |
 
 ### Physics Simulations
 

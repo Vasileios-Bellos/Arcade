@@ -1050,7 +1050,7 @@ classdef (Sealed) ArcadeGameLauncher < handle
             obj.registerGame("shift+6", @games.OrbitalDefense, "Orbital Defense");
             obj.registerGame("shift+7", @games.GravityWell, "Gravity Well");
             obj.registerGame("shift+8", @games.ShieldGuardian, "Shield Guardian");
-            obj.registerGame("shift+9", @games.FpsRailShooter, "FPS Rail Shooter");
+            obj.registerGame("shift+9", @games.RailShooter, "Rail Shooter");
 
             % === Alt + number keys ===
             obj.registerGame("alt+1", @games.MoleculeGrid, "Molecule Grid");
