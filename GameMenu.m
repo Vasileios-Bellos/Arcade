@@ -186,12 +186,12 @@ classdef (Sealed) GameMenu < handle
             % varies with maximize timing). Screen size is constant.
             screenSz = get(0, "ScreenSize");  % [1 1 width height]
             pxScale = min(screenSz(3) / 1920, screenSz(4) / 1080);
-            obj.TitleFontSize = max(14, round(54 * pxScale));
-            obj.SubtitleFontSize = max(8, round(18 * pxScale));
-            obj.NameFontSize = max(9, round(22 * pxScale));
-            obj.KeyFontSize = max(8, round(20 * pxScale));
-            obj.ScoreFontSize = max(8, round(18 * pxScale));
-            obj.FooterFontSize = max(6, round(16 * pxScale));
+            obj.TitleFontSize = max(14, round(74 * pxScale));
+            obj.SubtitleFontSize = max(8, round(43 * pxScale));
+            obj.NameFontSize = max(9, round(31 * pxScale));
+            obj.KeyFontSize = max(8, round(28 * pxScale));
+            obj.ScoreFontSize = max(8, round(25 * pxScale));
+            obj.FooterFontSize = max(6, round(22 * pxScale));
 
             obj.createGraphics();
         end
@@ -287,12 +287,12 @@ classdef (Sealed) GameMenu < handle
             else
                 pxScale = 1.0;
             end
-            obj.TitleFontSize = max(14, round(54 * pxScale));
-            obj.SubtitleFontSize = max(8, round(18 * pxScale));
-            obj.NameFontSize = max(9, round(22 * pxScale));
-            obj.KeyFontSize = max(8, round(20 * pxScale));
-            obj.ScoreFontSize = max(8, round(18 * pxScale));
-            obj.FooterFontSize = max(6, round(16 * pxScale));
+            obj.TitleFontSize = max(14, round(74 * pxScale));
+            obj.SubtitleFontSize = max(8, round(43 * pxScale));
+            obj.NameFontSize = max(9, round(31 * pxScale));
+            obj.KeyFontSize = max(8, round(28 * pxScale));
+            obj.ScoreFontSize = max(8, round(25 * pxScale));
+            obj.FooterFontSize = max(6, round(22 * pxScale));
 
             obj.deleteGraphics();
             obj.createGraphics();
