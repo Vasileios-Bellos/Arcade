@@ -77,7 +77,8 @@ classdef ArcadeGameLauncher < handle
         DtBufIdx        (1,1) double = 0        % current write index
         DtScale         (1,1) double = 1        % rawDt * RefFPS
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
-        PrevAxPx        (1,2) double = [0, 0]  % previous [width, height] in pixels    end
+        PrevAxPx        (1,2) double = [0, 0]  % previous [width, height] in pixels
+    end
 
     % =================================================================
     % SCORING STATE
