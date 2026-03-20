@@ -297,7 +297,7 @@ classdef RailShooter < GameBase
                 obj.MuzzleFlashFrames = obj.MuzzleFlashFrames - ds;
                 if ~isempty(obj.MuzzleFlashH) && isvalid(obj.MuzzleFlashH)
                     t = obj.MuzzleFlashFrames / 10;
-                    obj.MuzzleFlashH.FaceAlpha = max(0, t * 0.7);
+                    obj.MuzzleFlashH.FaceAlpha = max(0, min(1, t * 0.7));
                 end
             end
 
@@ -571,7 +571,7 @@ classdef RailShooter < GameBase
                 obj.DamageFlashFrames = obj.DamageFlashFrames - ds;
                 if ~isempty(obj.DamageFlashH) && isvalid(obj.DamageFlashH)
                     alphaVal = obj.DamageFlashFrames / 19;
-                    obj.DamageFlashH.FaceAlpha = min(0.35, alphaVal * 0.35);
+                    obj.DamageFlashH.FaceAlpha = max(0, min(0.35, alphaVal * 0.35));
                 end
             end
 
