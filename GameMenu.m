@@ -237,8 +237,8 @@ classdef (Sealed) GameMenu < handle
                 obj.updateDwell();
             end
 
-            % Animations (title shimmer, glow pulse) — TEMPORARILY DISABLED
-            % obj.updateAnimations();
+            % Animations (title shimmer, glow pulse, twinkle, comets)
+            obj.updateAnimations();
         end
 
         function confirmSelection(obj)
