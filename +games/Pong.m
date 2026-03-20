@@ -269,10 +269,10 @@ classdef Pong < GameBase
                     obj.launchBall();
                 else
                     % Animate serve text
-                    remaining = ceil(obj.ServeCountdown / 60);
+                    remaining = ceil(obj.ServeCountdown / 40);
                     if ~isempty(obj.ServeTextH) && isvalid(obj.ServeTextH)
                         obj.ServeTextH.String = string(remaining);
-                        progress = mod(obj.ServeCountdown, 60) / 60;
+                        progress = mod(obj.ServeCountdown, 40) / 40;
                         serveScale = 1 + 0.2 * sin(progress * pi);
                         obj.ServeTextH.FontSize = round(30 * serveScale);
                         obj.ServeTextH.Visible = "on";
@@ -437,7 +437,7 @@ classdef Pong < GameBase
             obj.BallPos = [cx, cy];
             obj.BallVel = [0, 0];
             obj.Serving = true;
-            obj.ServeCountdown = 180;
+            obj.ServeCountdown = 120;
             obj.ServeDir = 1;  % always serve toward player (right)
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;
