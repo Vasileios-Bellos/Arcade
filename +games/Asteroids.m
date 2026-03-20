@@ -309,9 +309,10 @@ classdef Asteroids < GameBase
             sx = obj.ShipPos(1);
             sy = obj.ShipPos(2);
 
-            glowH = line(ax, [sx, sx + aimDir(1) * 4], [sy, sy + aimDir(2) * 4], ...
+            beamLen = max(8, min(diff(dx), diff(dy)) * 0.04);
+            glowH = line(ax, [sx, sx + aimDir(1) * beamLen], [sy, sy + aimDir(2) * beamLen], ...
                 "Color", [obj.ColorCyan, 0.3], "LineWidth", 3, "Tag", "GT_asteroids");
-            lineH = line(ax, [sx, sx + aimDir(1) * 3], [sy, sy + aimDir(2) * 3], ...
+            lineH = line(ax, [sx, sx + aimDir(1) * beamLen * 0.75], [sy, sy + aimDir(2) * beamLen * 0.75], ...
                 "Color", obj.ColorCyan, "LineWidth", 1.5, "Tag", "GT_asteroids");
 
             obj.Bullets(end + 1) = struct("x", sx, "y", sy, ...
@@ -329,12 +330,12 @@ classdef Asteroids < GameBase
                 obj.Bullets(k) = bul;
 
                 if ~isempty(bul.lineH) && isvalid(bul.lineH)
-                    bul.lineH.XData = [bul.x, bul.x - bul.vx * 0.5];
-                    bul.lineH.YData = [bul.y, bul.y - bul.vy * 0.5];
+                    bul.lineH.XData = [bul.x, bul.x - bul.vx * 1.5];
+                    bul.lineH.YData = [bul.y, bul.y - bul.vy * 1.5];
                 end
                 if ~isempty(bul.glowH) && isvalid(bul.glowH)
-                    bul.glowH.XData = [bul.x, bul.x - bul.vx * 0.7];
-                    bul.glowH.YData = [bul.y, bul.y - bul.vy * 0.7];
+                    bul.glowH.XData = [bul.x, bul.x - bul.vx * 2.0];
+                    bul.glowH.YData = [bul.y, bul.y - bul.vy * 2.0];
                 end
 
                 % Off screen — remove

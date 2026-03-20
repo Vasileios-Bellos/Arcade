@@ -46,7 +46,7 @@ classdef Snake < GameBase
         QueuedDir       (1,2) double = [0, 0]       % buffered next direction (prevents missed turns)
         FoodPos         (1,2) double = [NaN, NaN]   % [col, row] integer position
         StepAccum       (1,1) double = 0            % DtScale accumulator for step timing
-        StepInterval    (1,1) double = 8            % DtScale units between steps (decreases with length)
+        StepInterval    (1,1) double = 4            % DtScale units between steps (decreases with length)
         ColormapRGB     (:,3) double                % 256-row neon colormap for body gradient
         KeyboardMode    (1,1) logical = false       % true while arrow keys drive direction
         PrevPos         (1,2) double = [NaN, NaN]   % previous mouse/finger position
@@ -112,7 +112,7 @@ classdef Snake < GameBase
 
             % Step timing
             obj.StepAccum = 0;
-            obj.StepInterval = 8;
+            obj.StepInterval = 4;
             obj.QueuedDir = [0, 0];
 
             % Start with 5-segment snake at grid center, moving right
@@ -283,7 +283,7 @@ classdef Snake < GameBase
                 obj.spawnFood();
                 % Speed up: reduce step interval as snake grows
                 bodyLen = nBody + 1;
-                obj.StepInterval = max(3, 8 - (bodyLen - 5) * 0.1);
+                obj.StepInterval = max(1.5, 4 - (bodyLen - 5) * 0.05);
             end
 
             % Advance body
