@@ -240,12 +240,10 @@ classdef ArcadeGameLauncher < handle
         end
 
         function computeDisplayRange(obj)
-            %computeDisplayRange  Set display range to match figure aspect ratio.
-            figPos = obj.Fig.Position;
-            figAR = figPos(3) / max(figPos(4), 1);
-            rangeY = 480;
-            rangeX = rangeY * figAR;
-            obj.DisplayRange = struct("X", [0 rangeX], "Y", [0 rangeY]);
+            %computeDisplayRange  Fixed 16:9 display range (854x480).
+            %   Same on all machines regardless of figure size or maximize timing.
+            %   pbaspect handles letterboxing if the figure AR differs.
+            obj.DisplayRange = struct("X", [0 854], "Y", [0 480]);
         end
 
         function startTimer(obj)
