@@ -162,13 +162,12 @@ classdef (Sealed) GameMenu < handle
             % Font sizes: scale up for small display ranges (e.g. GestureMouse
             % ROI ~200 DU) so text fills the scaled pills proportionally.
             % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
-            fontScale = max(1, sqrt(refWidth / actualWidth));
-            obj.TitleFontSize = round(24 * fontScale);
-            obj.SubtitleFontSize = round(12 * fontScale);
-            obj.NameFontSize = round(15 * fontScale);
-            obj.KeyFontSize = round(13 * fontScale);
-            obj.ScoreFontSize = round(12 * fontScale);
-            obj.FooterFontSize = round(10.5 * fontScale);
+            obj.TitleFontSize = max(10, round(24 * s));
+            obj.SubtitleFontSize = max(6, round(12 * s));
+            obj.NameFontSize = max(7, round(15 * s));
+            obj.KeyFontSize = max(6, round(13 * s));
+            obj.ScoreFontSize = max(6, round(12 * s));
+            obj.FooterFontSize = max(5, round(10.5 * s));
 
             obj.createGraphics();
         end
@@ -256,13 +255,12 @@ classdef (Sealed) GameMenu < handle
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(6, max(3, floor(diff(newDisplayRange.Y) * 0.6 / (obj.ItemHeight + obj.ItemGap))));
-            fontScale = max(1, sqrt(refWidth / actualWidth));
-            obj.TitleFontSize = round(24 * fontScale);
-            obj.SubtitleFontSize = round(12 * fontScale);
-            obj.NameFontSize = round(15 * fontScale);
-            obj.KeyFontSize = round(13 * fontScale);
-            obj.ScoreFontSize = round(12 * fontScale);
-            obj.FooterFontSize = round(10.5 * fontScale);
+            obj.TitleFontSize = max(10, round(24 * s));
+            obj.SubtitleFontSize = max(6, round(12 * s));
+            obj.NameFontSize = max(7, round(15 * s));
+            obj.KeyFontSize = max(6, round(13 * s));
+            obj.ScoreFontSize = max(6, round(12 * s));
+            obj.FooterFontSize = max(5, round(10.5 * s));
 
             obj.deleteGraphics();
             obj.createGraphics();
