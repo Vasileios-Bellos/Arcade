@@ -425,8 +425,8 @@ classdef FpsRailShooter < GameBase
                     m.screenX = m.screenX + zigzag;
                 end
 
-                % Reached player (depth <= 0)
-                if m.depth <= 0
+                % Reached player (depth past threshold)
+                if m.depth <= -0.15
                     obj.playerDamage();
                     obj.deleteMonsterGraphics(k);
                     obj.Monsters(k) = [];
