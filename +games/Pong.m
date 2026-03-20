@@ -437,7 +437,7 @@ classdef Pong < GameBase
             obj.BallPos = [cx, cy];
             obj.BallVel = [0, 0];
             obj.Serving = true;
-            obj.ServeCountdown = 120;
+            obj.ServeCountdown = 180;
             obj.ServeDir = 1;  % always serve toward player (right)
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;
