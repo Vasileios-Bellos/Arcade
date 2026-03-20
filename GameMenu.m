@@ -257,14 +257,14 @@ classdef (Sealed) GameMenu < handle
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(6, max(3, floor(diff(newDisplayRange.Y) * 0.6 / (obj.ItemHeight + obj.ItemGap))));
-            % Font sizes as fraction of display height (FontUnits=normalized)
-            rangeH = diff(newDisplayRange.Y);
-            obj.TitleFontSize = 24 / rangeH;
-            obj.SubtitleFontSize = 12 / rangeH;
-            obj.NameFontSize = 15 / rangeH;
-            obj.KeyFontSize = 13 / rangeH;
-            obj.ScoreFontSize = 12 / rangeH;
-            obj.FooterFontSize = 10.5 / rangeH;
+            % Font sizes: scale by min(width, height) so text fits both dimensions
+            fontS = min(s, diff(newDisplayRange.Y) / 480);
+            obj.TitleFontSize = max(10, round(24 * fontS));
+            obj.SubtitleFontSize = max(6, round(12 * fontS));
+            obj.NameFontSize = max(7, round(15 * fontS));
+            obj.KeyFontSize = max(6, round(13 * fontS));
+            obj.ScoreFontSize = max(6, round(12 * fontS));
+            obj.FooterFontSize = max(5, round(10.5 * fontS));
 
             obj.deleteGraphics();
             obj.createGraphics();
