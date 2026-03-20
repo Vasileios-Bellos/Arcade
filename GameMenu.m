@@ -258,7 +258,7 @@ classdef (Sealed) GameMenu < handle
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(6, max(3, floor(diff(newDisplayRange.Y) * 0.6 / (obj.ItemHeight + obj.ItemGap))));
             % Font sizes as fraction of display height (FontUnits=normalized)
-            rangeH = diff(displayRange.Y);
+            rangeH = diff(newDisplayRange.Y);
             obj.TitleFontSize = 24 / rangeH;
             obj.SubtitleFontSize = 12 / rangeH;
             obj.NameFontSize = 15 / rangeH;
