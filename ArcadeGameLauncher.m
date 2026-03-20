@@ -821,6 +821,16 @@ classdef ArcadeGameLauncher < handle
             game.beginGame();
             obj.ActiveGame = game;
             obj.SessionStartTic = tic;
+
+            % Bring HUD text to front (above game graphics)
+            hudHandles = {obj.ScoreTextH, obj.ComboTextH, ...
+                obj.StatusTextH, obj.HudTextH, obj.FpsTextH};
+            for k = 1:numel(hudHandles)
+                h = hudHandles{k};
+                if ~isempty(h) && isvalid(h)
+                    uistack(h, "top");
+                end
+            end
         end
 
         function restartGame(obj)
