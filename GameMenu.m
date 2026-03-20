@@ -707,7 +707,6 @@ classdef (Sealed) GameMenu < handle
                     end
                     if ~isempty(keyTxt) && isvalid(keyTxt)
                         keyTxt.Color = obj.ColorCyan;
-                        keyTxt.FontSize = obj.KeyFontSize + 1;
                     end
                     if ~isempty(nameTxt) && isvalid(nameTxt)
                         nameTxt.Color = obj.ColorWhite;
@@ -729,7 +728,6 @@ classdef (Sealed) GameMenu < handle
                     end
                     if ~isempty(keyTxt) && isvalid(keyTxt)
                         keyTxt.Color = obj.ColorCyan * 0.50;
-                        keyTxt.FontSize = obj.KeyFontSize;
                     end
                     if ~isempty(nameTxt) && isvalid(nameTxt)
                         nameTxt.Color = [0.40 0.42 0.50];
