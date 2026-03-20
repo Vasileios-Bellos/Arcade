@@ -34,8 +34,6 @@ classdef Asteroids < GameBase
         FireCooldown    (1,1) double = 0
         Lives           (1,1) double = 3
         ShipRadius      (1,1) double = 8
-        ShipCosT        (1,:) double
-        ShipSinT        (1,:) double
         Wave            (1,1) double = 1
         InvulnFrames    (1,1) double = 0
     end
@@ -89,23 +87,13 @@ classdef Asteroids < GameBase
             obj.Rocks = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                 "radius", {}, "tier", {}, "angle", {}, "spin", {}, "patchH", {});
 
-            % Ship graphics — data-unit circle patches (scale with axes)
-            shipR = max(4, round(min(diff(dx), diff(dy)) * 0.04));
-            obj.ShipRadius = shipR;
-            theta = linspace(0, 2*pi, 32);
-            cosT = cos(theta); sinT = sin(theta);
-            obj.ShipGlowH = patch(ax, ...
-                obj.ShipPos(1) + shipR * 2.5 * cosT, ...
-                obj.ShipPos(2) + shipR * 2.5 * sinT, ...
-                obj.ColorCyan, "FaceAlpha", 0.15, "EdgeColor", "none", ...
+            % Ship graphics — scatter (SizeData recomputed each frame for resize)
+            obj.ShipRadius = max(4, round(min(diff(dx), diff(dy)) * 0.03));
+            obj.ShipGlowH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
+                1, obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.15, ...
                 "Tag", "GT_asteroids");
-            obj.ShipCoreH = patch(ax, ...
-                obj.ShipPos(1) + shipR * cosT, ...
-                obj.ShipPos(2) + shipR * sinT, ...
-                obj.ColorCyan, "FaceAlpha", 0.9, "EdgeColor", obj.ColorCyan * 0.7, ...
-                "Tag", "GT_asteroids");
-            obj.ShipCosT = cosT;
-            obj.ShipSinT = sinT;
+            obj.ShipCoreH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
+                1, obj.ColorCyan, "filled", "Tag", "GT_asteroids");
             obj.ShipTrailH = line(ax, NaN, NaN, "Color", [obj.ColorCyan, 0.4], ...
                 "LineWidth", 2, "Tag", "GT_asteroids");
 
@@ -141,17 +129,23 @@ classdef Asteroids < GameBase
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
-            % Move ship to finger
+            % Move ship to finger + recompute SizeData for current axes size
             if ~any(isnan(pos))
                 obj.ShipPos = pos;
                 r = obj.ShipRadius;
+                pixPos = getpixelposition(obj.Ax);
+                pxPerData = pixPos(3) / diff(obj.DisplayRange.X);
+                dpiVal = get(0, "ScreenPixelsPerInch");
+                rPts = r * pxPerData * 72 / dpiVal;
                 if ~isempty(obj.ShipCoreH) && isvalid(obj.ShipCoreH)
-                    obj.ShipCoreH.XData = pos(1) + r * obj.ShipCosT;
-                    obj.ShipCoreH.YData = pos(2) + r * obj.ShipSinT;
+                    obj.ShipCoreH.XData = pos(1);
+                    obj.ShipCoreH.YData = pos(2);
+                    obj.ShipCoreH.SizeData = rPts^2 * pi;
                 end
                 if ~isempty(obj.ShipGlowH) && isvalid(obj.ShipGlowH)
-                    obj.ShipGlowH.XData = pos(1) + r * 2.5 * obj.ShipCosT;
-                    obj.ShipGlowH.YData = pos(2) + r * 2.5 * obj.ShipSinT;
+                    obj.ShipGlowH.XData = pos(1);
+                    obj.ShipGlowH.YData = pos(2);
+                    obj.ShipGlowH.SizeData = (rPts * 2.5)^2 * pi;
                 end
             end
 
