@@ -666,7 +666,7 @@ classdef (Sealed) GameMenu < handle
                 uistack(obj.CometHeadH(k), "bottom");
             end
             obj.CometActive = [false, false];
-            obj.CometNextSpawn = 3 + rand() * 3;
+            obj.CometNextSpawn = 1 + rand() * 1.5;
             obj.CometLastSpawnT = 0;
 
             % --- Initialize ---
@@ -1073,7 +1073,7 @@ classdef (Sealed) GameMenu < handle
                     obj.spawnComet(slotK, dx, dy, rangeW, rangeH);
                 end
                 obj.CometLastSpawnT = t;
-                obj.CometNextSpawn = 2 + rand() * 3;
+                obj.CometNextSpawn = 1.5 + rand() * 2;
             end
 
             % --- Update active comets ---
