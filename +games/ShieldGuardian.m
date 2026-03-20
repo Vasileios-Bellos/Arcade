@@ -112,8 +112,8 @@ classdef ShieldGuardian < GameBase
             obj.ProjType(:) = "";
 
             % Data-unit radii (small — ~4% of display for core, ~6% for shield)
-            obj.CoreRadius = max(3, minDim * 0.04);
-            obj.ShieldRadius = max(5, minDim * 0.06);
+            obj.CoreRadius = max(4, minDim * 0.055);
+            obj.ShieldRadius = max(7, minDim * 0.08);
             obj.HitboxRadius = obj.ShieldRadius * 0.9;
 
             % Compute initial SizeData from data-unit radii
