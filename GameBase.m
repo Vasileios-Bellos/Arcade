@@ -486,7 +486,7 @@ classdef (Abstract) GameBase < handle
             %   pixelScale — relative change ratio (newSize / oldSize)
             if isempty(ax) || ~isvalid(ax); return; end
 
-            % --- Text: scale FontSize by relative change ---
+            % --- Text: scale FontSize ---
             allText = findall(ax, "Type", "text");
             for k = 1:numel(allText)
                 t = allText(k);
