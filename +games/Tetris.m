@@ -3,8 +3,7 @@ classdef Tetris < GameBase
     %   10-wide x 20-visible playfield (+ 2 hidden buffer rows at top).
     %   7-bag randomizer, ghost piece, hold, 3-piece next preview, DAS/ARR
     %   auto-repeat, lock delay with move resets, combo and back-to-back
-    %   scoring. Two-layer neon patch rendering (glow + face) matching the
-    %   Breakout brick style.
+    %   scoring. Single-layer neon patch rendering with bright edge outlines.
     %
     %   Controls:
     %     Mouse/finger X -> horizontal piece targeting
@@ -140,7 +139,6 @@ classdef Tetris < GameBase
         CellW               (1,1) double = 1     % cell width in data units
         CellH               (1,1) double = 1     % cell height in data units
         Sc                  (1,1) double = 1     % display scale factor
-        CellGap             (1,1) double = 0     % gap between cells (data units)
 
         % Hold / Next box geometry (cached for display updates)
         HoldCenterX         (1,1) double = 0
@@ -155,28 +153,24 @@ classdef Tetris < GameBase
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
-        % Locked board cells: NRows x NCols x 2 (glow, face)
+        % Locked board cells: NRows x NCols single-layer patches.
         % Only visible rows (3..22) get rendered, but we allocate for all
         % 22 rows so indexing is direct.
-        BoardGlow           (:,:)   % NRows x NCols patch handles (glow layer)
-        BoardFace           (:,:)   % NRows x NCols patch handles (face layer)
+        BoardCell           (:,:)   % NRows x NCols patch handles
 
-        % Active piece: 4 glow + 4 face patches
-        ActiveGlow          (1,4)
-        ActiveFace          (1,4)
+        % Active piece: 4 patches
+        ActiveCell          (1,4)
 
-        % Ghost piece: 4 patches (single layer, translucent)
+        % Ghost piece: 4 patches (translucent)
         GhostPatch          (1,4)
 
-        % Hold display: 4 glow + 4 face patches
-        HoldGlow            (1,4)
-        HoldFace            (1,4)
+        % Hold display: 4 patches
+        HoldCell            (1,4)
         HoldBorderH                 % line handle
         HoldLabelH                  % text handle
 
-        % Next preview: 3 pieces x 4 cells = 12 glow + 12 face patches
-        NextGlow            (3,4)
-        NextFace            (3,4)
+        % Next preview: 3 pieces x 4 cells = 12 patches
+        NextCell            (3,4)
         NextBorderH                 % line handle
         NextLabelH                  % text handle
 
@@ -185,8 +179,6 @@ classdef Tetris < GameBase
         GridLinesH                  % line handle
 
         % In-field HUD
-        LevelTextH                  % text handle
-        LinesTextH                  % text handle
     end
 
     % =================================================================
@@ -222,7 +214,6 @@ classdef Tetris < GameBase
             end
             obj.CellW = cellSz;
             obj.CellH = cellSz;
-            obj.CellGap = max(1, round(1.5 * obj.Sc));
 
             fieldW = obj.CellW * obj.NCols;
             fieldH = obj.CellH * obj.NVisible;
@@ -234,19 +225,14 @@ classdef Tetris < GameBase
             % --- Initialize board ---
             obj.Board = zeros(obj.NRows, obj.NCols, "uint8");
 
-            % --- Pre-allocate board cell patches (glow + face for all rows) ---
-            obj.BoardGlow = gobjects(obj.NRows, obj.NCols);
-            obj.BoardFace = gobjects(obj.NRows, obj.NCols);
+            % --- Pre-allocate board cell patches (single layer for all rows) ---
+            obj.BoardCell = gobjects(obj.NRows, obj.NCols);
             for r = 1:obj.NRows
                 for c = 1:obj.NCols
                     [xv, yv] = obj.cellVerts(r, c);
-                    obj.BoardGlow(r, c) = patch(ax, "XData", xv, "YData", yv, ...
-                        "FaceColor", [0.5 0.5 0.5], "FaceAlpha", 0, ...
-                        "EdgeColor", [0.15 0.15 0.15], "LineWidth", 3, ...
-                        "Visible", "off", "Tag", "GT_tetris");
-                    obj.BoardFace(r, c) = patch(ax, "XData", xv, "YData", yv, ...
-                        "FaceColor", [0.5 0.5 0.5], "FaceAlpha", 0.7, ...
-                        "EdgeColor", [0.3 0.3 0.3], "LineWidth", 1, ...
+                    obj.BoardCell(r, c) = patch(ax, "XData", xv, "YData", yv, ...
+                        "FaceColor", [0.5 0.5 0.5], "FaceAlpha", 0.75, ...
+                        "EdgeColor", [0.5 0.5 0.5], "LineWidth", 1.5, ...
                         "Visible", "off", "Tag", "GT_tetris");
                 end
             end
@@ -262,17 +248,12 @@ classdef Tetris < GameBase
                 [by, by, by + fieldH, by + fieldH, by], ...
                 "Color", [0, 0.7, 0.85, 0.6], "LineWidth", 2, "Tag", "GT_tetris");
 
-            % --- Active piece patches (4 cells, glow + face) ---
-            obj.ActiveGlow = gobjects(1, 4);
-            obj.ActiveFace = gobjects(1, 4);
+            % --- Active piece patches (4 cells, single layer) ---
+            obj.ActiveCell = gobjects(1, 4);
             for k = 1:4
-                obj.ActiveGlow(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
-                    "FaceColor", [1 1 1], "FaceAlpha", 0, ...
-                    "EdgeColor", [0.15 0.15 0.15], "LineWidth", 3, ...
-                    "Visible", "off", "Tag", "GT_tetris");
-                obj.ActiveFace(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
+                obj.ActiveCell(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
                     "FaceColor", [1 1 1], "FaceAlpha", 0.85, ...
-                    "EdgeColor", [1 1 1], "LineWidth", 1, ...
+                    "EdgeColor", [1 1 1], "LineWidth", 1.5, ...
                     "Visible", "off", "Tag", "GT_tetris");
             end
 
@@ -303,16 +284,11 @@ classdef Tetris < GameBase
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Tag", "GT_tetris");
 
-            obj.HoldGlow = gobjects(1, 4);
-            obj.HoldFace = gobjects(1, 4);
+            obj.HoldCell = gobjects(1, 4);
             for k = 1:4
-                obj.HoldGlow(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
-                    "FaceColor", [1 1 1], "FaceAlpha", 0, ...
-                    "EdgeColor", [0.15 0.15 0.15], "LineWidth", 3, ...
-                    "Visible", "off", "Tag", "GT_tetris");
-                obj.HoldFace(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
-                    "FaceColor", [1 1 1], "FaceAlpha", 0.7, ...
-                    "EdgeColor", [1 1 1], "LineWidth", 1, ...
+                obj.HoldCell(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
+                    "FaceColor", [1 1 1], "FaceAlpha", 0.75, ...
+                    "EdgeColor", [1 1 1], "LineWidth", 1.5, ...
                     "Visible", "off", "Tag", "GT_tetris");
             end
 
@@ -336,34 +312,16 @@ classdef Tetris < GameBase
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Tag", "GT_tetris");
 
-            obj.NextGlow = gobjects(3, 4);
-            obj.NextFace = gobjects(3, 4);
+            obj.NextCell = gobjects(3, 4);
             for p = 1:3
                 for k = 1:4
-                    obj.NextGlow(p, k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
-                        "FaceColor", [1 1 1], "FaceAlpha", 0, ...
-                        "EdgeColor", [0.15 0.15 0.15], "LineWidth", 3, ...
-                        "Visible", "off", "Tag", "GT_tetris");
-                    obj.NextFace(p, k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
-                        "FaceColor", [1 1 1], "FaceAlpha", 0.7, ...
-                        "EdgeColor", [1 1 1], "LineWidth", 1, ...
+                    obj.NextCell(p, k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
+                        "FaceColor", [1 1 1], "FaceAlpha", 0.75, ...
+                        "EdgeColor", [1 1 1], "LineWidth", 1.5, ...
                         "Visible", "off", "Tag", "GT_tetris");
                 end
             end
 
-            % --- In-field HUD text (bottom-left area) ---
-            obj.LevelTextH = text(ax, obj.FieldX - obj.CellW * 0.5, ...
-                obj.FieldY + fieldH - obj.CellH * 0.5, ...
-                "Lv 1", "Color", [0, 0.8, 0.9], ...
-                "FontSize", max(8, round(10 * obj.Sc)), ...
-                "FontWeight", "bold", "HorizontalAlignment", "right", ...
-                "VerticalAlignment", "top", "Tag", "GT_tetris");
-            obj.LinesTextH = text(ax, obj.FieldX - obj.CellW * 0.5, ...
-                obj.FieldY + fieldH + obj.CellH * 0.1, ...
-                "Lines: 0", "Color", [0, 0.6, 0.7], ...
-                "FontSize", max(7, round(9 * obj.Sc)), ...
-                "FontWeight", "bold", "HorizontalAlignment", "right", ...
-                "VerticalAlignment", "top", "Tag", "GT_tetris");
 
             % --- Reset all game state ---
             obj.Bag = uint8.empty(1, 0);
@@ -433,15 +391,11 @@ classdef Tetris < GameBase
                         row = obj.ClearRows(ri);
                         if row < 3; continue; end  % skip hidden buffer rows
                         for c = 1:obj.NCols
-                            if isvalid(obj.BoardGlow(row, c))
-                                obj.BoardGlow(row, c).EdgeColor = [1 1 1] * 0.35;
-                                obj.BoardGlow(row, c).Visible = "on";
-                            end
-                            if isvalid(obj.BoardFace(row, c))
-                                obj.BoardFace(row, c).FaceColor = [1 1 1];
-                                obj.BoardFace(row, c).FaceAlpha = alpha;
-                                obj.BoardFace(row, c).EdgeColor = [1 1 1];
-                                obj.BoardFace(row, c).Visible = "on";
+                            if isvalid(obj.BoardCell(row, c))
+                                obj.BoardCell(row, c).FaceColor = [1 1 1];
+                                obj.BoardCell(row, c).FaceAlpha = alpha;
+                                obj.BoardCell(row, c).EdgeColor = [1 1 1];
+                                obj.BoardCell(row, c).Visible = "on";
                             end
                         end
                     end
@@ -558,20 +512,17 @@ classdef Tetris < GameBase
             %onCleanup  Delete all graphics and reset state.
 
             % Board patches
-            if ~isempty(obj.BoardGlow)
-                for r = 1:size(obj.BoardGlow, 1)
-                    for c = 1:size(obj.BoardGlow, 2)
-                        if isvalid(obj.BoardGlow(r, c)); delete(obj.BoardGlow(r, c)); end
-                        if isvalid(obj.BoardFace(r, c)); delete(obj.BoardFace(r, c)); end
+            if ~isempty(obj.BoardCell)
+                for r = 1:size(obj.BoardCell, 1)
+                    for c = 1:size(obj.BoardCell, 2)
+                        if isvalid(obj.BoardCell(r, c)); delete(obj.BoardCell(r, c)); end
                     end
                 end
             end
-            obj.BoardGlow = gobjects(0, 0);
-            obj.BoardFace = gobjects(0, 0);
+            obj.BoardCell = gobjects(0, 0);
 
             % Active / ghost / hold patches
-            arrays = {obj.ActiveGlow, obj.ActiveFace, obj.GhostPatch, ...
-                      obj.HoldGlow, obj.HoldFace};
+            arrays = {obj.ActiveCell, obj.GhostPatch, obj.HoldCell};
             for a = 1:numel(arrays)
                 arr = arrays{a};
                 for k = 1:numel(arr)
@@ -580,30 +531,25 @@ classdef Tetris < GameBase
             end
 
             % Next patches
-            for p = 1:size(obj.NextGlow, 1)
-                for k = 1:size(obj.NextGlow, 2)
-                    if isvalid(obj.NextGlow(p, k)); delete(obj.NextGlow(p, k)); end
-                    if isvalid(obj.NextFace(p, k)); delete(obj.NextFace(p, k)); end
+            for p = 1:size(obj.NextCell, 1)
+                for k = 1:size(obj.NextCell, 2)
+                    if isvalid(obj.NextCell(p, k)); delete(obj.NextCell(p, k)); end
                 end
             end
 
             % Line and text handles
             handles = {obj.FieldBorderH, obj.GridLinesH, obj.HoldBorderH, ...
-                obj.HoldLabelH, obj.NextBorderH, obj.NextLabelH, ...
-                obj.LevelTextH, obj.LinesTextH};
+                obj.HoldLabelH, obj.NextBorderH, obj.NextLabelH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h); delete(h); end
             end
 
             % Reset handle arrays
-            obj.ActiveGlow = gobjects(1, 4);
-            obj.ActiveFace = gobjects(1, 4);
+            obj.ActiveCell = gobjects(1, 4);
             obj.GhostPatch = gobjects(1, 4);
-            obj.HoldGlow   = gobjects(1, 4);
-            obj.HoldFace   = gobjects(1, 4);
-            obj.NextGlow   = gobjects(3, 4);
-            obj.NextFace   = gobjects(3, 4);
+            obj.HoldCell   = gobjects(1, 4);
+            obj.NextCell   = gobjects(3, 4);
             obj.Board = zeros(0, 0, "uint8");
 
             % Orphan guard
@@ -849,21 +795,20 @@ classdef Tetris < GameBase
                 if r >= 1 && r <= obj.NRows && c >= 1 && c <= obj.NCols
                     obj.Board(r, c) = pid;
                     % Update visible board patches
-                    if r >= 3 && isvalid(obj.BoardGlow(r, c)) && isvalid(obj.BoardFace(r, c))
-                        obj.BoardGlow(r, c).EdgeColor = clr * 0.35;
-                        obj.BoardGlow(r, c).Visible = "on";
-                        obj.BoardFace(r, c).FaceColor = clr;
-                        obj.BoardFace(r, c).FaceAlpha = 0.7;
-                        obj.BoardFace(r, c).EdgeColor = clr;
-                        obj.BoardFace(r, c).Visible = "on";
+                    if r >= 3 && isvalid(obj.BoardCell(r, c))
+                        brightClr = min(1, clr * 1.4);
+                        obj.BoardCell(r, c).FaceColor = clr;
+                        obj.BoardCell(r, c).FaceAlpha = 0.75;
+                        obj.BoardCell(r, c).EdgeColor = brightClr;
+                        obj.BoardCell(r, c).LineWidth = 1.5;
+                        obj.BoardCell(r, c).Visible = "on";
                     end
                 end
             end
 
             % Hide active piece patches
             for k = 1:4
-                if isvalid(obj.ActiveGlow(k)); obj.ActiveGlow(k).Visible = "off"; end
-                if isvalid(obj.ActiveFace(k)); obj.ActiveFace(k).Visible = "off"; end
+                if isvalid(obj.ActiveCell(k)); obj.ActiveCell(k).Visible = "off"; end
             end
             % Hide ghost patches
             for k = 1:4
@@ -953,14 +898,6 @@ classdef Tetris < GameBase
             if newLevel > obj.Level
                 obj.Level = newLevel;
                 obj.recalcGravity();
-            end
-
-            % Update in-field HUD
-            if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                obj.LevelTextH.String = sprintf("Lv %d", obj.Level);
-            end
-            if ~isempty(obj.LinesTextH) && isvalid(obj.LinesTextH)
-                obj.LinesTextH.String = sprintf("Lines: %d", obj.TotalLines);
             end
 
             obj.ClearRows = [];
@@ -1071,40 +1008,38 @@ classdef Tetris < GameBase
     methods (Access = private)
 
         function [xv, yv] = cellVerts(obj, row, col)
-            %cellVerts  Return 4-element XData/YData for a cell patch with gap.
+            %cellVerts  Return 4-element XData/YData for a cell patch (full size).
             %   Row 1 = top of board. Row increases downward.
             %   Visible rows are 3..22 (rows 1-2 are hidden buffer).
             %   For visible row r, screen Y = FieldY + (r - 3) * CellH.
             %   Rows 1-2 are above the field: Y = FieldY - (3 - r) * CellH.
-            g = obj.CellGap;
             x0 = obj.FieldX + (double(col) - 1) * obj.CellW;
             y0 = obj.FieldY + (double(row) - 3) * obj.CellH;
-            xv = [x0 + g, x0 + obj.CellW - g, x0 + obj.CellW - g, x0 + g];
-            yv = [y0 + g, y0 + g, y0 + obj.CellH - g, y0 + obj.CellH - g];
+            xv = [x0, x0 + obj.CellW, x0 + obj.CellW, x0];
+            yv = [y0, y0, y0 + obj.CellH, y0 + obj.CellH];
         end
 
         function [xv, yv] = miniCellVerts(obj, centerX, centerY, dr, dc)
-            %miniCellVerts  Vertices for a cell in a preview/hold box.
+            %miniCellVerts  Vertices for a cell in a preview/hold box (full size).
             %   (dr, dc) are offsets from piece center. Positive dr = down.
-            g = obj.CellGap;
             x0 = centerX + (double(dc) - 0.5) * obj.CellW;
             y0 = centerY + (double(dr) - 0.5) * obj.CellH;
-            xv = [x0 + g, x0 + obj.CellW - g, x0 + obj.CellW - g, x0 + g];
-            yv = [y0 + g, y0 + g, y0 + obj.CellH - g, y0 + obj.CellH - g];
+            xv = [x0, x0 + obj.CellW, x0 + obj.CellW, x0];
+            yv = [y0, y0, y0 + obj.CellH, y0 + obj.CellH];
         end
 
         function renderActive(obj)
-            %renderActive  Position the 4 active piece patches (glow + face).
+            %renderActive  Position the 4 active piece patches.
             if obj.CurPiece == 0
                 for k = 1:4
-                    if isvalid(obj.ActiveGlow(k)); obj.ActiveGlow(k).Visible = "off"; end
-                    if isvalid(obj.ActiveFace(k)); obj.ActiveFace(k).Visible = "off"; end
+                    if isvalid(obj.ActiveCell(k)); obj.ActiveCell(k).Visible = "off"; end
                 end
                 return;
             end
 
             offsets = obj.activeOffsets();
             clr = obj.PieceClrs(obj.CurPiece, :);
+            brightClr = min(1, clr * 1.4);
 
             for k = 1:4
                 r = obj.CurRow + int16(offsets(k, 1));
@@ -1112,23 +1047,16 @@ classdef Tetris < GameBase
                 % Only show in visible area (rows 3..22)
                 if r >= 3 && r <= obj.NRows && c >= 1 && c <= obj.NCols
                     [xv, yv] = obj.cellVerts(r, c);
-                    if isvalid(obj.ActiveGlow(k))
-                        obj.ActiveGlow(k).XData = xv;
-                        obj.ActiveGlow(k).YData = yv;
-                        obj.ActiveGlow(k).EdgeColor = clr * 0.35;
-                        obj.ActiveGlow(k).Visible = "on";
-                    end
-                    if isvalid(obj.ActiveFace(k))
-                        obj.ActiveFace(k).XData = xv;
-                        obj.ActiveFace(k).YData = yv;
-                        obj.ActiveFace(k).FaceColor = clr;
-                        obj.ActiveFace(k).FaceAlpha = 0.85;
-                        obj.ActiveFace(k).EdgeColor = clr;
-                        obj.ActiveFace(k).Visible = "on";
+                    if isvalid(obj.ActiveCell(k))
+                        obj.ActiveCell(k).XData = xv;
+                        obj.ActiveCell(k).YData = yv;
+                        obj.ActiveCell(k).FaceColor = clr;
+                        obj.ActiveCell(k).FaceAlpha = 0.85;
+                        obj.ActiveCell(k).EdgeColor = brightClr;
+                        obj.ActiveCell(k).Visible = "on";
                     end
                 else
-                    if isvalid(obj.ActiveGlow(k)); obj.ActiveGlow(k).Visible = "off"; end
-                    if isvalid(obj.ActiveFace(k)); obj.ActiveFace(k).Visible = "off"; end
+                    if isvalid(obj.ActiveCell(k)); obj.ActiveCell(k).Visible = "off"; end
                 end
             end
         end
@@ -1144,6 +1072,7 @@ classdef Tetris < GameBase
 
             offsets = obj.activeOffsets();
             clr = obj.PieceClrs(obj.CurPiece, :);
+            brightClr = min(1, clr * 1.4);
 
             for k = 1:4
                 r = obj.GhostRow + int16(offsets(k, 1));
@@ -1155,7 +1084,7 @@ classdef Tetris < GameBase
                         obj.GhostPatch(k).YData = yv;
                         obj.GhostPatch(k).FaceColor = clr;
                         obj.GhostPatch(k).FaceAlpha = 0.12;
-                        obj.GhostPatch(k).EdgeColor = clr;
+                        obj.GhostPatch(k).EdgeColor = brightClr;
                         obj.GhostPatch(k).Visible = "on";
                     end
                 else
@@ -1168,8 +1097,7 @@ classdef Tetris < GameBase
             %renderHold  Show the held piece in the hold box.
             if obj.HoldPiece == 0
                 for k = 1:4
-                    if isvalid(obj.HoldGlow(k)); obj.HoldGlow(k).Visible = "off"; end
-                    if isvalid(obj.HoldFace(k)); obj.HoldFace(k).Visible = "off"; end
+                    if isvalid(obj.HoldCell(k)); obj.HoldCell(k).Visible = "off"; end
                 end
                 return;
             end
@@ -1179,24 +1107,19 @@ classdef Tetris < GameBase
             if obj.HoldLocked
                 clr = clr * 0.4;   % dimmed when hold already used
             end
+            brightClr = min(1, clr * 1.4);
 
             for k = 1:4
                 dr = double(offsets(k, 1));
                 dc = double(offsets(k, 2));
                 [xv, yv] = obj.miniCellVerts(obj.HoldCenterX, obj.HoldCenterY, dr, dc);
-                if isvalid(obj.HoldGlow(k))
-                    obj.HoldGlow(k).XData = xv;
-                    obj.HoldGlow(k).YData = yv;
-                    obj.HoldGlow(k).EdgeColor = clr * 0.35;
-                    obj.HoldGlow(k).Visible = "on";
-                end
-                if isvalid(obj.HoldFace(k))
-                    obj.HoldFace(k).XData = xv;
-                    obj.HoldFace(k).YData = yv;
-                    obj.HoldFace(k).FaceColor = clr;
-                    obj.HoldFace(k).FaceAlpha = 0.7;
-                    obj.HoldFace(k).EdgeColor = clr;
-                    obj.HoldFace(k).Visible = "on";
+                if isvalid(obj.HoldCell(k))
+                    obj.HoldCell(k).XData = xv;
+                    obj.HoldCell(k).YData = yv;
+                    obj.HoldCell(k).FaceColor = clr;
+                    obj.HoldCell(k).FaceAlpha = 0.75;
+                    obj.HoldCell(k).EdgeColor = brightClr;
+                    obj.HoldCell(k).Visible = "on";
                 end
             end
         end
@@ -1208,6 +1131,7 @@ classdef Tetris < GameBase
             for p = 1:min(3, numel(obj.NextQueue))
                 offsets = obj.PieceCells{obj.NextQueue(p)}(:, :, 1);
                 clr = obj.PieceClrs(obj.NextQueue(p), :);
+                brightClr = min(1, clr * 1.4);
 
                 % Vertical slot: evenly spaced within the next box
                 slotCenterY = obj.NextBoxY + (p - 0.5) * (obj.NextBoxH / 3);
@@ -1216,19 +1140,13 @@ classdef Tetris < GameBase
                     dr = double(offsets(k, 1));
                     dc = double(offsets(k, 2));
                     [xv, yv] = obj.miniCellVerts(centerX, slotCenterY, dr, dc);
-                    if isvalid(obj.NextGlow(p, k))
-                        obj.NextGlow(p, k).XData = xv;
-                        obj.NextGlow(p, k).YData = yv;
-                        obj.NextGlow(p, k).EdgeColor = clr * 0.35;
-                        obj.NextGlow(p, k).Visible = "on";
-                    end
-                    if isvalid(obj.NextFace(p, k))
-                        obj.NextFace(p, k).XData = xv;
-                        obj.NextFace(p, k).YData = yv;
-                        obj.NextFace(p, k).FaceColor = clr;
-                        obj.NextFace(p, k).FaceAlpha = 0.7;
-                        obj.NextFace(p, k).EdgeColor = clr;
-                        obj.NextFace(p, k).Visible = "on";
+                    if isvalid(obj.NextCell(p, k))
+                        obj.NextCell(p, k).XData = xv;
+                        obj.NextCell(p, k).YData = yv;
+                        obj.NextCell(p, k).FaceColor = clr;
+                        obj.NextCell(p, k).FaceAlpha = 0.75;
+                        obj.NextCell(p, k).EdgeColor = brightClr;
+                        obj.NextCell(p, k).Visible = "on";
                     end
                 end
             end
@@ -1236,8 +1154,7 @@ classdef Tetris < GameBase
             % Hide unused slots
             for p = (numel(obj.NextQueue) + 1):3
                 for k = 1:4
-                    if isvalid(obj.NextGlow(p, k)); obj.NextGlow(p, k).Visible = "off"; end
-                    if isvalid(obj.NextFace(p, k)); obj.NextFace(p, k).Visible = "off"; end
+                    if isvalid(obj.NextCell(p, k)); obj.NextCell(p, k).Visible = "off"; end
                 end
             end
         end
@@ -1249,22 +1166,17 @@ classdef Tetris < GameBase
                     pid = obj.Board(r, c);
                     if pid > 0 && pid <= 7
                         clr = obj.PieceClrs(pid, :);
-                        if isvalid(obj.BoardGlow(r, c))
-                            obj.BoardGlow(r, c).EdgeColor = clr * 0.35;
-                            obj.BoardGlow(r, c).Visible = "on";
-                        end
-                        if isvalid(obj.BoardFace(r, c))
-                            obj.BoardFace(r, c).FaceColor = clr;
-                            obj.BoardFace(r, c).FaceAlpha = 0.7;
-                            obj.BoardFace(r, c).EdgeColor = clr;
-                            obj.BoardFace(r, c).Visible = "on";
+                        brightClr = min(1, clr * 1.4);
+                        if isvalid(obj.BoardCell(r, c))
+                            obj.BoardCell(r, c).FaceColor = clr;
+                            obj.BoardCell(r, c).FaceAlpha = 0.75;
+                            obj.BoardCell(r, c).EdgeColor = brightClr;
+                            obj.BoardCell(r, c).LineWidth = 1.5;
+                            obj.BoardCell(r, c).Visible = "on";
                         end
                     else
-                        if isvalid(obj.BoardGlow(r, c))
-                            obj.BoardGlow(r, c).Visible = "off";
-                        end
-                        if isvalid(obj.BoardFace(r, c))
-                            obj.BoardFace(r, c).Visible = "off";
+                        if isvalid(obj.BoardCell(r, c))
+                            obj.BoardCell(r, c).Visible = "off";
                         end
                     end
                 end
