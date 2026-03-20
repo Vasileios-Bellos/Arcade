@@ -475,7 +475,7 @@ classdef (Sealed) GameMenu < handle
             nStars = max(20, round(90 * obj.LayoutScale));
             sx = dx(1) + rand(nStars, 1) * rangeW;
             sy = dy(1) + rand(nStars, 1) * rangeH;
-            ssz = (10 + rand(nStars, 1) * 40) * s^2;
+            ssz = (10 + rand(nStars, 1) * 40) * obj.LayoutScale^2;
             try
                 obj.StarfieldH = scatter(ax, sx, sy, ssz, ...
                     ones(nStars, 1) * [0.35 0.40 0.55], "filled", ...
