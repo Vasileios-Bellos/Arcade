@@ -445,7 +445,7 @@ classdef FpsRailShooter < GameBase
 
                 % Update body patch with type-specific animation
                 bodySize = scaleVal * obj.BaseSize;
-                depthAlpha = 0.4 + 0.6 * (1 - m.depth);
+                depthAlpha = min(1, 0.4 + 0.6 * (1 - m.depth));
 
                 switch m.type
                     case 1  % Fighter: banking drift

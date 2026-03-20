@@ -33,6 +33,9 @@ classdef Asteroids < GameBase
                                         "lineH", {}, "glowH", {})
         FireCooldown    (1,1) double = 0
         Lives           (1,1) double = 3
+        ShipRadius      (1,1) double = 8
+        ShipCosT        (1,:) double
+        ShipSinT        (1,:) double
         Wave            (1,1) double = 1
         InvulnFrames    (1,1) double = 0
     end
@@ -86,18 +89,23 @@ classdef Asteroids < GameBase
             obj.Rocks = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                 "radius", {}, "tier", {}, "angle", {}, "spin", {}, "patchH", {});
 
-            % Ship graphics — convert data-unit radius to points for SizeData
-            shipRData = max(4, round(min(diff(dx), diff(dy)) * 0.04));
-            pixPos = getpixelposition(ax);
-            pxPerData = pixPos(3) / diff(dx);
-            dpiVal = get(0, "ScreenPixelsPerInch");
-            ptPerPx = 72 / dpiVal;
-            shipRPts = shipRData * pxPerData * ptPerPx;
-            obj.ShipGlowH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
-                (shipRPts * 3)^2, obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.2, ...
+            % Ship graphics — data-unit circle patches (scale with axes)
+            shipR = max(4, round(min(diff(dx), diff(dy)) * 0.04));
+            obj.ShipRadius = shipR;
+            theta = linspace(0, 2*pi, 32);
+            cosT = cos(theta); sinT = sin(theta);
+            obj.ShipGlowH = patch(ax, ...
+                obj.ShipPos(1) + shipR * 2.5 * cosT, ...
+                obj.ShipPos(2) + shipR * 2.5 * sinT, ...
+                obj.ColorCyan, "FaceAlpha", 0.15, "EdgeColor", "none", ...
                 "Tag", "GT_asteroids");
-            obj.ShipCoreH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
-                (shipRPts * 1.2)^2, obj.ColorCyan, "filled", "Tag", "GT_asteroids");
+            obj.ShipCoreH = patch(ax, ...
+                obj.ShipPos(1) + shipR * cosT, ...
+                obj.ShipPos(2) + shipR * sinT, ...
+                obj.ColorCyan, "FaceAlpha", 0.9, "EdgeColor", obj.ColorCyan * 0.7, ...
+                "Tag", "GT_asteroids");
+            obj.ShipCosT = cosT;
+            obj.ShipSinT = sinT;
             obj.ShipTrailH = line(ax, NaN, NaN, "Color", [obj.ColorCyan, 0.4], ...
                 "LineWidth", 2, "Tag", "GT_asteroids");
 
@@ -136,13 +144,14 @@ classdef Asteroids < GameBase
             % Move ship to finger
             if ~any(isnan(pos))
                 obj.ShipPos = pos;
+                r = obj.ShipRadius;
                 if ~isempty(obj.ShipCoreH) && isvalid(obj.ShipCoreH)
-                    obj.ShipCoreH.XData = pos(1);
-                    obj.ShipCoreH.YData = pos(2);
+                    obj.ShipCoreH.XData = pos(1) + r * obj.ShipCosT;
+                    obj.ShipCoreH.YData = pos(2) + r * obj.ShipSinT;
                 end
                 if ~isempty(obj.ShipGlowH) && isvalid(obj.ShipGlowH)
-                    obj.ShipGlowH.XData = pos(1);
-                    obj.ShipGlowH.YData = pos(2);
+                    obj.ShipGlowH.XData = pos(1) + r * 2.5 * obj.ShipCosT;
+                    obj.ShipGlowH.YData = pos(2) + r * 2.5 * obj.ShipSinT;
                 end
             end
 
@@ -447,7 +456,7 @@ classdef Asteroids < GameBase
             else
                 for a = 1:numel(obj.Rocks)
                     rock = obj.Rocks(a);
-                    if norm([rock.x - obj.ShipPos(1), rock.y - obj.ShipPos(2)]) < rock.radius + 3
+                    if norm([rock.x - obj.ShipPos(1), rock.y - obj.ShipPos(2)]) < rock.radius + obj.ShipRadius
                         obj.Lives = obj.Lives - 1;
                         obj.resetCombo();
 
