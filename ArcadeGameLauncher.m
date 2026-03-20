@@ -164,6 +164,7 @@ classdef ArcadeGameLauncher < handle
                 "Subtitle", menuSubtitle);
 
             obj.enterMenu();
+            obj.Menu.scaleFonts();
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
             obj.startTimer();
         end
@@ -215,8 +216,6 @@ classdef ArcadeGameLauncher < handle
                 "WindowScrollWheelFcn", @(~, e) obj.onScrollWheel(e), ...
                 "KeyPressFcn", @(~, e) obj.onKeyPress(e), ...
                 "KeyReleaseFcn", @(~, e) obj.onKeyRelease(e));
-
-            drawnow;  % force layout so Position reflects maximized size
             obj.computeDisplayRange();
 
             obj.Ax = axes(obj.Fig, "Units", "normalized", ...
@@ -354,11 +353,16 @@ classdef ArcadeGameLauncher < handle
             menuAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
             pbaspect(obj.Ax, [menuAR 1 1]);
 
-            % Scale screen-space objects (text, markers) based on pixel size
+            % Scale non-menu screen-space objects (HUD text, markers)
             if obj.RefPixelSize(1) > 0
                 axPx = getpixelposition(obj.Ax);
                 pixelScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
                 GameBase.scaleScreenSpaceObjects(obj.Ax, pixelScale);
+            end
+
+            % Impose deterministic menu font sizes from current pixel size
+            if ~isempty(obj.Menu)
+                obj.Menu.scaleFonts();
             end
         end
     end

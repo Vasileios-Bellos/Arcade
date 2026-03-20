@@ -28,7 +28,6 @@ classdef (Sealed) GameMenu < handle
         TagPrefix       (1,1) string = "GT_menu"    % graphics tag prefix
         MenuTitle       (1,1) string = "A  R  C  A  D  E"
         MenuSubtitle    (1,1) string = "S E L E C T   G A M E"
-        RefPixelSize    (1,2) double = [0, 0]           % axes pixel size at creation (for font scaling)
     end
 
     % =================================================================
@@ -177,21 +176,15 @@ classdef (Sealed) GameMenu < handle
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(5, max(3, floor(diff(displayRange.Y) * 0.70 / (obj.ItemHeight + obj.ItemGap))));
-            % Font sizes: scale up for small display ranges (e.g. GestureMouse
-            % ROI ~200 DU) so text fills the scaled pills proportionally.
-            % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
-            % Font sizes: scale by min(pixel width, pixel height) ratio
-            % relative to reference (captured at init or from 1920x1080).
-            % Scale fonts relative to screen size (not axes size, which
-            % varies with maximize timing). Screen size is constant.
-            screenSz = get(0, "ScreenSize");  % [1 1 width height]
-            pxScale = min(screenSz(3) / 1920, screenSz(4) / 1080);
-            obj.TitleFontSize = max(14, round(74 * pxScale));
-            obj.SubtitleFontSize = max(8, round(43 * pxScale));
-            obj.NameFontSize = max(9, round(31 * pxScale));
-            obj.KeyFontSize = max(8, round(28 * pxScale));
-            obj.ScoreFontSize = max(8, round(25 * pxScale));
-            obj.FooterFontSize = max(6, round(22 * pxScale));
+            % Font sizes: base values for RefPixelSize=[854,480] reference.
+            % scaleScreenSpaceObjects scales these by currentPx/854x480,
+            % producing consistent final sizes regardless of MATLAB version.
+            obj.TitleFontSize = 29;
+            obj.SubtitleFontSize = 16;
+            obj.NameFontSize = 12;
+            obj.KeyFontSize = 10;
+            obj.ScoreFontSize = 10;
+            obj.FooterFontSize = 9;
 
             obj.createGraphics();
         end
@@ -279,20 +272,16 @@ classdef (Sealed) GameMenu < handle
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(5, max(3, floor(diff(newDisplayRange.Y) * 0.70 / (obj.ItemHeight + obj.ItemGap))));
-            % Font sizes: scale by min(pixel width, pixel height) ratio
-            % relative to reference — same formula as constructor
+            % Font sizes: compute from current pixel size relative to
+            % 854x480 reference (resize recreates graphics, so these are final).
             axPx = getpixelposition(obj.Ax);
-            if obj.RefPixelSize(1) > 0 && obj.RefPixelSize(2) > 0
-                pxScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
-            else
-                pxScale = 1.0;
-            end
-            obj.TitleFontSize = max(14, round(74 * pxScale));
-            obj.SubtitleFontSize = max(8, round(43 * pxScale));
-            obj.NameFontSize = max(9, round(31 * pxScale));
-            obj.KeyFontSize = max(8, round(28 * pxScale));
-            obj.ScoreFontSize = max(8, round(25 * pxScale));
-            obj.FooterFontSize = max(6, round(22 * pxScale));
+            pxScale = min(axPx(3) / 854, axPx(4) / 480);
+            obj.TitleFontSize = max(14, round(29 * pxScale));
+            obj.SubtitleFontSize = max(8, round(16 * pxScale));
+            obj.NameFontSize = max(9, round(12 * pxScale));
+            obj.KeyFontSize = max(8, round(10 * pxScale));
+            obj.ScoreFontSize = max(8, round(10 * pxScale));
+            obj.FooterFontSize = max(6, round(9 * pxScale));
 
             obj.deleteGraphics();
             obj.createGraphics();
@@ -347,6 +336,38 @@ classdef (Sealed) GameMenu < handle
             obj.updateSlotContent();
             obj.updateSlotHighlight();
             obj.updateScrollThumbPos();
+        end
+
+        function scaleFonts(obj)
+            %scaleFonts  Impose deterministic font sizes from current axes pixels.
+            %   Uses fixed 854x480 reference so the result depends ONLY on
+            %   the current axes pixel size, not on initial figure size.
+            if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
+            axPx = getpixelposition(obj.Ax);
+            ps = min(axPx(3) / 854, axPx(4) / 480);
+
+            titleSz = max(14, round(29 * ps));
+            subSz   = max(8,  round(16 * ps));
+            nameSz  = max(9,  round(12 * ps));
+            keySz   = max(8,  round(10 * ps));
+            scoreSz = max(8,  round(10 * ps));
+            footSz  = max(6,  round(9 * ps));
+
+            GameMenu.setFs(obj.TitleGlowH, titleSz);
+            GameMenu.setFs(obj.TitleMainH, titleSz);
+            GameMenu.setFs(obj.SubtitleTextH, subSz);
+            GameMenu.setFs(obj.FooterTextH, footSz);
+            for k = 1:obj.NumSlots
+                if k <= numel(obj.MenuItemKeyText)
+                    GameMenu.setFs(obj.MenuItemKeyText{k}, keySz);
+                end
+                if k <= numel(obj.MenuItemNameText)
+                    GameMenu.setFs(obj.MenuItemNameText{k}, nameSz);
+                end
+                if k <= numel(obj.MenuItemScoreText)
+                    GameMenu.setFs(obj.MenuItemScoreText{k}, scoreSz);
+                end
+            end
         end
 
         function idx = hitTestItem(obj, pos)
@@ -509,7 +530,7 @@ classdef (Sealed) GameMenu < handle
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Tag", tag + "TGlow");
             obj.TitleMainH = text(ax, cx, titleY, titleStr, ...
-                "Color", obj.ColorCyan, "FontSize", obj.TitleFontSize, ...
+                "Color", [0.0 0.55 0.65], "FontSize", obj.TitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Tag", tag + "TMain");
 
@@ -1024,12 +1045,6 @@ classdef (Sealed) GameMenu < handle
                 end
             end
 
-            % Title hue shimmer
-            if ~isempty(obj.TitleMainH) && isvalid(obj.TitleMainH)
-                hue = 0.52 + 0.015 * sin(t * 0.7);
-                rgb = GameMenu.hsvToRgb(hue, 0.92, 1.0);
-                obj.TitleMainH.Color = rgb;
-            end
 
             % --- Twinkling stars ---
             if ~isempty(obj.TwinkleH)
@@ -1198,6 +1213,13 @@ classdef (Sealed) GameMenu < handle
     % STATIC — Graphics Utilities
     % =================================================================
     methods (Static, Access = private)
+
+        function setFs(h, sz)
+            %setFs  Set FontSize if handle is valid.
+            if ~isempty(h) && isvalid(h)
+                h.FontSize = sz;
+            end
+        end
 
         function [px, py] = roundedRectVerts(cx, cy, w, h, r)
             %roundedRectVerts  Rounded rectangle (pill) patch vertices.
