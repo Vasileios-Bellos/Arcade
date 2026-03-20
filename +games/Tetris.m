@@ -797,6 +797,11 @@ classdef Tetris < GameBase
                 if isvalid(obj.GhostPatch(k)); obj.GhostPatch(k).Visible = "off"; end
             end
 
+            % Reset soft drop state so it doesn't carry to next piece
+            obj.IsSoftDrop = false;
+            obj.SoftDropTimer = 0;
+            obj.GravAccum = 0;
+
             % Check for full rows
             fullRows = obj.findFullRows();
             if ~isempty(fullRows)
