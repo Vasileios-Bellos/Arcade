@@ -356,7 +356,7 @@ classdef RailShooter < GameBase
                     expandFactor = 1 + progress^0.7 * 2.5;
                     baseScale = obj.depthScale(m.depth);
                     scaleVal = expandFactor * baseScale;
-                    deathAlpha = max(0, (1 - progress)^0.6);
+                    deathAlpha = max(0, min(1, (1 - min(progress, 1))^0.6));
 
                     jitterAmp = progress * baseScale * obj.BaseSize * 0.15;
                     jX = jitterAmp * (rand - 0.5);
@@ -380,7 +380,7 @@ classdef RailShooter < GameBase
                             m.bodyPatchH.FaceColor = [0.7, 0.2, 0];
                         end
                         m.bodyPatchH.FaceAlpha = max(0, 0.6 * deathAlpha);
-                        m.bodyPatchH.EdgeAlpha = deathAlpha;
+                        m.bodyPatchH.EdgeAlpha = min(1, deathAlpha);
                     end
                     if ~isempty(m.glowPatchH) && isvalid(m.glowPatchH)
                         m.glowPatchH.XData = sx;
