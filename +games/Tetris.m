@@ -121,9 +121,6 @@ classdef Tetris < GameBase
         ClearTimer          (1,1) double = 0
         ClearDuration       (1,1) double = 12    % frames for flash
 
-        % Combo flash text (SINGLE / DOUBLE / TRIPLE / TETRIS!)
-        ClearTextTimer      (1,1) double = 0     % countdown for combo text display
-        ClearTextDuration   (1,1) double = 40    % DtScale units to display combo text
 
         % Mouse / finger control
         MouseTargetCol      (1,1) double = 5
@@ -172,8 +169,6 @@ classdef Tetris < GameBase
         FieldBorderH                % line handle
         GridLinesH                  % line handle
 
-        % In-field HUD
-        ClearTextH                  % text handle for combo flash (SINGLE/DOUBLE etc.)
     end
 
     % =================================================================
@@ -291,18 +286,6 @@ classdef Tetris < GameBase
                 end
             end
 
-
-            % --- Combo flash text (centered in playfield, hidden initially) ---
-            obj.ClearTextH = text(ax, ...
-                obj.FieldX + fieldW / 2, ...
-                obj.FieldY + fieldH / 2, ...
-                "", "Color", [1 1 1], ...
-                "FontSize", max(12, round(18 * obj.Sc)), ...
-                "FontWeight", "bold", ...
-                "HorizontalAlignment", "center", ...
-                "VerticalAlignment", "middle", ...
-                "Visible", "off", "Tag", "GT_tetris");
-            obj.ClearTextTimer = 0;
 
             % --- Reset all game state ---
             obj.Bag = uint8.empty(1, 0);
@@ -491,34 +474,6 @@ classdef Tetris < GameBase
             end
 
             % =============================================================
-            % COMBO TEXT FADE-OUT
-            % =============================================================
-            if obj.ClearTextTimer > 0
-                obj.ClearTextTimer = obj.ClearTextTimer - ds;
-                if obj.ClearTextTimer <= 0
-                    % Hide combo text
-                    if ~isempty(obj.ClearTextH) && isvalid(obj.ClearTextH)
-                        obj.ClearTextH.Visible = "off";
-                    end
-                    obj.ClearTextTimer = 0;
-                else
-                    % Fade alpha during last 40% of duration
-                    progress = obj.ClearTextTimer / obj.ClearTextDuration;
-                    if progress < 0.4
-                        alpha = progress / 0.4;
-                    else
-                        alpha = 1;
-                    end
-                    if ~isempty(obj.ClearTextH) && isvalid(obj.ClearTextH)
-                        clr = obj.ClearTextH.Color;
-                        if numel(clr) >= 3
-                            obj.ClearTextH.Color = [clr(1:3), alpha];
-                        end
-                    end
-                end
-            end
-
-            % =============================================================
             % UPDATE VISUALS
             % =============================================================
             obj.renderActive();
@@ -557,7 +512,7 @@ classdef Tetris < GameBase
 
             % Line and text handles
             handles = {obj.FieldBorderH, obj.GridLinesH, ...
-                obj.NextBorderH, obj.NextLabelH, obj.ClearTextH};
+                obj.NextBorderH, obj.NextLabelH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h); delete(h); end
@@ -664,7 +619,7 @@ classdef Tetris < GameBase
 
         function s = getHudText(obj)
             %getHudText  Return HUD string.
-            s = sprintf("Lv %d | Lines %d", obj.Level, obj.TotalLines);
+            s = sprintf("Level %d | Lines %d", obj.Level, obj.TotalLines);
         end
     end
 
@@ -917,24 +872,6 @@ classdef Tetris < GameBase
             obj.addScore(pts);
             obj.TotalLines = obj.TotalLines + numLines;
 
-            % --- Show combo flash text ---
-            switch numLines
-                case 1; clearLabel = "SINGLE";  clearClr = [0.5, 0.8, 1];
-                case 2; clearLabel = "DOUBLE";  clearClr = [0.3, 1, 0.5];
-                case 3; clearLabel = "TRIPLE";  clearClr = [1, 0.8, 0.2];
-                case 4; clearLabel = "TETRIS!"; clearClr = [1, 0.3, 0.9];
-                otherwise; clearLabel = sprintf("%d LINES!", numLines); clearClr = [1, 1, 1];
-            end
-            if obj.ComboCount > 0
-                clearLabel = sprintf("%s  x%d", clearLabel, obj.ComboCount + 1);
-            end
-            if ~isempty(obj.ClearTextH) && isvalid(obj.ClearTextH)
-                obj.ClearTextH.String = clearLabel;
-                obj.ClearTextH.Color = [clearClr, 1];
-                obj.ClearTextH.Visible = "on";
-                obj.ClearTextTimer = obj.ClearTextDuration;
-            end
-
             % Level up every 10 lines
             newLevel = floor(obj.TotalLines / 10) + 1;
             if newLevel > obj.Level
@@ -1116,13 +1053,13 @@ classdef Tetris < GameBase
 
         function renderNext(obj)
             %renderNext  Show the next 3 pieces in the preview box.
-            %   Spacing: 1 cell top, 2 cells between pieces, 1 cell bottom.
+            %   Equal spacing: total shape rows counted, remaining box space
+            %   divided equally among 4 gaps (top, between1, between2, bottom).
             %   Even-width pieces (I=4, O=2) offset left by half a cell.
-            %   Box resized to exactly fit the content.
             baseCenterX = obj.NextBoxX + obj.NextBoxW / 2;
             nPreview = min(3, numel(obj.NextQueue));
 
-            % --- Compute per-piece row spans and column widths ---
+            % Compute per-piece row spans and column widths
             pieceRowSpan = zeros(1, nPreview);
             pieceWidth = zeros(1, nPreview);
             for p = 1:nPreview
@@ -1131,30 +1068,21 @@ classdef Tetris < GameBase
                 pieceWidth(p) = double(max(off(:, 2)) - min(off(:, 2))) + 1;
             end
 
-            % Total box height: 1 + piece1 + 2 + piece2 + 2 + piece3 + 1
-            topPad = 1;
-            bottomPad = 1;
-            gapCells = 2;
-            totalCells = topPad + sum(pieceRowSpan) + gapCells * max(0, nPreview - 1) + bottomPad;
-            newBoxH = totalCells * obj.CellH;
+            % Total shape rows and equal gap calculation
+            totalShapeH = sum(pieceRowSpan) * obj.CellH;
+            nGaps = nPreview + 1;  % 4 gaps: top, between1, between2, bottom
+            gapH = (obj.NextBoxH - totalShapeH) / nGaps;
 
-            % Update stored box height and redraw border
-            obj.NextBoxH = newBoxH;
-            if ~isempty(obj.NextBorderH) && isvalid(obj.NextBorderH)
-                nx = obj.NextBoxX;
-                ny = obj.NextBoxY;
-                obj.NextBorderH.XData = [nx, nx + obj.NextBoxW, nx + obj.NextBoxW, nx, nx];
-                obj.NextBorderH.YData = [ny, ny, ny + newBoxH, ny + newBoxH, ny];
-            end
-
-            % --- Render each piece ---
-            % First piece center Y: NextBoxY + (topPad + pieceRowSpan(1)/2) * CellH
-            curCenterY = obj.NextBoxY + (topPad + pieceRowSpan(1) / 2) * obj.CellH;
+            % Place each piece with equal gaps
+            curY = obj.NextBoxY + gapH;  % top gap
 
             for p = 1:nPreview
                 offsets = obj.PieceCells{obj.NextQueue(p)}(:, :, 1);
                 clr = obj.PieceClrs(obj.NextQueue(p), :);
                 brightClr = min(1, clr * 1.4);
+
+                % Center Y of this piece
+                pieceCenterY = curY + (pieceRowSpan(p) / 2) * obj.CellH;
 
                 % Even-width pieces shift left by half a cell
                 cx = baseCenterX;
@@ -1165,7 +1093,7 @@ classdef Tetris < GameBase
                 for k = 1:4
                     dr = double(offsets(k, 1));
                     dc = double(offsets(k, 2));
-                    [xv, yv] = obj.miniCellVerts(cx, curCenterY, dr, dc);
+                    [xv, yv] = obj.miniCellVerts(cx, pieceCenterY, dr, dc);
                     if isvalid(obj.NextCell(p, k))
                         obj.NextCell(p, k).XData = xv;
                         obj.NextCell(p, k).YData = yv;
@@ -1176,11 +1104,8 @@ classdef Tetris < GameBase
                     end
                 end
 
-                % Advance to next piece center: half current span + gap + half next span
-                if p < nPreview
-                    curCenterY = curCenterY + ...
-                        (pieceRowSpan(p) / 2 + gapCells + pieceRowSpan(p + 1) / 2) * obj.CellH;
-                end
+                % Advance past this piece + one equal gap
+                curY = curY + pieceRowSpan(p) * obj.CellH + gapH;
             end
 
             % Hide unused slots
