@@ -162,16 +162,13 @@ classdef (Sealed) GameMenu < handle
             % Font sizes: scale up for small display ranges (e.g. GestureMouse
             % ROI ~200 DU) so text fills the scaled pills proportionally.
             % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
-            % Font sizes: scale by axes pixel size relative to 1080p reference.
-            % Smaller window = smaller text, bigger window = bigger text.
-            axPx = getpixelposition(obj.Ax);
-            fontS = min(axPx(3), axPx(4)) / 1080;
-            obj.TitleFontSize = max(10, round(44 * fontS));
-            obj.SubtitleFontSize = max(6, round(22 * fontS));
-            obj.NameFontSize = max(7, round(28 * fontS));
-            obj.KeyFontSize = max(6, round(24 * fontS));
-            obj.ScoreFontSize = max(6, round(22 * fontS));
-            obj.FooterFontSize = max(5, round(20 * fontS));
+            % Font sizes: same scale factor as layout items
+            obj.TitleFontSize = max(10, round(24 * s));
+            obj.SubtitleFontSize = max(6, round(12 * s));
+            obj.NameFontSize = max(7, round(15 * s));
+            obj.KeyFontSize = max(6, round(13 * s));
+            obj.ScoreFontSize = max(6, round(12 * s));
+            obj.FooterFontSize = max(5, round(10.5 * s));
 
             obj.createGraphics();
         end
