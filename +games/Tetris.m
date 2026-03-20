@@ -1,19 +1,18 @@
 classdef Tetris < GameBase
     %Tetris  Classic falling-block puzzle game with SRS rotation and wall kicks.
     %   10-wide x 20-visible playfield (+ 2 hidden buffer rows at top).
-    %   7-bag randomizer, ghost piece, hold, 3-piece next preview, DAS/ARR
+    %   7-bag randomizer, ghost piece, 3-piece next preview, DAS/ARR
     %   auto-repeat, lock delay with move resets, combo and back-to-back
     %   scoring. Single-layer neon patch rendering with bright edge outlines.
     %
     %   Controls:
-    %     Mouse/finger X -> horizontal piece targeting
-    %     Click / Space  -> hard drop
+    %     Mouse/finger X -> horizontal piece targeting (disabled during arrow key use)
+    %     Left click / Space -> hard drop
+    %     Right click / Down -> soft drop (20x gravity)
     %     Scroll wheel   -> rotate (up=CW, down=CCW)
-    %     Left/Right     -> shift piece (DAS auto-repeat)
+    %     Left/Right     -> shift piece (DAS auto-repeat, disables mouse targeting)
     %     Up / Z         -> rotate clockwise
     %     X              -> rotate counter-clockwise
-    %     Down           -> soft drop (20x gravity)
-    %     C              -> hold piece
     %
     %   Coordinate convention (YDir = "reverse"):
     %     Row 1  = TOP of the board (low Y on screen, where pieces spawn)
@@ -85,10 +84,6 @@ classdef Tetris < GameBase
         % Ghost
         GhostRow            (1,1) int16  = 0     % ghost pivot row
 
-        % Hold
-        HoldPiece           (1,1) uint8  = 0     % held piece ID, 0 = none
-        HoldLocked          (1,1) logical = false % true = already held this turn
-
         % 7-bag randomizer
         Bag                 (1,:) uint8  = uint8.empty(1, 0)
         BagIdx              (1,1) uint8  = 0
@@ -126,9 +121,15 @@ classdef Tetris < GameBase
         ClearTimer          (1,1) double = 0
         ClearDuration       (1,1) double = 12    % frames for flash
 
+        % Combo flash text (SINGLE / DOUBLE / TRIPLE / TETRIS!)
+        ClearTextTimer      (1,1) double = 0     % countdown for combo text display
+        ClearTextDuration   (1,1) double = 40    % DtScale units to display combo text
+
         % Mouse / finger control
         MouseTargetCol      (1,1) double = 5
         MouseActive         (1,1) logical = false
+        KeyboardMode        (1,1) logical = false  % true while arrow keys drive movement
+        PrevMouseX          (1,1) double = NaN     % previous mouse X for detecting significant movement
 
         % Game over flag
         GameOver            (1,1) logical = false
@@ -140,9 +141,7 @@ classdef Tetris < GameBase
         CellH               (1,1) double = 1     % cell height in data units
         Sc                  (1,1) double = 1     % display scale factor
 
-        % Hold / Next box geometry (cached for display updates)
-        HoldCenterX         (1,1) double = 0
-        HoldCenterY         (1,1) double = 0
+        % Next box geometry (cached for display updates)
         NextBoxX            (1,1) double = 0
         NextBoxY            (1,1) double = 0
         NextBoxW            (1,1) double = 0
@@ -164,11 +163,6 @@ classdef Tetris < GameBase
         % Ghost piece: 4 patches (translucent)
         GhostPatch          (1,4)
 
-        % Hold display: 4 patches
-        HoldCell            (1,4)
-        HoldBorderH                 % line handle
-        HoldLabelH                  % text handle
-
         % Next preview: 3 pieces x 4 cells = 12 patches
         NextCell            (3,4)
         NextBorderH                 % line handle
@@ -179,6 +173,7 @@ classdef Tetris < GameBase
         GridLinesH                  % line handle
 
         % In-field HUD
+        ClearTextH                  % text handle for combo flash (SINGLE/DOUBLE etc.)
     end
 
     % =================================================================
@@ -266,32 +261,6 @@ classdef Tetris < GameBase
                     "Visible", "off", "Tag", "GT_tetris");
             end
 
-            % --- Hold box (left of playfield) ---
-            holdBoxW = obj.CellW * 5;
-            holdBoxH = obj.CellH * 4;
-            holdX = obj.FieldX - holdBoxW - obj.CellW * 1.5;
-            holdY = obj.FieldY + obj.CellH;
-            obj.HoldCenterX = holdX + holdBoxW / 2;
-            obj.HoldCenterY = holdY + holdBoxH / 2;
-
-            obj.HoldBorderH = line(ax, ...
-                [holdX, holdX + holdBoxW, holdX + holdBoxW, holdX, holdX], ...
-                [holdY, holdY, holdY + holdBoxH, holdY + holdBoxH, holdY], ...
-                "Color", [0, 0.6, 0.7, 0.4], "LineWidth", 1, "Tag", "GT_tetris");
-            obj.HoldLabelH = text(ax, holdX + holdBoxW / 2, holdY - obj.CellH * 0.3, ...
-                "HOLD", "Color", [0, 0.6, 0.7], ...
-                "FontSize", max(8, round(10 * obj.Sc)), ...
-                "FontWeight", "bold", "HorizontalAlignment", "center", ...
-                "VerticalAlignment", "bottom", "Tag", "GT_tetris");
-
-            obj.HoldCell = gobjects(1, 4);
-            for k = 1:4
-                obj.HoldCell(k) = patch(ax, "XData", [0 1 1 0], "YData", [0 0 1 1], ...
-                    "FaceColor", [1 1 1], "FaceAlpha", 0.75, ...
-                    "EdgeColor", [1 1 1], "LineWidth", 1.5, ...
-                    "Visible", "off", "Tag", "GT_tetris");
-            end
-
             % --- Next preview (right of playfield) ---
             nextBoxW = obj.CellW * 5;
             nextBoxH = obj.CellH * 13;
@@ -323,12 +292,22 @@ classdef Tetris < GameBase
             end
 
 
+            % --- Combo flash text (centered in playfield, hidden initially) ---
+            obj.ClearTextH = text(ax, ...
+                obj.FieldX + fieldW / 2, ...
+                obj.FieldY + fieldH / 2, ...
+                "", "Color", [1 1 1], ...
+                "FontSize", max(12, round(18 * obj.Sc)), ...
+                "FontWeight", "bold", ...
+                "HorizontalAlignment", "center", ...
+                "VerticalAlignment", "middle", ...
+                "Visible", "off", "Tag", "GT_tetris");
+            obj.ClearTextTimer = 0;
+
             % --- Reset all game state ---
             obj.Bag = uint8.empty(1, 0);
             obj.BagIdx = 0;
             obj.NextQueue = uint8.empty(1, 0);
-            obj.HoldPiece = 0;
-            obj.HoldLocked = false;
             obj.Level = 1;
             obj.TotalLines = 0;
             obj.ComboCount = -1;
@@ -342,6 +321,8 @@ classdef Tetris < GameBase
             obj.IsSoftDrop = false;
             obj.SoftDropTimer = 0;
             obj.MouseActive = true;
+            obj.KeyboardMode = false;
+            obj.PrevMouseX = NaN;
             obj.GravAccum = 0;
             obj.LockActive = false;
             obj.LockTimer = 0;
@@ -363,7 +344,6 @@ classdef Tetris < GameBase
             obj.renderActive();
             obj.computeGhost();
             obj.renderGhost();
-            obj.renderHold();
             obj.renderNext();
         end
 
@@ -406,7 +386,17 @@ classdef Tetris < GameBase
             % =============================================================
             % MOUSE / FINGER INPUT: map X to target column, shift piece
             % =============================================================
-            if obj.MouseActive && ~any(isnan(pos)) && obj.CurPiece > 0
+            if ~any(isnan(pos))
+                % Exit keyboard mode if mouse moves significantly
+                if obj.KeyboardMode && ~isnan(obj.PrevMouseX)
+                    if abs(pos(1) - obj.PrevMouseX) > obj.CellW
+                        obj.KeyboardMode = false;
+                    end
+                end
+                obj.PrevMouseX = pos(1);
+            end
+
+            if ~obj.KeyboardMode && obj.MouseActive && ~any(isnan(pos)) && obj.CurPiece > 0
                 relX = pos(1) - obj.FieldX;
                 targetCol = round(relX / obj.CellW) + 1;
                 targetCol = max(1, min(obj.NCols, targetCol));
@@ -501,6 +491,34 @@ classdef Tetris < GameBase
             end
 
             % =============================================================
+            % COMBO TEXT FADE-OUT
+            % =============================================================
+            if obj.ClearTextTimer > 0
+                obj.ClearTextTimer = obj.ClearTextTimer - ds;
+                if obj.ClearTextTimer <= 0
+                    % Hide combo text
+                    if ~isempty(obj.ClearTextH) && isvalid(obj.ClearTextH)
+                        obj.ClearTextH.Visible = "off";
+                    end
+                    obj.ClearTextTimer = 0;
+                else
+                    % Fade alpha during last 40% of duration
+                    progress = obj.ClearTextTimer / obj.ClearTextDuration;
+                    if progress < 0.4
+                        alpha = progress / 0.4;
+                    else
+                        alpha = 1;
+                    end
+                    if ~isempty(obj.ClearTextH) && isvalid(obj.ClearTextH)
+                        clr = obj.ClearTextH.Color;
+                        if numel(clr) >= 3
+                            obj.ClearTextH.Color = [clr(1:3), alpha];
+                        end
+                    end
+                end
+            end
+
+            % =============================================================
             % UPDATE VISUALS
             % =============================================================
             obj.renderActive();
@@ -521,8 +539,8 @@ classdef Tetris < GameBase
             end
             obj.BoardCell = gobjects(0, 0);
 
-            % Active / ghost / hold patches
-            arrays = {obj.ActiveCell, obj.GhostPatch, obj.HoldCell};
+            % Active / ghost patches
+            arrays = {obj.ActiveCell, obj.GhostPatch};
             for a = 1:numel(arrays)
                 arr = arrays{a};
                 for k = 1:numel(arr)
@@ -538,8 +556,8 @@ classdef Tetris < GameBase
             end
 
             % Line and text handles
-            handles = {obj.FieldBorderH, obj.GridLinesH, obj.HoldBorderH, ...
-                obj.HoldLabelH, obj.NextBorderH, obj.NextLabelH};
+            handles = {obj.FieldBorderH, obj.GridLinesH, ...
+                obj.NextBorderH, obj.NextLabelH, obj.ClearTextH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h); delete(h); end
@@ -548,7 +566,6 @@ classdef Tetris < GameBase
             % Reset handle arrays
             obj.ActiveCell = gobjects(1, 4);
             obj.GhostPatch = gobjects(1, 4);
-            obj.HoldCell   = gobjects(1, 4);
             obj.NextCell   = gobjects(3, 4);
             obj.Board = zeros(0, 0, "uint8");
 
@@ -570,6 +587,7 @@ classdef Tetris < GameBase
             handled = true;
             switch key
                 case "leftarrow"
+                    obj.KeyboardMode = true;
                     obj.tryShift(-1, 0);
                     obj.DASDir = -1;
                     obj.DASTimer = 0;
@@ -577,6 +595,7 @@ classdef Tetris < GameBase
                     obj.DASAge = 0;
 
                 case "rightarrow"
+                    obj.KeyboardMode = true;
                     obj.tryShift(1, 0);
                     obj.DASDir = 1;
                     obj.DASTimer = 0;
@@ -596,9 +615,6 @@ classdef Tetris < GameBase
                 case "space"
                     obj.hardDrop();
 
-                case "c"
-                    obj.doHold();
-
                 otherwise
                     handled = false;
             end
@@ -612,8 +628,17 @@ classdef Tetris < GameBase
         end
 
         function onMouseDown(obj)
-            %onMouseDown  Hard drop on click.
-            if ~obj.GameOver && isempty(obj.ClearRows)
+            %onMouseDown  Left click = hard drop, right click = soft drop.
+            if obj.GameOver || ~isempty(obj.ClearRows); return; end
+
+            % Determine click type from figure SelectionType
+            fig = ancestor(obj.Ax, "figure");
+            if ~isempty(fig) && isvalid(fig) && strcmp(fig.SelectionType, "alt")
+                % Right-click: soft drop (accelerate piece like down arrow)
+                obj.IsSoftDrop = true;
+                obj.SoftDropTimer = 0;
+            else
+                % Left-click (or any other): hard drop
                 obj.hardDrop();
             end
         end
@@ -775,7 +800,6 @@ classdef Tetris < GameBase
             obj.LockActive = false;
             obj.LockTimer = 0;
             obj.LockMoveCount = 0;
-            obj.HoldLocked = false;
             obj.IsSoftDrop = false;
             obj.SoftDropTimer = 0;
         end
@@ -893,6 +917,24 @@ classdef Tetris < GameBase
             obj.addScore(pts);
             obj.TotalLines = obj.TotalLines + numLines;
 
+            % --- Show combo flash text ---
+            switch numLines
+                case 1; clearLabel = "SINGLE";  clearClr = [0.5, 0.8, 1];
+                case 2; clearLabel = "DOUBLE";  clearClr = [0.3, 1, 0.5];
+                case 3; clearLabel = "TRIPLE";  clearClr = [1, 0.8, 0.2];
+                case 4; clearLabel = "TETRIS!"; clearClr = [1, 0.3, 0.9];
+                otherwise; clearLabel = sprintf("%d LINES!", numLines); clearClr = [1, 1, 1];
+            end
+            if obj.ComboCount > 0
+                clearLabel = sprintf("%s  x%d", clearLabel, obj.ComboCount + 1);
+            end
+            if ~isempty(obj.ClearTextH) && isvalid(obj.ClearTextH)
+                obj.ClearTextH.String = clearLabel;
+                obj.ClearTextH.Color = [clearClr, 1];
+                obj.ClearTextH.Visible = "on";
+                obj.ClearTextTimer = obj.ClearTextDuration;
+            end
+
             % Level up every 10 lines
             newLevel = floor(obj.TotalLines / 10) + 1;
             if newLevel > obj.Level
@@ -920,27 +962,6 @@ classdef Tetris < GameBase
             obj.renderActive();
             obj.computeGhost();
             obj.renderGhost();
-        end
-
-        function doHold(obj)
-            %doHold  Swap current piece with hold, or store if empty.
-            if obj.HoldLocked; return; end
-            if obj.CurPiece == 0; return; end
-
-            oldPiece = obj.CurPiece;
-            if obj.HoldPiece == 0
-                obj.HoldPiece = oldPiece;
-                obj.spawnNext();
-            else
-                swapPiece = obj.HoldPiece;
-                obj.HoldPiece = oldPiece;
-                obj.spawnPiece(swapPiece);
-                obj.renderActive();
-                obj.computeGhost();
-                obj.renderGhost();
-            end
-            obj.HoldLocked = true;
-            obj.renderHold();
         end
 
         function hardDrop(obj)
@@ -1020,7 +1041,7 @@ classdef Tetris < GameBase
         end
 
         function [xv, yv] = miniCellVerts(obj, centerX, centerY, dr, dc)
-            %miniCellVerts  Vertices for a cell in a preview/hold box (full size).
+            %miniCellVerts  Vertices for a cell in a preview box (full size).
             %   (dr, dc) are offsets from piece center. Positive dr = down.
             x0 = centerX + (double(dc) - 0.5) * obj.CellW;
             y0 = centerY + (double(dr) - 0.5) * obj.CellH;
@@ -1093,53 +1114,58 @@ classdef Tetris < GameBase
             end
         end
 
-        function renderHold(obj)
-            %renderHold  Show the held piece in the hold box.
-            if obj.HoldPiece == 0
-                for k = 1:4
-                    if isvalid(obj.HoldCell(k)); obj.HoldCell(k).Visible = "off"; end
-                end
-                return;
-            end
-
-            offsets = obj.PieceCells{obj.HoldPiece}(:, :, 1);   % rotation 0
-            clr = obj.PieceClrs(obj.HoldPiece, :);
-            if obj.HoldLocked
-                clr = clr * 0.4;   % dimmed when hold already used
-            end
-            brightClr = min(1, clr * 1.4);
-
-            for k = 1:4
-                dr = double(offsets(k, 1));
-                dc = double(offsets(k, 2));
-                [xv, yv] = obj.miniCellVerts(obj.HoldCenterX, obj.HoldCenterY, dr, dc);
-                if isvalid(obj.HoldCell(k))
-                    obj.HoldCell(k).XData = xv;
-                    obj.HoldCell(k).YData = yv;
-                    obj.HoldCell(k).FaceColor = clr;
-                    obj.HoldCell(k).FaceAlpha = 0.75;
-                    obj.HoldCell(k).EdgeColor = brightClr;
-                    obj.HoldCell(k).Visible = "on";
-                end
-            end
-        end
-
         function renderNext(obj)
             %renderNext  Show the next 3 pieces in the preview box.
-            centerX = obj.NextBoxX + obj.NextBoxW / 2;
+            %   Spacing: 1 cell top, 2 cells between pieces, 1 cell bottom.
+            %   Even-width pieces (I=4, O=2) offset left by half a cell.
+            %   Box resized to exactly fit the content.
+            baseCenterX = obj.NextBoxX + obj.NextBoxW / 2;
+            nPreview = min(3, numel(obj.NextQueue));
 
-            for p = 1:min(3, numel(obj.NextQueue))
+            % --- Compute per-piece row spans and column widths ---
+            pieceRowSpan = zeros(1, nPreview);
+            pieceWidth = zeros(1, nPreview);
+            for p = 1:nPreview
+                off = obj.PieceCells{obj.NextQueue(p)}(:, :, 1);
+                pieceRowSpan(p) = double(max(off(:, 1)) - min(off(:, 1))) + 1;
+                pieceWidth(p) = double(max(off(:, 2)) - min(off(:, 2))) + 1;
+            end
+
+            % Total box height: 1 + piece1 + 2 + piece2 + 2 + piece3 + 1
+            topPad = 1;
+            bottomPad = 1;
+            gapCells = 2;
+            totalCells = topPad + sum(pieceRowSpan) + gapCells * max(0, nPreview - 1) + bottomPad;
+            newBoxH = totalCells * obj.CellH;
+
+            % Update stored box height and redraw border
+            obj.NextBoxH = newBoxH;
+            if ~isempty(obj.NextBorderH) && isvalid(obj.NextBorderH)
+                nx = obj.NextBoxX;
+                ny = obj.NextBoxY;
+                obj.NextBorderH.XData = [nx, nx + obj.NextBoxW, nx + obj.NextBoxW, nx, nx];
+                obj.NextBorderH.YData = [ny, ny, ny + newBoxH, ny + newBoxH, ny];
+            end
+
+            % --- Render each piece ---
+            % First piece center Y: NextBoxY + (topPad + pieceRowSpan(1)/2) * CellH
+            curCenterY = obj.NextBoxY + (topPad + pieceRowSpan(1) / 2) * obj.CellH;
+
+            for p = 1:nPreview
                 offsets = obj.PieceCells{obj.NextQueue(p)}(:, :, 1);
                 clr = obj.PieceClrs(obj.NextQueue(p), :);
                 brightClr = min(1, clr * 1.4);
 
-                % Vertical slot: evenly spaced within the next box
-                slotCenterY = obj.NextBoxY + (p - 0.5) * (obj.NextBoxH / 3);
+                % Even-width pieces shift left by half a cell
+                cx = baseCenterX;
+                if mod(pieceWidth(p), 2) == 0
+                    cx = cx - obj.CellW / 2;
+                end
 
                 for k = 1:4
                     dr = double(offsets(k, 1));
                     dc = double(offsets(k, 2));
-                    [xv, yv] = obj.miniCellVerts(centerX, slotCenterY, dr, dc);
+                    [xv, yv] = obj.miniCellVerts(cx, curCenterY, dr, dc);
                     if isvalid(obj.NextCell(p, k))
                         obj.NextCell(p, k).XData = xv;
                         obj.NextCell(p, k).YData = yv;
@@ -1149,10 +1175,16 @@ classdef Tetris < GameBase
                         obj.NextCell(p, k).Visible = "on";
                     end
                 end
+
+                % Advance to next piece center: half current span + gap + half next span
+                if p < nPreview
+                    curCenterY = curCenterY + ...
+                        (pieceRowSpan(p) / 2 + gapCells + pieceRowSpan(p + 1) / 2) * obj.CellH;
+                end
             end
 
             % Hide unused slots
-            for p = (numel(obj.NextQueue) + 1):3
+            for p = (nPreview + 1):3
                 for k = 1:4
                     if isvalid(obj.NextCell(p, k)); obj.NextCell(p, k).Visible = "off"; end
                 end
