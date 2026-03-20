@@ -182,11 +182,10 @@ classdef (Sealed) GameMenu < handle
             % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
             % Font sizes: scale by min(pixel width, pixel height) ratio
             % relative to reference (captured at init or from 1920x1080).
+            % Fixed 1080p reference — fonts look identical on all machines.
+            % On smaller/larger screens, pxScale adjusts proportionally.
             axPx = getpixelposition(obj.Ax);
-            if isempty(obj.RefPixelSize) || all(obj.RefPixelSize == 0)
-                obj.RefPixelSize = axPx(3:4);
-            end
-            pxScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
+            pxScale = min(axPx(3) / 1920, axPx(4) / 1080);
             obj.TitleFontSize = max(14, round(36 * pxScale));
             obj.SubtitleFontSize = max(6, round(12 * pxScale));
             obj.NameFontSize = max(7, round(15 * pxScale));
