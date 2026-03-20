@@ -180,7 +180,7 @@ classdef (Sealed) GameMenu < handle
             % scaleScreenSpaceObjects scales these by currentPx/854x480,
             % producing consistent final sizes regardless of MATLAB version.
             obj.TitleFontSize = 29;
-            obj.SubtitleFontSize = 16;
+            obj.SubtitleFontSize = 13;
             obj.NameFontSize = 12;
             obj.KeyFontSize = 10;
             obj.ScoreFontSize = 10;
@@ -277,7 +277,7 @@ classdef (Sealed) GameMenu < handle
             axPx = getpixelposition(obj.Ax);
             pxScale = min(axPx(3) / 854, axPx(4) / 480);
             obj.TitleFontSize = max(14, round(29 * pxScale));
-            obj.SubtitleFontSize = max(8, round(16 * pxScale));
+            obj.SubtitleFontSize = max(8, round(13 * pxScale));
             obj.NameFontSize = max(9, round(12 * pxScale));
             obj.KeyFontSize = max(8, round(10 * pxScale));
             obj.ScoreFontSize = max(8, round(10 * pxScale));
@@ -347,7 +347,7 @@ classdef (Sealed) GameMenu < handle
             ps = min(axPx(3) / 854, axPx(4) / 480);
 
             titleSz = max(14, round(29 * ps));
-            subSz   = max(8,  round(16 * ps));
+            subSz   = max(8,  round(13 * ps));
             nameSz  = max(9,  round(12 * ps));
             keySz   = max(8,  round(10 * ps));
             scoreSz = max(8,  round(10 * ps));
@@ -523,14 +523,14 @@ classdef (Sealed) GameMenu < handle
             s = obj.LayoutScale;
             titleY = dy(1) + rangeH * 0.09;
             titleStr = obj.MenuTitle;
-            glowOffY = max(1, round(2.5 * s));
-            glowOffX = max(1, round(3 * s));
+            glowOffX = max(1, round(2 * s));
+            glowOffY = max(1, round(1.5 * s));
             obj.TitleGlowH = text(ax, cx + glowOffX, titleY + glowOffY, titleStr, ...
-                "Color", [0.00 0.35 0.50], "FontSize", obj.TitleFontSize, ...
+                "Color", [0.00 0.35 0.50 0.5], "FontSize", obj.TitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Tag", tag + "TGlow");
             obj.TitleMainH = text(ax, cx, titleY, titleStr, ...
-                "Color", [0.0 0.55 0.65], "FontSize", obj.TitleFontSize, ...
+                "Color", [0.08 0.89 1.0], "FontSize", obj.TitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Tag", tag + "TMain");
 
@@ -641,7 +641,7 @@ classdef (Sealed) GameMenu < handle
                 footStr = "Hover to select  |  G: Exit";
             else
                 footStr = sprintf( ...
-                    "%s%s Navigate   %s   Click/Enter: Play   %s   ESC: Quit", ...
+                    "%s%s: Navigate   %s   Enter: Play   %s   Esc: Quit", ...
                     char(8593), char(8595), char(183), char(183));
             end
             obj.FooterTextH = text(ax, cx, footY, footStr, ...

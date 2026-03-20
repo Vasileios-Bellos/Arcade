@@ -256,9 +256,17 @@ classdef ArcadeGameLauncher < handle
         function onMouseMove(obj)
             %onMouseMove  Update mouse position; handle scroll thumb drag.
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
-            if obj.KeyboardMode; return; end  % ignore mouse while arrows active
             cp = get(obj.Ax, "CurrentPoint");
-            obj.MousePos = cp(1, 1:2);
+            newPos = cp(1, 1:2);
+            if obj.KeyboardMode
+                % Exit keyboard mode if mouse moves enough
+                if ~any(isnan(obj.MousePos)) && norm(newPos - obj.MousePos) > 15
+                    obj.KeyboardMode = false;
+                else
+                    return;
+                end
+            end
+            obj.MousePos = newPos;
 
             if ~isempty(obj.Menu) && obj.Menu.ScrollDragging && obj.State == "menu"
                 obj.Menu.updateScrollDrag(obj.MousePos(2));
@@ -389,7 +397,11 @@ classdef ArcadeGameLauncher < handle
                 switch obj.State
                     case "menu"
                         if ~isempty(obj.Menu)
-                            obj.Menu.update(obj.MousePos);
+                            if obj.KeyboardMode
+                                obj.Menu.update([NaN NaN]);
+                            else
+                                obj.Menu.update(obj.MousePos);
+                            end
                         end
                     case "countdown"
                         obj.updateCountdown();
@@ -542,8 +554,10 @@ classdef ArcadeGameLauncher < handle
             switch obj.State
                 case "menu"
                     if key == "uparrow"
+                        obj.KeyboardMode = true;
                         obj.Menu.moveSelection(-1);
                     elseif key == "downarrow"
+                        obj.KeyboardMode = true;
                         obj.Menu.moveSelection(1);
                     elseif key == "return" || key == "space"
                         obj.Menu.confirmSelection();
@@ -627,6 +641,7 @@ classdef ArcadeGameLauncher < handle
 
             if ~isempty(obj.Menu)
                 obj.Menu.show();
+                obj.Menu.scaleFonts();
             end
             obj.hideGameplayHUD();
         end
@@ -941,7 +956,7 @@ classdef ArcadeGameLauncher < handle
                 case "leftarrow";  obj.ArrowHeld(3) = false;
                 case "rightarrow"; obj.ArrowHeld(4) = false;
             end
-            if ~any(obj.ArrowHeld)
+            if ~any(obj.ArrowHeld) && obj.State ~= "menu"
                 obj.KeyboardMode = false;
             end
         end
