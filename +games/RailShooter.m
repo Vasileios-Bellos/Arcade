@@ -474,14 +474,14 @@ classdef RailShooter < GameBase
                 if ~isempty(m.bodyPatchH) && isvalid(m.bodyPatchH)
                     m.bodyPatchH.XData = sx;
                     m.bodyPatchH.YData = sy;
-                    m.bodyPatchH.FaceAlpha = 0.45 * depthAlpha;
-                    m.bodyPatchH.EdgeAlpha = depthAlpha;
+                    m.bodyPatchH.FaceAlpha = min(1, 0.45 * depthAlpha);
+                    m.bodyPatchH.EdgeAlpha = min(1, depthAlpha);
                 end
                 if ~isempty(m.glowPatchH) && isvalid(m.glowPatchH)
                     m.glowPatchH.XData = sx;
                     m.glowPatchH.YData = sy;
-                    m.glowPatchH.FaceAlpha = 0.12 * depthAlpha;
-                    m.glowPatchH.EdgeAlpha = 0.5 * depthAlpha;
+                    m.glowPatchH.FaceAlpha = min(1, 0.12 * depthAlpha);
+                    m.glowPatchH.EdgeAlpha = min(1, 0.5 * depthAlpha);
                 end
 
                 % Hit flash decay (white flash on damage)

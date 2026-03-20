@@ -28,6 +28,7 @@ classdef (Sealed) GameMenu < handle
         TagPrefix       (1,1) string = "GT_menu"    % graphics tag prefix
         MenuTitle       (1,1) string = "A  R  C  A  D  E"
         MenuSubtitle    (1,1) string = "S E L E C T   G A M E"
+        RefPixelSize    (1,2) double = [0, 0]           % axes pixel size at creation (for font scaling)
     end
 
     % =================================================================
@@ -162,13 +163,19 @@ classdef (Sealed) GameMenu < handle
             % Font sizes: scale up for small display ranges (e.g. GestureMouse
             % ROI ~200 DU) so text fills the scaled pills proportionally.
             % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
-            % Font sizes: same scale factor as layout items
-            obj.TitleFontSize = max(10, round(24 * s));
-            obj.SubtitleFontSize = max(6, round(12 * s));
-            obj.NameFontSize = max(7, round(15 * s));
-            obj.KeyFontSize = max(6, round(13 * s));
-            obj.ScoreFontSize = max(6, round(12 * s));
-            obj.FooterFontSize = max(5, round(10.5 * s));
+            % Font sizes: scale by min(pixel width, pixel height) ratio
+            % relative to reference (captured at init or from 1920x1080).
+            axPx = getpixelposition(obj.Ax);
+            if isempty(obj.RefPixelSize) || all(obj.RefPixelSize == 0)
+                obj.RefPixelSize = axPx(3:4);
+            end
+            pxScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
+            obj.TitleFontSize = max(10, round(24 * pxScale));
+            obj.SubtitleFontSize = max(6, round(12 * pxScale));
+            obj.NameFontSize = max(7, round(15 * pxScale));
+            obj.KeyFontSize = max(6, round(13 * pxScale));
+            obj.ScoreFontSize = max(6, round(12 * pxScale));
+            obj.FooterFontSize = max(5, round(10.5 * pxScale));
 
             obj.createGraphics();
         end
