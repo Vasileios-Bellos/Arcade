@@ -97,7 +97,7 @@ classdef (Sealed) GameMenu < handle
         CometActive     (1,2) logical = false       % whether each comet is active
         CometPos        (2,2) double = zeros(2,2)   % [x; y] head position per comet
         CometVel        (2,2) double = zeros(2,2)   % [vx; vy] per comet
-        CometProgress   (1,2) double = zeros(1,2)   % 0-1 progress through flight
+        CometSpawnT     (1,2) double = zeros(1,2)    % toc time when spawned
         CometDuration   (1,2) double = [2.0, 2.0]   % seconds per comet flight
         CometNextSpawn  (1,1) double = 3            % seconds until next spawn attempt
         CometLastSpawnT (1,1) double = 0            % elapsed time of last spawn
@@ -669,10 +669,10 @@ classdef (Sealed) GameMenu < handle
                 uistack(obj.TwinkleH(k), "bottom");
             end
 
-            % --- Shooting star comets (2 pre-allocated, patch-based fading trail) ---
+            % --- Shooting star comets (2 pre-allocated, smooth fading trail) ---
             nComets = 2;
-            nTP = 20;
-            nVerts = nTP + 1;  % +1: dup of head at alpha=0 for invisible closure seam
+            nTP = 40;
+            nVerts = nTP + 1;  % +1: dup of head at alpha=0 for closure seam
 
             % Pre-compute per-vertex alpha: dup=0, head=peak, fades to 0
             bAlpha = zeros(nVerts, 1);
@@ -692,12 +692,14 @@ classdef (Sealed) GameMenu < handle
             end
             obj.CometBaseColor = bColor;
 
+            faces = 1:nVerts;
+
             obj.CometH = gobjects(1, nComets);
             obj.CometHeadH = gobjects(1, nComets);
             for k = 1:nComets
                 obj.CometH(k) = patch(ax, ...
                     "Vertices", nan(nVerts, 2), ...
-                    "Faces", 1:nVerts, ...
+                    "Faces", faces, ...
                     "FaceColor", "none", ...
                     "EdgeColor", "interp", ...
                     "FaceVertexCData", bColor, ...
@@ -1101,7 +1103,7 @@ classdef (Sealed) GameMenu < handle
             dy = obj.DisplayRange.Y;
             rangeW = diff(dx);
             rangeH = diff(dy);
-            nTP = 20;
+            nTP = 40;
 
             % --- Spawn logic ---
             if t - obj.CometLastSpawnT >= obj.CometNextSpawn
@@ -1110,7 +1112,7 @@ classdef (Sealed) GameMenu < handle
                     if ~obj.CometActive(k); slotK = k; break; end
                 end
                 if slotK > 0
-                    obj.spawnComet(slotK, dx, dy, rangeW, rangeH);
+                    obj.spawnComet(slotK, t, dx, dy, rangeW, rangeH);
                 end
                 obj.CometLastSpawnT = t;
                 obj.CometNextSpawn = 1.5 + rand() * 2;
@@ -1121,20 +1123,22 @@ classdef (Sealed) GameMenu < handle
                 if ~obj.CometActive(k); continue; end
                 if ~isvalid(obj.CometH(k)); continue; end
 
-                dt = 1.0 / 50;
-                obj.CometProgress(k) = obj.CometProgress(k) + dt / obj.CometDuration(k);
-                p = obj.CometProgress(k);
+                p = (t - obj.CometSpawnT(k)) / obj.CometDuration(k);
 
-                if p >= 1.0
+                % Head position
+                elapsed = p * obj.CometDuration(k);
+                headX = obj.CometPos(1, k) + obj.CometVel(1, k) * elapsed;
+                headY = obj.CometPos(2, k) + obj.CometVel(2, k) * elapsed;
+
+                % Deactivate when fully off-screen (with trail margin)
+                margin = 0.15 * max(rangeW, rangeH);
+                if headX < dx(1) - margin || headX > dx(2) + margin || ...
+                   headY < dy(1) - margin || headY > dy(2) + margin
                     obj.CometActive(k) = false;
                     obj.CometH(k).Visible = "off";
                     obj.CometHeadH(k).Visible = "off";
                     continue;
                 end
-
-                % Head position
-                headX = obj.CometPos(1, k) + obj.CometVel(1, k) * p * obj.CometDuration(k);
-                headY = obj.CometPos(2, k) + obj.CometVel(2, k) * p * obj.CometDuration(k);
 
                 % Trail geometry
                 trailLen = 0.12 * max(rangeW, rangeH);
@@ -1146,24 +1150,20 @@ classdef (Sealed) GameMenu < handle
                 % Grow trail over first 10% of flight
                 effectiveLen = trailLen * min(1, p / 0.1);
 
+                % Build vertices: dup of head + trail points
                 fracs = linspace(0, 1, nTP);
                 trailX = headX - fracs * effectiveLen * dirX;
                 trailY = headY - fracs * effectiveLen * dirY;
-
-                % Build vertices: dup of head (alpha=0 closure seam) + trail
                 verts = zeros(nTP + 1, 2);
                 verts(1, :) = [headX, headY];
                 verts(2:end, :) = [trailX', trailY'];
 
-                % Lifecycle fade
+                % Fade in only (first 15%), then full opacity until off-screen
                 if p < 0.15
                     fade = p / 0.15;
-                elseif p > 0.4
-                    fade = 1.0 - (p - 0.4) / 0.6;
                 else
                     fade = 1.0;
                 end
-                fade = max(0, fade);
 
                 % Update patch
                 obj.CometH(k).Vertices = verts;
@@ -1179,7 +1179,7 @@ classdef (Sealed) GameMenu < handle
             end
         end
 
-        function spawnComet(obj, k, dx, dy, rangeW, rangeH)
+        function spawnComet(obj, k, t, dx, dy, rangeW, rangeH)
             %spawnComet  Radiant-point meteor shower style.
             %   All comets emanate from a radiant in the upper-left quadrant
             %   and streak toward the lower-right with ±20° spread.
@@ -1223,7 +1223,7 @@ classdef (Sealed) GameMenu < handle
 
             obj.CometPos(:, k) = [startX; startY];
             obj.CometVel(:, k) = [vx; vy];
-            obj.CometProgress(k) = 0;
+            obj.CometSpawnT(k) = t;
             obj.CometDuration(k) = 1.2 + rand() * 0.8;  % 1.2-2.0 seconds
             obj.CometActive(k) = true;
         end
