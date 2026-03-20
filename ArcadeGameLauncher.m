@@ -77,7 +77,7 @@ classdef ArcadeGameLauncher < handle
         DtBufIdx        (1,1) double = 0        % current write index
         DtScale         (1,1) double = 1        % rawDt * RefFPS
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
-        RefPixelSize    (1,2) double = [0, 0]   % axes pixel size at launch (for font scaling)
+        PrevPixelScale  (1,1) double = 0       % last min(axPx/[854,480])
     end
 
     % =================================================================
@@ -164,6 +164,7 @@ classdef ArcadeGameLauncher < handle
                 "Subtitle", menuSubtitle);
 
             obj.enterMenu();
+            obj.PrevPixelScale = obj.getPixelScale();
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
             obj.startTimer();
         end
@@ -232,8 +233,6 @@ classdef ArcadeGameLauncher < handle
             obj.Fig.Pointer = "arrow";
             hold(obj.Ax, "on");
 
-            % RefPixelSize captured lazily on first onFigResize
-            % (after maximize completes) — avoids pre-maximize capture.
         end
 
         function computeDisplayRange(obj)
@@ -335,41 +334,34 @@ classdef ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % Lazy capture: first resize = maximize complete
-            if obj.RefPixelSize(1) == 0
-                axPx = getpixelposition(obj.Ax);
-                obj.RefPixelSize = axPx(3:4);
+            % Absolute pixel scale + relative change
+            axPx = getpixelposition(obj.Ax);
+            newPs = min(axPx(3) / 854, axPx(4) / 480);
+            if obj.PrevPixelScale > 0
+                relScale = newPs / obj.PrevPixelScale;
+            else
+                relScale = 1.0;
             end
+            obj.PrevPixelScale = newPs;
 
-            % During gameplay: freeze coordinate system, maintain aspect ratio
+            % During gameplay
             if obj.State ~= "menu"
-                % PlotBoxAspectRatio locks the axes box shape — MATLAB
-                % auto-letterboxes within the Position rectangle.
                 gameAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
                 pbaspect(obj.Ax, [gameAR 1 1]);
-                % Manual letterbox fallback (kept in case pbaspect has issues):
-                % GameBase.letterboxAxes(obj.Fig, obj.Ax, gameAR);
-                % Scale HUD fonts
-                if obj.RefPixelSize(1) > 0
-                    axPx = getpixelposition(obj.Ax);
-                    pixelScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
-                    GameBase.scaleScreenSpaceObjects(obj.Ax, pixelScale);
-                    if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
-                        obj.ActiveGame.FontScale = pixelScale;
-                    end
+                if relScale ~= 1.0
+                    GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
+                end
+                if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
+                    obj.ActiveGame.FontScale = newPs;
                 end
                 return;
             end
 
-            % Menu state: letterbox like games do (fixed display range)
+            % Menu state
             menuAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
             pbaspect(obj.Ax, [menuAR 1 1]);
-
-            % Scale non-menu screen-space objects (HUD text, markers)
-            if obj.RefPixelSize(1) > 0
-                axPx = getpixelposition(obj.Ax);
-                pixelScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
-                GameBase.scaleScreenSpaceObjects(obj.Ax, pixelScale);
+            if relScale ~= 1.0
+                GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
             end
 
             % Impose deterministic menu font sizes from current pixel size
@@ -838,6 +830,7 @@ classdef ArcadeGameLauncher < handle
             obj.ActiveGameName = entry.name;
 
             game = entry.ctor();
+            game.FontScale = obj.getPixelScale();
             game.onInit(obj.Ax, obj.DisplayRange, struct());
             game.beginGame();
             obj.ActiveGame = game;
@@ -897,33 +890,39 @@ classdef ArcadeGameLauncher < handle
             dy = obj.DisplayRange.Y;
             cx = mean(dx);
             cy = mean(dy);
+            ps = obj.getPixelScale();
 
             obj.ScoreTextH = text(ax, dx(1) + 4, dy(1) + 2, "Score: 0", ...
-                "Color", obj.ColorGreen * 0.9, "FontSize", 14, ...
+                "Color", obj.ColorGreen * 0.9, ...
+                "FontSize", max(6, round(8 * ps)), ...
                 "FontWeight", "bold", "HorizontalAlignment", "left", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
                 "Tag", "GT_arcScore");
 
             obj.ComboTextH = text(ax, cx, dy(1) + 34, "", ...
-                "Color", obj.ColorGold * 0.8, "FontSize", 13, ...
+                "Color", obj.ColorGold * 0.8, ...
+                "FontSize", max(6, round(7 * ps)), ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
                 "Tag", "GT_arcCombo");
 
             obj.StatusTextH = text(ax, cx, cy, "", ...
-                "Color", obj.ColorCyan * 0.95, "FontSize", 28, ...
+                "Color", obj.ColorCyan * 0.95, ...
+                "FontSize", max(10, round(15 * ps)), ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Visible", "off", ...
                 "Tag", "GT_arcStatus");
 
             obj.HudTextH = text(ax, cx, dy(2) - 8, "", ...
-                "Color", obj.ColorWhite * 0.7, "FontSize", 11, ...
+                "Color", obj.ColorWhite * 0.7, ...
+                "FontSize", max(6, round(6 * ps)), ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Visible", "off", ...
                 "Tag", "GT_arcHud");
 
             obj.FpsTextH = text(ax, dx(2) - 4, dy(1) + 2, "", ...
-                "Color", obj.ColorGreen * 0.9, "FontSize", 14, ...
+                "Color", obj.ColorGreen * 0.9, ...
+                "FontSize", max(6, round(8 * ps)), ...
                 "FontWeight", "bold", ...
                 "HorizontalAlignment", "right", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
@@ -939,6 +938,7 @@ classdef ArcadeGameLauncher < handle
             axPx = getpixelposition(obj.Ax);
             ps = min(axPx(3) / 854, axPx(4) / 480);
         end
+
 
         function handleArrowPress(obj, key)
             %handleArrowPress  Set arrow held flags for cursor movement.

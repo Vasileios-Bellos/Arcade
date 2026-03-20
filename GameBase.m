@@ -391,6 +391,18 @@ classdef (Abstract) GameBase < handle
     % COLOR UTILITIES
     % =================================================================
     methods (Access = protected)
+        function ps = getPixelScale(obj)
+            %getPixelScale  Deterministic font scale from current axes pixels.
+            %   ps = min(axPx(3)/854, axPx(4)/480). Use for ALL FontSize
+            %   assignments: FontSize = max(floor, round(base * ps)).
+            if isempty(obj.Ax) || ~isvalid(obj.Ax)
+                ps = 1.0;
+                return;
+            end
+            axPx = getpixelposition(obj.Ax);
+            ps = min(axPx(3) / 854, axPx(4) / 480);
+        end
+
         function c = flickSpeedColor(obj, speed)
             %flickSpeedColor  Map speed to neon color gradient.
             %   cyan (slow) -> green (medium) -> gold (fast) -> red (very fast)
@@ -467,38 +479,25 @@ classdef (Abstract) GameBase < handle
 
         function scaleScreenSpaceObjects(ax, pixelScale)
             %scaleScreenSpaceObjects  Scale all screen-space properties in axes.
-            %   Scales FontSize, SizeData, MarkerSize, and LineWidth of all
-            %   children proportionally to pixelScale (1.0 = original size).
-            %   Base values are captured on first call into each object's
-            %   UserData so subsequent calls scale from the original, not
-            %   from the previously scaled value (no accumulation).
+            %   Multiplies FontSize, SizeData, MarkerSize, and LineWidth by
+            %   pixelScale (a relative change ratio, e.g., newPs / oldPs).
             %
             %   ax         — axes handle
-            %   pixelScale — ratio of current axes pixel size to launch size
+            %   pixelScale — relative change ratio (newSize / oldSize)
             if isempty(ax) || ~isvalid(ax); return; end
 
-            % --- Text: scale FontSize ---
+            % --- Text: scale FontSize by relative change ---
             allText = findall(ax, "Type", "text");
             for k = 1:numel(allText)
                 t = allText(k);
-                ud = t.UserData;
-                if ~isstruct(ud) || ~isfield(ud, "baseFontSize")
-                    ud = struct("baseFontSize", t.FontSize);
-                    t.UserData = ud;
-                end
-                t.FontSize = max(4, round(ud.baseFontSize * pixelScale));
+                t.FontSize = max(4, round(t.FontSize * pixelScale));
             end
 
-            % --- Scatter: scale SizeData ---
+            % --- Scatter: scale SizeData (area scales as ratio^2) ---
             allScatter = findall(ax, "Type", "scatter");
             for k = 1:numel(allScatter)
                 s = allScatter(k);
-                ud = s.UserData;
-                if ~isstruct(ud) || ~isfield(ud, "baseSizeData")
-                    ud = struct("baseSizeData", s.SizeData);
-                    s.UserData = ud;
-                end
-                s.SizeData = max(1, ud.baseSizeData * pixelScale^2);
+                s.SizeData = max(1, s.SizeData * pixelScale^2);
             end
 
             % --- Line: scale MarkerSize and LineWidth ---
@@ -506,25 +505,11 @@ classdef (Abstract) GameBase < handle
             for k = 1:numel(allLines)
                 ln = allLines(k);
                 if ~isvalid(ln); continue; end
-                try ud = ln.UserData; catch; continue; end
-                if ~isstruct(ud)
-                    ud = struct();
+                if ln.MarkerSize > 6
+                    ln.MarkerSize = max(1, ln.MarkerSize * pixelScale);
                 end
-                % MarkerSize (only for markers > default 6pt)
-                if ~isfield(ud, "baseMarkerSize") && ln.MarkerSize > 6
-                    ud.baseMarkerSize = ln.MarkerSize;
-                    ln.UserData = ud;
-                end
-                if isfield(ud, "baseMarkerSize")
-                    ln.MarkerSize = max(1, ud.baseMarkerSize * pixelScale);
-                end
-                % LineWidth (only for non-default widths > 0.5)
-                if ~isfield(ud, "baseLineWidth") && ln.LineWidth > 0.5
-                    ud.baseLineWidth = ln.LineWidth;
-                    ln.UserData = ud;
-                end
-                if isfield(ud, "baseLineWidth")
-                    ln.LineWidth = max(0.5, ud.baseLineWidth * pixelScale);
+                if ln.LineWidth > 0.5
+                    ln.LineWidth = max(0.5, ln.LineWidth * pixelScale);
                 end
             end
 
@@ -532,16 +517,8 @@ classdef (Abstract) GameBase < handle
             allPatches = findall(ax, "Type", "patch");
             for k = 1:numel(allPatches)
                 p = allPatches(k);
-                ud = p.UserData;
-                if ~isstruct(ud)
-                    ud = struct();
-                end
-                if ~isfield(ud, "baseLineWidth") && p.LineWidth > 0.5
-                    ud.baseLineWidth = p.LineWidth;
-                    p.UserData = ud;
-                end
-                if isfield(ud, "baseLineWidth")
-                    p.LineWidth = max(0.5, ud.baseLineWidth * pixelScale);
+                if p.LineWidth > 0.5
+                    p.LineWidth = max(0.5, p.LineWidth * pixelScale);
                 end
             end
         end
