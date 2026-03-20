@@ -26,6 +26,8 @@ classdef (Sealed) GameMenu < handle
         SelectionFcn    = []                        % callback: f(key) on selection
         DwellDuration   (1,1) double = 3.0          % seconds for dwell selection
         TagPrefix       (1,1) string = "GT_menu"    % graphics tag prefix
+        MenuTitle       (1,1) string = "A  R  C  A  D  E"
+        MenuSubtitle    (1,1) string = "S E L E C T   G A M E"
     end
 
     % =================================================================
@@ -131,6 +133,8 @@ classdef (Sealed) GameMenu < handle
                 opts.SelectionFcn = []
                 opts.DwellDuration (1,1) double = 3.0
                 opts.TagPrefix (1,1) string = "GT_menu"
+                opts.Title (1,1) string = "A  R  C  A  D  E"
+                opts.Subtitle (1,1) string = "S E L E C T   G A M E"
             end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
@@ -140,6 +144,8 @@ classdef (Sealed) GameMenu < handle
             obj.SelectionFcn = opts.SelectionFcn;
             obj.DwellDuration = opts.DwellDuration;
             obj.TagPrefix = opts.TagPrefix;
+            obj.MenuTitle = opts.Title;
+            obj.MenuSubtitle = opts.Subtitle;
             obj.AnimStartTic = tic;
 
             % Scale layout to display range (designed for 640 wide)
@@ -463,7 +469,7 @@ classdef (Sealed) GameMenu < handle
             % --- Title ---
             s = obj.LayoutScale;
             titleY = dy(1) + rangeH * 0.10;
-            titleStr = "A  R  C  A  D  E";
+            titleStr = obj.MenuTitle;
             glowOff = max(1, round(2 * s));
             obj.TitleGlowH = text(ax, cx + glowOff, titleY + glowOff, titleStr, ...
                 "Color", [0.00 0.35 0.50], "FontSize", obj.TitleFontSize, ...
@@ -476,7 +482,7 @@ classdef (Sealed) GameMenu < handle
 
             % --- Subtitle ---
             subY = titleY + rangeH * 0.065;
-            obj.SubtitleTextH = text(ax, cx, subY, "S E L E C T   G A M E", ...
+            obj.SubtitleTextH = text(ax, cx, subY, obj.MenuSubtitle, ...
                 "Color", [0.25 0.28 0.38], "FontSize", obj.SubtitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Tag", tag + "Sub");
@@ -582,8 +588,8 @@ classdef (Sealed) GameMenu < handle
                 footStr = "Hover to select  |  G: Exit";
             else
                 footStr = sprintf( ...
-                    "%s%s Navigate   %s   Enter: Play   %s   1-9: Quick Select   %s   ESC: Quit", ...
-                    char(8593), char(8595), char(183), char(183), char(183));
+                    "%s%s Navigate   %s   Click/Enter: Play   %s   ESC: Quit", ...
+                    char(8593), char(8595), char(183), char(183));
             end
             obj.FooterTextH = text(ax, cx, footY, footStr, ...
                 "Color", [0.22 0.24 0.32], "FontSize", obj.FooterFontSize, ...

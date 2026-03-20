@@ -154,11 +154,14 @@ classdef ArcadeGameLauncher < handle
             obj.createHUD();
 
             % Create shared menu component
+            [menuTitle, menuSubtitle] = obj.getMenuTitles();
             obj.Menu = GameMenu(obj.Ax, obj.DisplayRange, ...
                 obj.Registry, obj.RegistryOrder, ...
                 "SelectionMode", "click", ...
                 "SelectionFcn", @(k) obj.onMenuSelect(k), ...
-                "TagPrefix", "GT_arc");
+                "TagPrefix", "GT_arc", ...
+                "Title", menuTitle, ...
+                "Subtitle", menuSubtitle);
 
             obj.enterMenu();
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
@@ -552,10 +555,7 @@ classdef ArcadeGameLauncher < handle
             handled = true;
             switch obj.State
                 case "menu"
-                    if obj.Registry.isKey(key)
-                        obj.PendingGameKey = key;
-                        obj.enterCountdown();
-                    elseif key == "uparrow"
+                    if key == "uparrow"
                         obj.Menu.moveSelection(-1);
                     elseif key == "downarrow"
                         obj.Menu.moveSelection(1);
@@ -1027,12 +1027,18 @@ classdef ArcadeGameLauncher < handle
     % =================================================================
     methods (Access = protected)
 
+        function [t, s] = getMenuTitles(~)
+            %getMenuTitles  Return title and subtitle for the menu screen.
+            t = "A  R  C  A  D  E";
+            s = "S E L E C T   G A M E";
+        end
+
         function buildRegistry(obj)
             %buildRegistry  Register all available games with key bindings.
             obj.Registry = dictionary;
             obj.RegistryOrder = strings(0);
 
-            % === Arcade games only (1-9, Shift+1-9) ===
+            % === Arcade games (sequential numbering, no keyboard shortcuts) ===
             obj.registerGame("1", @games.TargetPractice, "Target Practice");
             obj.registerGame("2", @games.Fireflies, "Fireflies");
             obj.registerGame("3", @games.FlickIt, "Flick It");
@@ -1042,11 +1048,11 @@ classdef ArcadeGameLauncher < handle
             obj.registerGame("7", @games.FlappyBird, "Flappy Bird");
             obj.registerGame("8", @games.FruitNinja, "Fruit Ninja");
             obj.registerGame("9", @games.SpaceInvaders, "Space Invaders");
-            obj.registerGame("shift+1", @games.Snake, "Snake");
-            obj.registerGame("shift+2", @games.Asteroids, "Asteroids");
-            obj.registerGame("shift+3", @games.OrbitalDefense, "Orbital Defense");
-            obj.registerGame("shift+4", @games.ShieldGuardian, "Shield Guardian");
-            obj.registerGame("shift+5", @games.RailShooter, "Rail Shooter");
+            obj.registerGame("10", @games.Snake, "Snake");
+            obj.registerGame("11", @games.Asteroids, "Asteroids");
+            obj.registerGame("12", @games.OrbitalDefense, "Orbital Defense");
+            obj.registerGame("13", @games.ShieldGuardian, "Shield Guardian");
+            obj.registerGame("14", @games.RailShooter, "Rail Shooter");
         end
 
         function registerGame(obj, key, ctor, name)
