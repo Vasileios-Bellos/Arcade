@@ -590,7 +590,7 @@ classdef (Sealed) GameMenu < handle
                     "Tag", tag + "Name");
 
                 % High score text (right-aligned)
-                scoreX = cx + iW / 2 - round(12 * s);
+                scoreX = cx + iW / 2 - round(4 * s);
                 obj.MenuItemScoreText{slot} = text(ax, scoreX, yMid, "", ...
                     "Color", [0.35 0.30 0.15], "FontSize", obj.ScoreFontSize, ...
                     "FontWeight", "bold", ...
@@ -869,6 +869,28 @@ classdef (Sealed) GameMenu < handle
                 end
             end
 
+            % Twinkle stars
+            if ~isempty(obj.TwinkleH)
+                for k = 1:numel(obj.TwinkleH)
+                    if isvalid(obj.TwinkleH(k))
+                        obj.TwinkleH(k).Visible = vis;
+                    end
+                end
+            end
+
+            % Comets: only hide — show is controlled by spawn logic
+            if vis == "off"
+                for k = 1:numel(obj.CometH)
+                    if ~isempty(obj.CometH) && isvalid(obj.CometH(k))
+                        obj.CometH(k).Visible = "off";
+                    end
+                    if ~isempty(obj.CometHeadH) && isvalid(obj.CometHeadH(k))
+                        obj.CometHeadH(k).Visible = "off";
+                    end
+                end
+                obj.CometActive = [false, false];
+            end
+
             lists = {obj.MenuItemBg, obj.MenuItemGlow, obj.MenuItemKeyBg, ...
                 obj.MenuItemKeyText, obj.MenuItemNameText, ...
                 obj.MenuItemScoreText};
@@ -987,7 +1009,7 @@ classdef (Sealed) GameMenu < handle
     methods (Access = private)
 
         function updateAnimations(obj)
-            %updateAnimations  Title shimmer and selected glow pulse.
+            %updateAnimations  Title shimmer, glow pulse, twinkling stars, comets.
             if isempty(obj.AnimStartTic); return; end
             t = toc(obj.AnimStartTic);
 
@@ -1009,6 +1031,132 @@ classdef (Sealed) GameMenu < handle
                 rgb = GameMenu.hsvToRgb(hue, 0.92, 1.0);
                 obj.TitleMainH.Color = rgb;
             end
+
+            % --- Twinkling stars ---
+            if ~isempty(obj.TwinkleH)
+                baseColor = [0.4, 0.6, 0.9];
+                for k = 1:numel(obj.TwinkleH)
+                    if ~isvalid(obj.TwinkleH(k)); continue; end
+                    if obj.TwinkleH(k).Visible == "off"; continue; end
+                    pulse = 0.5 + 0.5 * sin(t * obj.TwinkleSpeed(k) + obj.TwinklePhase(k));
+                    brightness = 0.15 + 0.35 * pulse;
+                    obj.TwinkleH(k).Color = baseColor * brightness;
+                    obj.TwinkleH(k).MarkerSize = obj.TwinkleBaseSize(k) * (0.7 + 0.3 * pulse);
+                end
+            end
+
+            % --- Shooting star comets ---
+            obj.updateComets(t);
+        end
+
+        function updateComets(obj, t)
+            %updateComets  Spawn, advance, and render shooting star comets.
+            if isempty(obj.CometH); return; end
+
+            dx = obj.DisplayRange.X;
+            dy = obj.DisplayRange.Y;
+            rangeW = diff(dx);
+            rangeH = diff(dy);
+            nTrailPts = 15;
+
+            % --- Spawn logic ---
+            if t - obj.CometLastSpawnT >= obj.CometNextSpawn
+                % Find an inactive comet slot
+                slotK = 0;
+                for k = 1:2
+                    if ~obj.CometActive(k)
+                        slotK = k;
+                        break;
+                    end
+                end
+                if slotK > 0
+                    obj.spawnComet(slotK, dx, dy, rangeW, rangeH);
+                end
+                obj.CometLastSpawnT = t;
+                obj.CometNextSpawn = 4 + rand() * 4;
+            end
+
+            % --- Update active comets ---
+            for k = 1:2
+                if ~obj.CometActive(k); continue; end
+                if ~isvalid(obj.CometH(k)); continue; end
+
+                % Advance progress
+                dt = 1.0 / 50;  % approximate frame dt at 50 Hz
+                obj.CometProgress(k) = obj.CometProgress(k) + dt / obj.CometDuration(k);
+
+                if obj.CometProgress(k) >= 1.0
+                    % Deactivate
+                    obj.CometActive(k) = false;
+                    obj.CometH(k).Visible = "off";
+                    obj.CometHeadH(k).Visible = "off";
+                    continue;
+                end
+
+                % Current head position
+                headX = obj.CometPos(1, k) + obj.CometVel(1, k) * obj.CometProgress(k) * obj.CometDuration(k);
+                headY = obj.CometPos(2, k) + obj.CometVel(2, k) * obj.CometProgress(k) * obj.CometDuration(k);
+
+                % Trail: points from head backwards along velocity
+                trailLen = 0.12 * max(rangeW, rangeH);
+                velNorm = sqrt(obj.CometVel(1, k)^2 + obj.CometVel(2, k)^2);
+                if velNorm < 1e-6; continue; end
+                dirX = obj.CometVel(1, k) / velNorm;
+                dirY = obj.CometVel(2, k) / velNorm;
+
+                fracs = linspace(0, 1, nTrailPts);
+                trailX = headX - fracs * trailLen * dirX;
+                trailY = headY - fracs * trailLen * dirY;
+
+                obj.CometH(k).XData = trailX;
+                obj.CometH(k).YData = trailY;
+                obj.CometH(k).Visible = "on";
+
+                % Fade trail color based on progress (fade out in last 40%)
+                fadeOut = 1.0 - max(0, (obj.CometProgress(k) - 0.6) / 0.4);
+                obj.CometH(k).Color = [0.35 0.43 0.50] * (0.3 + 0.7 * fadeOut);
+
+                % Head dot
+                obj.CometHeadH(k).XData = headX;
+                obj.CometHeadH(k).YData = headY;
+                obj.CometHeadH(k).Visible = "on";
+                headBright = 0.5 + 0.5 * fadeOut;
+                obj.CometHeadH(k).Color = [0.70 0.85 1.0] * headBright;
+            end
+        end
+
+        function spawnComet(obj, k, dx, dy, rangeW, rangeH)
+            %spawnComet  Initialize comet k with random start edge, direction, duration.
+            % Pick a random edge (0=top, 1=right, 2=bottom, 3=left)
+            % Bias toward top and sides for natural "falling star" look
+            edgeChoice = randi(3);  % 1=top, 2=left, 3=right (no bottom spawn)
+
+            switch edgeChoice
+                case 1  % Top edge
+                    startX = dx(1) + rand() * rangeW;
+                    startY = dy(1) + rangeH * 0.05;
+                case 2  % Left edge (upper half)
+                    startX = dx(1) + rangeW * 0.05;
+                    startY = dy(1) + rand() * rangeH * 0.5;
+                case 3  % Right edge (upper half)
+                    startX = dx(2) - rangeW * 0.05;
+                    startY = dy(1) + rand() * rangeH * 0.5;
+            end
+
+            % Direction: mostly diagonal downward
+            angle = pi / 4 + (rand() - 0.5) * pi / 3;  % 15-75 degrees from horizontal
+            if edgeChoice == 3
+                angle = pi - angle;  % Mirror for right edge (travel leftward)
+            end
+            speed = (0.3 + rand() * 0.2) * max(rangeW, rangeH);  % 30-50% of screen per second
+            vx = speed * cos(angle);
+            vy = speed * sin(angle);
+
+            obj.CometPos(:, k) = [startX; startY];
+            obj.CometVel(:, k) = [vx; vy];
+            obj.CometProgress(k) = 0;
+            obj.CometDuration(k) = 1.0 + rand() * 1.0;  % 1-2 seconds
+            obj.CometActive(k) = true;
         end
     end
 
