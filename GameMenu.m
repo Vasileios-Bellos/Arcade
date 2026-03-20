@@ -170,7 +170,7 @@ classdef (Sealed) GameMenu < handle
                 obj.RefPixelSize = axPx(3:4);
             end
             pxScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
-            obj.TitleFontSize = max(10, round(24 * pxScale));
+            obj.TitleFontSize = max(14, round(36 * pxScale));
             obj.SubtitleFontSize = max(6, round(12 * pxScale));
             obj.NameFontSize = max(7, round(15 * pxScale));
             obj.KeyFontSize = max(6, round(13 * pxScale));
@@ -263,14 +263,20 @@ classdef (Sealed) GameMenu < handle
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(6, max(3, floor(diff(newDisplayRange.Y) * 0.6 / (obj.ItemHeight + obj.ItemGap))));
-            % Font sizes: scale by min(width, height) so text fits both dimensions
-            fontS = min(s, diff(newDisplayRange.Y) / 480);
-            obj.TitleFontSize = max(10, round(24 * fontS));
-            obj.SubtitleFontSize = max(6, round(12 * fontS));
-            obj.NameFontSize = max(7, round(15 * fontS));
-            obj.KeyFontSize = max(6, round(13 * fontS));
-            obj.ScoreFontSize = max(6, round(12 * fontS));
-            obj.FooterFontSize = max(5, round(10.5 * fontS));
+            % Font sizes: scale by min(pixel width, pixel height) ratio
+            % relative to reference — same formula as constructor
+            axPx = getpixelposition(obj.Ax);
+            if obj.RefPixelSize(1) > 0 && obj.RefPixelSize(2) > 0
+                pxScale = min(axPx(3) / obj.RefPixelSize(1), axPx(4) / obj.RefPixelSize(2));
+            else
+                pxScale = 1.0;
+            end
+            obj.TitleFontSize = max(14, round(36 * pxScale));
+            obj.SubtitleFontSize = max(6, round(12 * pxScale));
+            obj.NameFontSize = max(7, round(15 * pxScale));
+            obj.KeyFontSize = max(6, round(13 * pxScale));
+            obj.ScoreFontSize = max(6, round(12 * pxScale));
+            obj.FooterFontSize = max(5, round(10.5 * pxScale));
 
             obj.deleteGraphics();
             obj.createGraphics();
@@ -481,9 +487,9 @@ classdef (Sealed) GameMenu < handle
                     "Tag", tag + "Star");
             end
 
-            % --- Title ---
+            % --- Title (large) ---
             s = obj.LayoutScale;
-            titleY = dy(1) + rangeH * 0.10;
+            titleY = dy(1) + rangeH * 0.09;
             titleStr = obj.MenuTitle;
             glowOff = max(1, round(2 * s));
             obj.TitleGlowH = text(ax, cx + glowOff, titleY + glowOff, titleStr, ...
@@ -495,8 +501,8 @@ classdef (Sealed) GameMenu < handle
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Tag", tag + "TMain");
 
-            % --- Subtitle ---
-            subY = titleY + rangeH * 0.065;
+            % --- Subtitle (between title and game list) ---
+            subY = titleY + rangeH * 0.10;
             obj.SubtitleTextH = text(ax, cx, subY, obj.MenuSubtitle, ...
                 "Color", [0.25 0.28 0.38], "FontSize", obj.SubtitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
@@ -597,8 +603,8 @@ classdef (Sealed) GameMenu < handle
                 "EdgeColor", "none", "Visible", "off", ...
                 "Tag", tag + "SThumb");
 
-            % --- Footer ---
-            footY = dy(2) - rangeH * 0.04;
+            % --- Footer (positioned relative to last menu item, not bottom) ---
+            footY = listTop + nSlots * (iH + iGap) + iGap;
             if obj.SelectionMode == "dwell"
                 footStr = "Hover to select  |  G: Exit";
             else
