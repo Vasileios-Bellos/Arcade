@@ -92,7 +92,7 @@ classdef (Sealed) GameMenu < handle
         TwinkleBaseSize (1,:) double                % base MarkerSize per star
 
         % Shooting star comets (2 pre-allocated)
-        CometH                                      % (1,2) line handles for comet trails
+        CometH                                      % (1,2) patch handles for comet trails
         CometHeadH                                  % (1,2) line handles for comet head dots
         CometActive     (1,2) logical = false       % whether each comet is active
         CometPos        (2,2) double = zeros(2,2)   % [x; y] head position per comet
@@ -101,6 +101,8 @@ classdef (Sealed) GameMenu < handle
         CometDuration   (1,2) double = [2.0, 2.0]   % seconds per comet flight
         CometNextSpawn  (1,1) double = 3            % seconds until next spawn attempt
         CometLastSpawnT (1,1) double = 0            % elapsed time of last spawn
+        CometBaseAlpha                              % pre-computed per-vertex alpha template
+        CometBaseColor                              % pre-computed per-vertex color gradient
     end
 
     % =================================================================
@@ -667,20 +669,46 @@ classdef (Sealed) GameMenu < handle
                 uistack(obj.TwinkleH(k), "bottom");
             end
 
-            % --- Shooting star comets (2 pre-allocated, initially hidden) ---
+            % --- Shooting star comets (2 pre-allocated, patch-based fading trail) ---
             nComets = 2;
-            nTrailPts = 15;
+            nTP = 20;
+            nVerts = nTP + 1;  % +1: dup of head at alpha=0 for invisible closure seam
+
+            % Pre-compute per-vertex alpha: dup=0, head=peak, fades to 0
+            bAlpha = zeros(nVerts, 1);
+            bAlpha(2) = 0.7;
+            bAlpha(3:end) = linspace(0.65, 0, nTP - 1)';
+            obj.CometBaseAlpha = bAlpha;
+
+            % Pre-compute per-vertex color: head bright → tail dim
+            headClr = [0.85 0.90 0.95];
+            tailClr = [0.30 0.35 0.50];
+            bColor = zeros(nVerts, 3);
+            bColor(1, :) = headClr;
+            bColor(2, :) = headClr;
+            for v = 3:nVerts
+                frac = (v - 2) / (nVerts - 2);
+                bColor(v, :) = headClr * (1 - frac) + tailClr * frac;
+            end
+            obj.CometBaseColor = bColor;
+
             obj.CometH = gobjects(1, nComets);
             obj.CometHeadH = gobjects(1, nComets);
-            nanTrail = nan(1, nTrailPts);
             for k = 1:nComets
-                obj.CometH(k) = line(ax, nanTrail, nanTrail, ...
-                    "LineStyle", "-", "LineWidth", 1.5, ...
-                    "Color", [0.35 0.40 0.55], ...
+                obj.CometH(k) = patch(ax, ...
+                    "Vertices", nan(nVerts, 2), ...
+                    "Faces", 1:nVerts, ...
+                    "FaceColor", "none", ...
+                    "EdgeColor", "interp", ...
+                    "FaceVertexCData", bColor, ...
+                    "FaceVertexAlphaData", zeros(nVerts, 1), ...
+                    "EdgeAlpha", "interp", ...
+                    "AlphaDataMapping", "none", ...
+                    "LineWidth", 1.5, ...
                     "Visible", "off", "Tag", tag + "Comet");
                 obj.CometHeadH(k) = line(ax, 0, 0, ...
                     "LineStyle", "none", "Marker", ".", ...
-                    "MarkerSize", 5, "Color", [0.85 0.90 0.95], ...
+                    "MarkerSize", 6, "Color", [0.85 0.90 0.95], ...
                     "Visible", "off", "Tag", tag + "CometHd");
                 uistack(obj.CometH(k), "bottom");
                 uistack(obj.CometHeadH(k), "bottom");
@@ -722,6 +750,8 @@ classdef (Sealed) GameMenu < handle
             obj.TwinkleH = [];
             obj.CometH = [];
             obj.CometHeadH = [];
+            obj.CometBaseAlpha = [];
+            obj.CometBaseColor = [];
             obj.CometActive = [false, false];
             obj.NumSlots = 0;
         end
@@ -1071,17 +1101,13 @@ classdef (Sealed) GameMenu < handle
             dy = obj.DisplayRange.Y;
             rangeW = diff(dx);
             rangeH = diff(dy);
-            nTrailPts = 15;
+            nTP = 20;
 
             % --- Spawn logic ---
             if t - obj.CometLastSpawnT >= obj.CometNextSpawn
-                % Find an inactive comet slot
                 slotK = 0;
                 for k = 1:2
-                    if ~obj.CometActive(k)
-                        slotK = k;
-                        break;
-                    end
+                    if ~obj.CometActive(k); slotK = k; break; end
                 end
                 if slotK > 0
                     obj.spawnComet(slotK, dx, dy, rangeW, rangeH);
@@ -1095,48 +1121,55 @@ classdef (Sealed) GameMenu < handle
                 if ~obj.CometActive(k); continue; end
                 if ~isvalid(obj.CometH(k)); continue; end
 
-                % Advance progress
-                dt = 1.0 / 50;  % approximate frame dt at 50 Hz
+                dt = 1.0 / 50;
                 obj.CometProgress(k) = obj.CometProgress(k) + dt / obj.CometDuration(k);
+                p = obj.CometProgress(k);
 
-                if obj.CometProgress(k) >= 1.0
-                    % Deactivate
+                if p >= 1.0
                     obj.CometActive(k) = false;
                     obj.CometH(k).Visible = "off";
                     obj.CometHeadH(k).Visible = "off";
                     continue;
                 end
 
-                % Current head position
-                headX = obj.CometPos(1, k) + obj.CometVel(1, k) * obj.CometProgress(k) * obj.CometDuration(k);
-                headY = obj.CometPos(2, k) + obj.CometVel(2, k) * obj.CometProgress(k) * obj.CometDuration(k);
+                % Head position
+                headX = obj.CometPos(1, k) + obj.CometVel(1, k) * p * obj.CometDuration(k);
+                headY = obj.CometPos(2, k) + obj.CometVel(2, k) * p * obj.CometDuration(k);
 
-                % Trail: points from head backwards along velocity
+                % Trail geometry
                 trailLen = 0.12 * max(rangeW, rangeH);
                 velNorm = sqrt(obj.CometVel(1, k)^2 + obj.CometVel(2, k)^2);
                 if velNorm < 1e-6; continue; end
                 dirX = obj.CometVel(1, k) / velNorm;
                 dirY = obj.CometVel(2, k) / velNorm;
 
-                fracs = linspace(0, 1, nTrailPts);
-                trailX = headX - fracs * trailLen * dirX;
-                trailY = headY - fracs * trailLen * dirY;
+                % Grow trail over first 10% of flight
+                effectiveLen = trailLen * min(1, p / 0.1);
 
-                obj.CometH(k).XData = trailX;
-                obj.CometH(k).YData = trailY;
-                obj.CometH(k).Visible = "on";
+                fracs = linspace(0, 1, nTP);
+                trailX = headX - fracs * effectiveLen * dirX;
+                trailY = headY - fracs * effectiveLen * dirY;
 
-                % Fade: gradual in (first 15%) and gradual out (last 60%)
-                p = obj.CometProgress(k);
+                % Build vertices: dup of head (alpha=0 closure seam) + trail
+                verts = zeros(nTP + 1, 2);
+                verts(1, :) = [headX, headY];
+                verts(2:end, :) = [trailX', trailY'];
+
+                % Lifecycle fade
                 if p < 0.15
-                    fade = p / 0.15;           % 0→1 over first 15%
+                    fade = p / 0.15;
                 elseif p > 0.4
-                    fade = 1.0 - (p - 0.4) / 0.6;  % 1→0 over last 60%
+                    fade = 1.0 - (p - 0.4) / 0.6;
                 else
                     fade = 1.0;
                 end
                 fade = max(0, fade);
-                obj.CometH(k).Color = [0.35 0.40 0.55] * (0.2 + 0.8 * fade);
+
+                % Update patch
+                obj.CometH(k).Vertices = verts;
+                obj.CometH(k).FaceVertexAlphaData = obj.CometBaseAlpha * fade;
+                obj.CometH(k).FaceVertexCData = obj.CometBaseColor * (0.3 + 0.7 * fade);
+                obj.CometH(k).Visible = "on";
 
                 % Head dot
                 obj.CometHeadH(k).XData = headX;

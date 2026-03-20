@@ -695,7 +695,7 @@ classdef ArcadeGameLauncher < handle
                 else
                     obj.StatusTextH.String = "GO!";
                 end
-                obj.StatusTextH.FontSize = round(60 * scale);
+                obj.StatusTextH.FontSize = max(14, round(30 * obj.getPixelScale() * scale));
                 obj.StatusTextH.Color = [obj.ColorCyan, max(fadeAlpha, 0)];
                 obj.StatusTextH.Visible = "on";
             end
@@ -736,7 +736,7 @@ classdef ArcadeGameLauncher < handle
                 cy = mean(obj.DisplayRange.Y);
                 obj.StatusTextH.Position = [cx, cy, 0];
                 obj.StatusTextH.String = "PAUSED";
-                obj.StatusTextH.FontSize = 32;
+                obj.StatusTextH.FontSize = max(14, round(16 * obj.getPixelScale()));
                 obj.StatusTextH.Color = obj.ColorGold * 0.9;
                 obj.StatusTextH.Visible = "on";
             end
@@ -777,7 +777,7 @@ classdef ArcadeGameLauncher < handle
                     titleStr = results.Title;
                 end
                 obj.StatusTextH.String = titleStr;
-                obj.StatusTextH.FontSize = 32;
+                obj.StatusTextH.FontSize = max(14, round(16 * obj.getPixelScale()));
                 obj.StatusTextH.Color = obj.ColorGold;
                 obj.StatusTextH.Visible = "on";
             end
@@ -811,7 +811,7 @@ classdef ArcadeGameLauncher < handle
                 detailLines{end + 1} = "";
                 detailLines{end + 1} = "[R] PLAY AGAIN   |   [ESC] MENU";
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);
-                obj.ComboTextH.FontSize = 14;
+                obj.ComboTextH.FontSize = max(8, round(7 * obj.getPixelScale()));
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
                 obj.ComboTextH.Visible = "on";
             end
@@ -926,16 +926,14 @@ classdef ArcadeGameLauncher < handle
                 "Tag", "GT_arcFps");
         end
 
-        function scaleFonts(obj, pixelScale)
-            %scaleFonts  Scale HUD font sizes by pixel scale factor.
-            baseSizes = [14, 13, 28, 11, 10];  % Score, Combo, Status, Hud, Fps
-            handles = {obj.ScoreTextH, obj.ComboTextH, obj.StatusTextH, obj.HudTextH, obj.FpsTextH};
-            for k = 1:numel(handles)
-                h = handles{k};
-                if ~isempty(h) && isvalid(h)
-                    h.FontSize = max(6, round(baseSizes(k) * pixelScale));
-                end
+        function ps = getPixelScale(obj)
+            %getPixelScale  Deterministic scale from current axes vs 854x480.
+            if isempty(obj.Ax) || ~isvalid(obj.Ax)
+                ps = 1.0;
+                return;
             end
+            axPx = getpixelposition(obj.Ax);
+            ps = min(axPx(3) / 854, axPx(4) / 480);
         end
 
         function handleArrowPress(obj, key)
@@ -987,7 +985,7 @@ classdef ArcadeGameLauncher < handle
             obj.ComboFadeTic = [];
             obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
             obj.ComboTextH.Color = obj.ColorGreen * 0.9;
-            obj.ComboTextH.FontSize = 13;
+            obj.ComboTextH.FontSize = max(8, round(7 * obj.getPixelScale()));
             cx = mean(obj.DisplayRange.X);
             obj.ComboTextH.Position = [cx, obj.DisplayRange.Y(1) + 2, 0];
             obj.ComboTextH.HorizontalAlignment = "center";
