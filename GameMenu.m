@@ -237,8 +237,8 @@ classdef (Sealed) GameMenu < handle
                 obj.updateDwell();
             end
 
-            % Animations (title shimmer, glow pulse)
-            obj.updateAnimations();
+            % Animations (title shimmer, glow pulse) — TEMPORARILY DISABLED
+            % obj.updateAnimations();
         end
 
         function confirmSelection(obj)
@@ -503,7 +503,7 @@ classdef (Sealed) GameMenu < handle
             s = obj.LayoutScale;
             titleY = dy(1) + rangeH * 0.09;
             titleStr = obj.MenuTitle;
-            glowOff = max(2, round(3.5 * s));
+            glowOff = max(1, round(2 * s));
             obj.TitleGlowH = text(ax, cx + glowOff, titleY + glowOff, titleStr, ...
                 "Color", [0.00 0.35 0.50], "FontSize", obj.TitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
