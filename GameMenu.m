@@ -85,6 +85,23 @@ classdef (Sealed) GameMenu < handle
     % =================================================================
     properties (SetAccess = private)
         AnimStartTic    = []                        % tic for title shimmer / glow pulse
+
+        % Twinkling stars
+        TwinkleH                                    % (1,8) line handles for pulsing stars
+        TwinklePhase    (1,8) double = zeros(1,8)   % phase offsets (radians)
+        TwinkleSpeed    (1,8) double = zeros(1,8)   % pulse speeds (rad/s)
+        TwinkleBaseSize (1,8) double = zeros(1,8)   % base MarkerSize per star
+
+        % Shooting star comets (2 pre-allocated)
+        CometH                                      % (1,2) line handles for comet trails
+        CometHeadH                                  % (1,2) line handles for comet head dots
+        CometActive     (1,2) logical = false       % whether each comet is active
+        CometPos        (2,2) double = zeros(2,2)   % [x; y] head position per comet
+        CometVel        (2,2) double = zeros(2,2)   % [vx; vy] per comet
+        CometProgress   (1,2) double = zeros(1,2)   % 0-1 progress through flight
+        CometDuration   (1,2) double = [2.0, 2.0]   % seconds per comet flight
+        CometNextSpawn  (1,1) double = 3            % seconds until next spawn attempt
+        CometLastSpawnT (1,1) double = 0            % elapsed time of last spawn
     end
 
     % =================================================================
@@ -613,6 +630,45 @@ classdef (Sealed) GameMenu < handle
                 "VerticalAlignment", "middle", ...
                 "Tag", tag + "Footer");
 
+            % --- Twinkling stars (8 special pulsing stars) ---
+            nTwinkle = 8;
+            obj.TwinkleH = gobjects(1, nTwinkle);
+            obj.TwinklePhase = rand(1, nTwinkle) * 2 * pi;
+            obj.TwinkleSpeed = 1.5 + rand(1, nTwinkle) * 2.5;
+            obj.TwinkleBaseSize = 4 + rand(1, nTwinkle) * 4;
+            for k = 1:nTwinkle
+                tx = dx(1) + rand() * rangeW;
+                ty = dy(1) + rand() * rangeH;
+                obj.TwinkleH(k) = line(ax, tx, ty, ...
+                    "LineStyle", "none", "Marker", ".", ...
+                    "MarkerSize", obj.TwinkleBaseSize(k), ...
+                    "Color", [0.12 0.18 0.27], ...
+                    "Tag", tag + "Twinkle");
+                uistack(obj.TwinkleH(k), "bottom");
+            end
+
+            % --- Shooting star comets (2 pre-allocated, initially hidden) ---
+            nComets = 2;
+            nTrailPts = 15;
+            obj.CometH = gobjects(1, nComets);
+            obj.CometHeadH = gobjects(1, nComets);
+            nanTrail = nan(1, nTrailPts);
+            for k = 1:nComets
+                obj.CometH(k) = line(ax, nanTrail, nanTrail, ...
+                    "LineStyle", "-", "LineWidth", 1.5, ...
+                    "Color", [0.35 0.43 0.50], ...
+                    "Visible", "off", "Tag", tag + "Comet");
+                obj.CometHeadH(k) = line(ax, 0, 0, ...
+                    "LineStyle", "none", "Marker", ".", ...
+                    "MarkerSize", 5, "Color", [0.70 0.85 1.0], ...
+                    "Visible", "off", "Tag", tag + "CometHd");
+                uistack(obj.CometH(k), "bottom");
+                uistack(obj.CometHeadH(k), "bottom");
+            end
+            obj.CometActive = [false, false];
+            obj.CometNextSpawn = 3 + rand() * 3;
+            obj.CometLastSpawnT = 0;
+
             % --- Initialize ---
             obj.SelectedIdx = 1;
             obj.ScrollOffset = 0;
@@ -643,6 +699,10 @@ classdef (Sealed) GameMenu < handle
             obj.MenuItemScoreText = {};
             obj.ScrollTrackH = [];
             obj.ScrollThumbH = [];
+            obj.TwinkleH = [];
+            obj.CometH = [];
+            obj.CometHeadH = [];
+            obj.CometActive = [false, false];
             obj.NumSlots = 0;
         end
     end
