@@ -1133,16 +1133,32 @@ classdef (Sealed) GameMenu < handle
         end
 
         function spawnComet(obj, k, dx, dy, rangeW, rangeH)
-            %spawnComet  Initialize comet k from upper region, streaking diagonally down.
-            % Start in upper 20% of screen, random X
-            startX = dx(1) + (0.1 + rand() * 0.8) * rangeW;
-            startY = dy(1) + rand() * rangeH * 0.2;
+            %spawnComet  Initialize comet k from a random edge, any diagonal direction.
+            % Pick random edge and position along it
+            edge = randi(4);  % 1=top, 2=bottom, 3=left, 4=right
+            switch edge
+                case 1  % top
+                    startX = dx(1) + rand() * rangeW;
+                    startY = dy(1);
+                case 2  % bottom
+                    startX = dx(1) + rand() * rangeW;
+                    startY = dy(2);
+                case 3  % left
+                    startX = dx(1);
+                    startY = dy(1) + rand() * rangeH;
+                case 4  % right
+                    startX = dx(2);
+                    startY = dy(1) + rand() * rangeH;
+            end
 
-            % Direction: steep diagonal downward (55-75 deg from horizontal)
-            % Randomly left or right
-            angle = (55 + rand() * 20) * pi / 180;
-            if rand() > 0.5
-                angle = pi - angle;  % streak left instead of right
+            % Direction: inward diagonal (30-60 deg from edge normal)
+            % Always points into the screen
+            baseAngle = (30 + rand() * 30) * pi / 180;
+            switch edge
+                case 1; angle = pi/2 + (rand()-0.5) * baseAngle;   % downward-ish
+                case 2; angle = -pi/2 + (rand()-0.5) * baseAngle;  % upward-ish
+                case 3; angle = (rand()-0.5) * baseAngle;           % rightward-ish
+                case 4; angle = pi + (rand()-0.5) * baseAngle;      % leftward-ish
             end
             speed = (0.6 + rand() * 0.4) * max(rangeW, rangeH);
             vx = speed * cos(angle);
