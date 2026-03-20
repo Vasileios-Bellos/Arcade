@@ -216,7 +216,7 @@ classdef ArcadeGameLauncher < handle
                 "KeyPressFcn", @(~, e) obj.onKeyPress(e), ...
                 "KeyReleaseFcn", @(~, e) obj.onKeyRelease(e));
 
-            drawnow; pause(0.3);  % allow window manager to finish maximizing
+            drawnow;  % force layout so Position reflects maximized size
             obj.computeDisplayRange();
 
             obj.Ax = axes(obj.Fig, "Units", "normalized", ...
