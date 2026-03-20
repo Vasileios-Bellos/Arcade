@@ -77,8 +77,7 @@ classdef ArcadeGameLauncher < handle
         DtBufIdx        (1,1) double = 0        % current write index
         DtScale         (1,1) double = 1        % rawDt * RefFPS
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
-        PrevPixelScale  (1,1) double = 0       % last min(axPx/[854,480])
-    end
+        PrevAxPx        (1,2) double = [0, 0]  % previous [width, height] in pixels    end
 
     % =================================================================
     % SCORING STATE
@@ -164,7 +163,8 @@ classdef ArcadeGameLauncher < handle
                 "Subtitle", menuSubtitle);
 
             obj.enterMenu();
-            obj.PrevPixelScale = obj.getPixelScale();
+            axPx = getpixelposition(obj.Ax);
+            obj.PrevAxPx = axPx(3:4);
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
             obj.startTimer();
         end
@@ -334,15 +334,15 @@ classdef ArcadeGameLauncher < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % Absolute pixel scale + relative change
+            % Pixel scale: absolute for creation, relative for resize
             axPx = getpixelposition(obj.Ax);
             newPs = min(axPx(3) / 854, axPx(4) / 480);
-            if obj.PrevPixelScale > 0
-                relScale = newPs / obj.PrevPixelScale;
+            if obj.PrevAxPx(1) > 0
+                relScale = min(axPx(3) / obj.PrevAxPx(1), axPx(4) / obj.PrevAxPx(2));
             else
                 relScale = 1.0;
             end
-            obj.PrevPixelScale = newPs;
+            obj.PrevAxPx = axPx(3:4);
 
             % During gameplay
             if obj.State ~= "menu"
@@ -830,7 +830,6 @@ classdef ArcadeGameLauncher < handle
             obj.ActiveGameName = entry.name;
 
             game = entry.ctor();
-            game.FontScale = obj.getPixelScale();
             game.onInit(obj.Ax, obj.DisplayRange, struct());
             game.beginGame();
             obj.ActiveGame = game;
