@@ -304,7 +304,7 @@ classdef FpsRailShooter < GameBase
             % --- Wave pause (between waves) ---
             if obj.WavePause > 0
                 obj.WavePause = obj.WavePause - ds;
-                if obj.WavePause == 0
+                if obj.WavePause <= 0
                     obj.Wave = obj.Wave + 1;
                     obj.buildSpawnWave(obj.Wave);
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
@@ -421,7 +421,7 @@ classdef FpsRailShooter < GameBase
 
                 % Interceptor zigzag
                 if m.type == 3
-                    zigzag = sin(m.phase * 4) * areaW * 0.18 * scaleVal;
+                    zigzag = sin(m.phase * 4) * areaW * 0.08 * scaleVal;
                     m.screenX = m.screenX + zigzag;
                 end
 
@@ -621,7 +621,7 @@ classdef FpsRailShooter < GameBase
                     obj.addScore(300 * obj.Wave);
                     obj.WavePause = 96;
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
-                        obj.WaveTextH.String = "WAVE CLEAR!";
+                        obj.WaveTextH.String = "WAVE CLEARED!";
                         obj.WaveTextH.Color = [obj.ColorGreen, 1];
                     end
                     obj.WaveFlashTic = tic;
@@ -704,7 +704,7 @@ classdef FpsRailShooter < GameBase
             if obj.Lives <= 0
                 statusStr = "GAME OVER";
             else
-                statusStr = sprintf("WAVE %d CLEAR", obj.Wave);
+                statusStr = sprintf("WAVE %d CLEARED", obj.Wave);
             end
             r.Lines = {
                 statusStr
