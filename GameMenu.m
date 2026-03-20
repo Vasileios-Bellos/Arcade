@@ -87,10 +87,10 @@ classdef (Sealed) GameMenu < handle
         AnimStartTic    = []                        % tic for title shimmer / glow pulse
 
         % Twinkling stars
-        TwinkleH                                    % (1,8) line handles for pulsing stars
-        TwinklePhase    (1,8) double = zeros(1,8)   % phase offsets (radians)
-        TwinkleSpeed    (1,8) double = zeros(1,8)   % pulse speeds (rad/s)
-        TwinkleBaseSize (1,8) double = zeros(1,8)   % base MarkerSize per star
+        TwinkleH                                    % line handles for pulsing stars
+        TwinklePhase    (1,:) double                % phase offsets (radians)
+        TwinkleSpeed    (1,:) double                % pulse speeds (rad/s)
+        TwinkleBaseSize (1,:) double                % base MarkerSize per star
 
         % Shooting star comets (2 pre-allocated)
         CometH                                      % (1,2) line handles for comet trails
@@ -108,8 +108,8 @@ classdef (Sealed) GameMenu < handle
     % LAYOUT (scaled to display range in constructor)
     % =================================================================
     properties (SetAccess = private)
-        ItemWidth       = 180
-        ItemHeight      = 40
+        ItemWidth       = 220
+        ItemHeight      = 46
         ItemGap         = 10
         ItemCornerR     = 20
         KeyBadgeSz      = 28
@@ -171,8 +171,8 @@ classdef (Sealed) GameMenu < handle
             actualWidth = diff(displayRange.X);
             s = actualWidth / refWidth;
             obj.LayoutScale = s;
-            obj.ItemWidth = round(180 * s);
-            obj.ItemHeight = round(40 * s);
+            obj.ItemWidth = round(220 * s);
+            obj.ItemHeight = round(46 * s);
             obj.ItemGap = round(10 * s);
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
@@ -274,8 +274,8 @@ classdef (Sealed) GameMenu < handle
             actualWidth = diff(newDisplayRange.X);
             s = actualWidth / refWidth;
             obj.LayoutScale = s;
-            obj.ItemWidth = round(180 * s);
-            obj.ItemHeight = round(40 * s);
+            obj.ItemWidth = round(220 * s);
+            obj.ItemHeight = round(46 * s);
             obj.ItemGap = round(10 * s);
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
@@ -631,11 +631,11 @@ classdef (Sealed) GameMenu < handle
                 "Tag", tag + "Footer");
 
             % --- Twinkling stars (8 special pulsing stars) ---
-            nTwinkle = 8;
+            nTwinkle = 20;
             obj.TwinkleH = gobjects(1, nTwinkle);
             obj.TwinklePhase = rand(1, nTwinkle) * 2 * pi;
             obj.TwinkleSpeed = 1.5 + rand(1, nTwinkle) * 2.5;
-            obj.TwinkleBaseSize = 6 + rand(1, nTwinkle) * 8;
+            obj.TwinkleBaseSize = 4 + rand(1, nTwinkle) * 3;
             for k = 1:nTwinkle
                 tx = dx(1) + rand() * rangeW;
                 ty = dy(1) + rand() * rangeH;
@@ -1041,7 +1041,7 @@ classdef (Sealed) GameMenu < handle
                     pulse = 0.5 + 0.5 * sin(t * obj.TwinkleSpeed(k) + obj.TwinklePhase(k));
                     brightness = 0.2 + 0.8 * pulse;
                     obj.TwinkleH(k).Color = baseColor * brightness;
-                    obj.TwinkleH(k).MarkerSize = obj.TwinkleBaseSize(k) * (0.5 + 0.5 * pulse);
+                    obj.TwinkleH(k).MarkerSize = obj.TwinkleBaseSize(k) * (0.85 + 0.15 * pulse);
                 end
             end
 
@@ -1148,14 +1148,14 @@ classdef (Sealed) GameMenu < handle
             if edgeChoice == 3
                 angle = pi - angle;  % Mirror for right edge (travel leftward)
             end
-            speed = (0.3 + rand() * 0.2) * max(rangeW, rangeH);  % 30-50% of screen per second
+            speed = (0.5 + rand() * 0.3) * max(rangeW, rangeH);  % 50-80% of screen per second
             vx = speed * cos(angle);
             vy = speed * sin(angle);
 
             obj.CometPos(:, k) = [startX; startY];
             obj.CometVel(:, k) = [vx; vy];
             obj.CometProgress(k) = 0;
-            obj.CometDuration(k) = 1.0 + rand() * 1.0;  % 1-2 seconds
+            obj.CometDuration(k) = 0.6 + rand() * 0.6;  % 0.6-1.2 seconds
             obj.CometActive(k) = true;
         end
     end
