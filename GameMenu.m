@@ -182,16 +182,16 @@ classdef (Sealed) GameMenu < handle
             % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
             % Font sizes: scale by min(pixel width, pixel height) ratio
             % relative to reference (captured at init or from 1920x1080).
-            % Fixed 1080p reference — fonts look identical on all machines.
-            % On smaller/larger screens, pxScale adjusts proportionally.
-            axPx = getpixelposition(obj.Ax);
-            pxScale = min(axPx(3) / 1920, axPx(4) / 1080);
-            obj.TitleFontSize = max(14, round(36 * pxScale));
-            obj.SubtitleFontSize = max(6, round(12 * pxScale));
-            obj.NameFontSize = max(7, round(15 * pxScale));
-            obj.KeyFontSize = max(6, round(13 * pxScale));
-            obj.ScoreFontSize = max(6, round(12 * pxScale));
-            obj.FooterFontSize = max(5, round(10.5 * pxScale));
+            % Scale fonts relative to screen size (not axes size, which
+            % varies with maximize timing). Screen size is constant.
+            screenSz = get(0, "ScreenSize");  % [1 1 width height]
+            pxScale = min(screenSz(3) / 1920, screenSz(4) / 1080);
+            obj.TitleFontSize = max(14, round(54 * pxScale));
+            obj.SubtitleFontSize = max(8, round(18 * pxScale));
+            obj.NameFontSize = max(9, round(22 * pxScale));
+            obj.KeyFontSize = max(8, round(20 * pxScale));
+            obj.ScoreFontSize = max(8, round(18 * pxScale));
+            obj.FooterFontSize = max(6, round(16 * pxScale));
 
             obj.createGraphics();
         end
@@ -287,12 +287,12 @@ classdef (Sealed) GameMenu < handle
             else
                 pxScale = 1.0;
             end
-            obj.TitleFontSize = max(14, round(36 * pxScale));
-            obj.SubtitleFontSize = max(6, round(12 * pxScale));
-            obj.NameFontSize = max(7, round(15 * pxScale));
-            obj.KeyFontSize = max(6, round(13 * pxScale));
-            obj.ScoreFontSize = max(6, round(12 * pxScale));
-            obj.FooterFontSize = max(5, round(10.5 * pxScale));
+            obj.TitleFontSize = max(14, round(54 * pxScale));
+            obj.SubtitleFontSize = max(8, round(18 * pxScale));
+            obj.NameFontSize = max(9, round(22 * pxScale));
+            obj.KeyFontSize = max(8, round(20 * pxScale));
+            obj.ScoreFontSize = max(8, round(18 * pxScale));
+            obj.FooterFontSize = max(6, round(16 * pxScale));
 
             obj.deleteGraphics();
             obj.createGraphics();
