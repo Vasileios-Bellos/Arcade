@@ -10,6 +10,11 @@ classdef RailShooter < GameBase
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
+    %
+    %   TODO: Rename "death" terminology (deathFrame, deathMaxFrames,
+    %   deathAlpha, dying) to "defeat" or "elimination" in a future
+    %   cleanup pass across all game files. Affected files: RailShooter.m,
+    %   Juggling.m.
 
     properties (Constant)
         Name = "Rail Shooter"
@@ -309,6 +314,9 @@ classdef RailShooter < GameBase
                     obj.buildSpawnWave(obj.Wave);
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
                         obj.WaveTextH.String = sprintf("WAVE %d", obj.Wave);
+                        obj.WaveTextH.FontSize = 14;
+                        % Restore to top-center HUD position
+                        obj.WaveTextH.Position(2) = dy(1) + 14;
                     end
                     obj.WaveFlashTic = tic;
                 end
@@ -623,6 +631,9 @@ classdef RailShooter < GameBase
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
                         obj.WaveTextH.String = "WAVE CLEARED!";
                         obj.WaveTextH.Color = [obj.ColorGreen, 1];
+                        obj.WaveTextH.FontSize = 18;
+                        % Move to 35% from top so it does not overlap combo text
+                        obj.WaveTextH.Position(2) = dy(1) + areaH * 0.35;
                     end
                     obj.WaveFlashTic = tic;
                 end
@@ -708,7 +719,7 @@ classdef RailShooter < GameBase
             end
             r.Lines = {
                 statusStr
-                sprintf("Wave: %d  |  Cleared: %d", obj.Wave, obj.KillCount)
+                sprintf("Wave: %d  |  Eliminated: %d", obj.Wave, obj.KillCount)
             };
         end
     end

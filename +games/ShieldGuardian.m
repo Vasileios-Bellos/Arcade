@@ -35,6 +35,8 @@ classdef ShieldGuardian < GameBase
         ProjRadius          (1,20) double = zeros(1, 20)
         ProjColor           (20,3) double = zeros(20, 3)
         ProjActive          (1,20) logical = false(1, 20)
+        ProjPrevX           (1,20) double = zeros(1, 20)
+        ProjPrevY           (1,20) double = zeros(1, 20)
     end
 
     % =================================================================
@@ -104,6 +106,8 @@ classdef ShieldGuardian < GameBase
             obj.ProjActive(:) = false;
             obj.ProjX(:) = 0;
             obj.ProjY(:) = 0;
+            obj.ProjPrevX(:) = 0;
+            obj.ProjPrevY(:) = 0;
             obj.ProjVx(:) = 0;
             obj.ProjVy(:) = 0;
             obj.ProjSpeed(:) = 0;
@@ -244,12 +248,21 @@ classdef ShieldGuardian < GameBase
             end
 
             % --- Move projectiles (iterate active pool slots in reverse) ---
+            % Swept collision: check line segment from prev to cur against
+            % the shield arc circle, preventing fast projectiles from
+            % tunnelling through the shield at high DtScale.
             for ii = numel(activeIdx):-1:1
                 k = activeIdx(ii);
 
+                % Save previous position for swept collision
+                prevPx = obj.ProjX(k);
+                prevPy = obj.ProjY(k);
+                obj.ProjPrevX(k) = prevPx;
+                obj.ProjPrevY(k) = prevPy;
+
                 % Move
-                obj.ProjX(k) = obj.ProjX(k) + obj.ProjVx(k) * ds;
-                obj.ProjY(k) = obj.ProjY(k) + obj.ProjVy(k) * ds;
+                obj.ProjX(k) = prevPx + obj.ProjVx(k) * ds;
+                obj.ProjY(k) = prevPy + obj.ProjVy(k) * ds;
                 px = obj.ProjX(k);
                 py = obj.ProjY(k);
 
@@ -267,54 +280,116 @@ classdef ShieldGuardian < GameBase
 
                 distToCore = sqrt((px - corePos(1))^2 + (py - corePos(2))^2);
 
-                % --- Shield deflection ---
-                if distToCore < shieldR + 2 && distToCore > shieldR - 3
-                    projAngle = atan2(py - corePos(2), px - corePos(1));
-                    angleDiff = mod(projAngle - obj.ShieldAngle + pi, 2*pi) - pi;
-                    if abs(angleDiff) < obj.ShieldArc / 2
-                        obj.addScore(25);
-                        obj.incrementCombo();
-                        normalVec = [cos(projAngle), sin(projAngle)];
-                        vel = [obj.ProjVx(k), obj.ProjVy(k)];
-                        reflected = vel - 2 * dot(vel, normalVec) * normalVec;
-                        obj.ProjVx(k) = reflected(1) * 1.5;
-                        obj.ProjVy(k) = reflected(2) * 1.5;
-                        obj.ProjType(k) = "deflected";
-                        if ~isempty(sH) && isvalid(sH)
-                            sH.CData = obj.ColorGreen;
+                % --- Shield deflection (swept line-segment vs arc) ---
+                % Check if the line from prev to current crosses the shield
+                % radius circle within the shield angular span.
+                deflected = false;
+                if obj.ProjType(k) ~= "deflected"
+                    % Line segment: P = prev + t*(cur - prev), t in [0,1]
+                    % Circle: |P - core|^2 = shieldR^2
+                    % Quadratic: a*t^2 + b*t + c = 0
+                    segDx = px - prevPx;
+                    segDy = py - prevPy;
+                    relPx = prevPx - corePos(1);
+                    relPy = prevPy - corePos(2);
+                    a = segDx^2 + segDy^2;
+                    b = 2 * (relPx * segDx + relPy * segDy);
+                    c = relPx^2 + relPy^2 - shieldR^2;
+                    disc = b^2 - 4 * a * c;
+                    if disc >= 0 && a > 1e-12
+                        sqrtDisc = sqrt(disc);
+                        tVals = [(-b - sqrtDisc) / (2 * a), ...
+                                 (-b + sqrtDisc) / (2 * a)];
+                        for ti = 1:2
+                            tHit = tVals(ti);
+                            if tHit >= 0 && tHit <= 1
+                                % Intersection point on circle
+                                hitX = prevPx + tHit * segDx;
+                                hitY = prevPy + tHit * segDy;
+                                hitAngle = atan2( ...
+                                    hitY - corePos(2), hitX - corePos(1));
+                                angleDiff = mod( ...
+                                    hitAngle - obj.ShieldAngle + pi, 2*pi) - pi;
+                                if abs(angleDiff) < obj.ShieldArc / 2
+                                    % Deflect at the hit point
+                                    obj.addScore(25);
+                                    obj.incrementCombo();
+                                    normalVec = [cos(hitAngle), sin(hitAngle)];
+                                    vel = [obj.ProjVx(k), obj.ProjVy(k)];
+                                    reflected = vel ...
+                                        - 2 * dot(vel, normalVec) * normalVec;
+                                    obj.ProjVx(k) = reflected(1) * 1.5;
+                                    obj.ProjVy(k) = reflected(2) * 1.5;
+                                    obj.ProjType(k) = "deflected";
+                                    % Place projectile at hit point + small
+                                    % outward push to prevent re-triggering
+                                    obj.ProjX(k) = hitX + normalVec(1) * 3;
+                                    obj.ProjY(k) = hitY + normalVec(2) * 3;
+                                    px = obj.ProjX(k);
+                                    py = obj.ProjY(k);
+                                    if ~isempty(sH) && isvalid(sH)
+                                        sH.XData = px;
+                                        sH.YData = py;
+                                        sH.CData = obj.ColorGreen;
+                                    end
+                                    if ~isempty(gH) && isvalid(gH)
+                                        gH.XData = px;
+                                        gH.YData = py;
+                                        gH.CData = obj.ColorGreen;
+                                    end
+                                    obj.spawnBounceEffect( ...
+                                        [hitX, hitY], normalVec, 0, 6);
+                                    deflected = true;
+                                    break;
+                                end
+                            end
                         end
-                        if ~isempty(gH) && isvalid(gH)
-                            gH.CData = obj.ColorGreen;
-                        end
-                        obj.spawnBounceEffect([px, py], normalVec, 0, 6);
-                        continue;
                     end
                 end
+                if deflected; continue; end
 
-                % --- Core hit (hitbox radius, data units) ---
-                if distToCore < hitboxR && obj.ProjType(k) ~= "deflected"
-                    obj.Lives = obj.Lives - 1;
-                    obj.resetCombo();
-
-                    % Flash lives display
-                    if ~isempty(obj.LivesTextH) && isvalid(obj.LivesTextH)
-                        obj.LivesTextH.String = sprintf("Lives: %d", ...
-                            max(0, obj.Lives));
-                        obj.LivesTextH.Color = obj.ColorRed;
-                        obj.LivesTextH.Visible = "on";
-                        obj.LivesFlashTic = tic;
+                % --- Core hit (swept: line segment vs hitbox circle) ---
+                if obj.ProjType(k) ~= "deflected"
+                    segDx2 = px - prevPx;
+                    segDy2 = py - prevPy;
+                    relPx2 = prevPx - corePos(1);
+                    relPy2 = prevPy - corePos(2);
+                    a2 = segDx2^2 + segDy2^2;
+                    b2 = 2 * (relPx2 * segDx2 + relPy2 * segDy2);
+                    c2 = relPx2^2 + relPy2^2 - hitboxR^2;
+                    disc2 = b2^2 - 4 * a2 * c2;
+                    coreHit = distToCore < hitboxR;  % fallback: endpoint inside
+                    if ~coreHit && disc2 >= 0 && a2 > 1e-12
+                        sqrtDisc2 = sqrt(disc2);
+                        t1 = (-b2 - sqrtDisc2) / (2 * a2);
+                        if t1 >= 0 && t1 <= 1
+                            coreHit = true;
+                        end
                     end
-                    obj.spawnBounceEffect([px, py], [0, 1], 0, 14);
+                    if coreHit
+                        obj.Lives = obj.Lives - 1;
+                        obj.resetCombo();
 
-                    % Deactivate projectile (return to pool)
-                    obj.deactivateProjectile(k);
+                        % Flash lives display
+                        if ~isempty(obj.LivesTextH) && isvalid(obj.LivesTextH)
+                            obj.LivesTextH.String = sprintf("Lives: %d", ...
+                                max(0, obj.Lives));
+                            obj.LivesTextH.Color = obj.ColorRed;
+                            obj.LivesTextH.Visible = "on";
+                            obj.LivesFlashTic = tic;
+                        end
+                        obj.spawnBounceEffect([px, py], [0, 1], 0, 14);
 
-                    if obj.Lives <= 0
-                        obj.GameOver = true;
-                        obj.IsRunning = false;
-                        return;
+                        % Deactivate projectile (return to pool)
+                        obj.deactivateProjectile(k);
+
+                        if obj.Lives <= 0
+                            obj.GameOver = true;
+                            obj.IsRunning = false;
+                            return;
+                        end
+                        continue;
                     end
-                    continue;
                 end
 
                 % --- Off screen ---
@@ -496,6 +571,8 @@ classdef ShieldGuardian < GameBase
             % Populate pool slot
             obj.ProjX(slot) = x;
             obj.ProjY(slot) = y;
+            obj.ProjPrevX(slot) = x;
+            obj.ProjPrevY(slot) = y;
             obj.ProjVx(slot) = vx;
             obj.ProjVy(slot) = vy;
             obj.ProjType(slot) = "incoming";
