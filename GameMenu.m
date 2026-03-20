@@ -1174,41 +1174,37 @@ classdef (Sealed) GameMenu < handle
         end
 
         function spawnComet(obj, k, t, dx, dy, rangeW, rangeH)
-            %spawnComet  Radiant-point meteor shower style.
-            %   All comets emanate from a radiant in the upper-left quadrant
-            %   and streak toward the lower-right with ±20° spread.
-            %   Creates a cohesive "shower" effect, not random chaos.
+            %spawnComet  Diagonal meteor shower from both sides.
+            %   Comets travel diagonally across the screen — roughly half
+            %   from upper-left to lower-right, half from upper-right to
+            %   lower-left.  No vertical rain.
 
-            % Radiant point: upper-left area (~25%, ~15%)
-            radX = dx(1) + rangeW * 0.25;
-            radY = dy(1) + rangeH * 0.15;
+            goRight = rand() > 0.5;
 
-            % Spawn near the radiant — on top or left edge within 40% of radiant
-            if rand() > 0.4
-                % Top edge, left half
-                startX = dx(1) + rand() * rangeW * 0.5;
-                startY = dy(1);
+            if goRight
+                % Spawn from top-left region, travel toward lower-right
+                if rand() > 0.4
+                    startX = dx(1) + rand() * rangeW * 0.4;
+                    startY = dy(1);
+                else
+                    startX = dx(1);
+                    startY = dy(1) + rand() * rangeH * 0.35;
+                end
+                baseAngle = 0.4 + rand() * 0.5;  % ~23°-52° (diagonal down-right)
             else
-                % Left edge, upper half
-                startX = dx(1);
-                startY = dy(1) + rand() * rangeH * 0.4;
+                % Spawn from top-right region, travel toward lower-left
+                if rand() > 0.4
+                    startX = dx(1) + rangeW * 0.6 + rand() * rangeW * 0.4;
+                    startY = dy(1);
+                else
+                    startX = dx(2);
+                    startY = dy(1) + rand() * rangeH * 0.35;
+                end
+                baseAngle = pi - 0.4 - rand() * 0.5;  % ~128°-157° (diagonal down-left)
             end
 
-            % Direction: from radiant outward (away from upper-left)
-            % Base angle points from radiant to start, then continues outward
-            dirX = startX - radX;
-            dirY = startY - radY;
-            baseAngle = atan2(dirY, dirX);
-
-            % Add ±20° spread for variety
-            spread = (rand() - 0.5) * 40 * pi / 180;
-            angle = baseAngle + spread;
-
-            % Ensure always has downward + rightward component (no upward/leftward)
-            vx = cos(angle);
-            vy = sin(angle);
-            if vy < 0.15; vy = 0.15 + rand() * 0.2; end  % enforce downward
-            if vx < -0.3; vx = abs(vx); end  % flip to rightward if too leftward
+            vx = cos(baseAngle);
+            vy = sin(baseAngle);
             norm_v = sqrt(vx^2 + vy^2);
 
             speed = (0.35 + rand() * 0.2) * max(rangeW, rangeH);
