@@ -626,7 +626,7 @@ classdef Breakout < GameBase
             brickMargin = round(areaW * 0.03);
             gridW = areaW - 2 * brickMargin;
             brickW = gridW / nCols;
-            brickH = max(8, round(areaH * 0.035));
+            brickH = max(8, round(areaH * 0.04));
             brickGap = round(2 * obj.Sc);
             gridTop = dy(1) + round(areaH * 0.08);
 

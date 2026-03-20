@@ -233,9 +233,8 @@ classdef ArcadeGameLauncher < handle
             obj.Fig.Pointer = "arrow";
             hold(obj.Ax, "on");
 
-            % Capture reference pixel size for font scaling
-            axPx = getpixelposition(obj.Ax);
-            obj.RefPixelSize = axPx(3:4);
+            % RefPixelSize captured lazily on first onFigResize
+            % (after maximize completes) — avoids pre-maximize capture.
         end
 
         function computeDisplayRange(obj)
@@ -336,6 +335,12 @@ classdef ArcadeGameLauncher < handle
             %onFigResize  Handle figure resize — letterbox during gameplay.
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
+
+            % Lazy capture: first resize = maximize complete
+            if obj.RefPixelSize(1) == 0
+                axPx = getpixelposition(obj.Ax);
+                obj.RefPixelSize = axPx(3:4);
+            end
 
             % During gameplay: freeze coordinate system, maintain aspect ratio
             if obj.State ~= "menu"

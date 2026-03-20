@@ -565,7 +565,7 @@ classdef Tetris < GameBase
 
                 case "downarrow"
                     obj.IsSoftDrop = true;
-                    obj.SoftDropTimer = 0;
+                    obj.SoftDropTimer = -Inf;
 
                 case "space"
                     obj.hardDrop();
