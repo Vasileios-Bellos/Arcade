@@ -109,7 +109,7 @@ classdef (Sealed) GameMenu < handle
     % =================================================================
     properties (SetAccess = private)
         ItemWidth       = 200
-        ItemHeight      = 46
+        ItemHeight      = 38
         ItemGap         = 10
         ItemCornerR     = 20
         KeyBadgeSz      = 28
@@ -172,11 +172,11 @@ classdef (Sealed) GameMenu < handle
             s = actualWidth / refWidth;
             obj.LayoutScale = s;
             obj.ItemWidth = round(200 * s);
-            obj.ItemHeight = round(46 * s);
+            obj.ItemHeight = round(38 * s);
             obj.ItemGap = round(10 * s);
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
-            obj.MaxVisibleItems = min(6, max(3, floor(diff(displayRange.Y) * 0.6 / (obj.ItemHeight + obj.ItemGap))));
+            obj.MaxVisibleItems = min(5, max(3, floor(diff(displayRange.Y) * 0.70 / (obj.ItemHeight + obj.ItemGap))));
             % Font sizes: scale up for small display ranges (e.g. GestureMouse
             % ROI ~200 DU) so text fills the scaled pills proportionally.
             % No scaling for equal-or-larger ranges (ArcadeGameLauncher ~850 DU).
@@ -275,11 +275,11 @@ classdef (Sealed) GameMenu < handle
             s = actualWidth / refWidth;
             obj.LayoutScale = s;
             obj.ItemWidth = round(200 * s);
-            obj.ItemHeight = round(46 * s);
+            obj.ItemHeight = round(38 * s);
             obj.ItemGap = round(10 * s);
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
-            obj.MaxVisibleItems = min(6, max(3, floor(diff(newDisplayRange.Y) * 0.6 / (obj.ItemHeight + obj.ItemGap))));
+            obj.MaxVisibleItems = min(5, max(3, floor(diff(newDisplayRange.Y) * 0.70 / (obj.ItemHeight + obj.ItemGap))));
             % Font sizes: scale by min(pixel width, pixel height) ratio
             % relative to reference — same formula as constructor
             axPx = getpixelposition(obj.Ax);
