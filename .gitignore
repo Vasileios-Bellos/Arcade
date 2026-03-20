@@ -30,6 +30,9 @@ Thumbs.db
 # Calibration cache (user-specific)
 GestureMouse_calibration.mat
 
+# High scores (user-generated, auto-created on first play)
+ScoreManager_scores.mat
+
 # Character template cache (machine-generated)
 GestureMouse_chartemplates.mat
 
