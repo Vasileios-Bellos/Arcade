@@ -15,7 +15,7 @@ Any game can run on its own — creates a fullscreen figure with mouse/keyboard 
 ```matlab
 games.FlickIt().play()
 games.Breakout().play()
-games.Smoke().play()
+simulations.Smoke().play()
 ```
 
 ### Webcam (finger tracking)

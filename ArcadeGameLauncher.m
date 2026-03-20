@@ -1,4 +1,4 @@
-classdef (Sealed) ArcadeGameLauncher < handle
+classdef ArcadeGameLauncher < handle
     %ArcadeGameLauncher  Standalone arcade-style game launcher with mouse input.
     %   Neon-styled arcade experience: animated game selector with scroll support,
     %   3-2-1 countdown, HUD with score roll-up and combo display, pause/reset/
@@ -40,12 +40,14 @@ classdef (Sealed) ArcadeGameLauncher < handle
         ActiveGameName  string = ""
         State           (1,1) string = "menu"   % menu|countdown|active|paused|results
 
+        % Shared menu component
+        Menu                                    % GameMenu handle
+    end
+
+    properties (SetAccess = protected)
         % Game registry: key -> struct(ctor, name, key)
         Registry        dictionary
         RegistryOrder   string                  % keys in insertion order
-
-        % Shared menu component
-        Menu                                    % GameMenu handle
     end
 
     % =================================================================
@@ -1021,67 +1023,30 @@ classdef (Sealed) ArcadeGameLauncher < handle
     end
 
     % =================================================================
-    % PRIVATE — Game Registry
+    % PROTECTED — Game Registry (override in subclasses)
     % =================================================================
-    methods (Access = private)
+    methods (Access = protected)
 
         function buildRegistry(obj)
             %buildRegistry  Register all available games with key bindings.
             obj.Registry = dictionary;
             obj.RegistryOrder = strings(0);
 
-            % === Number keys (1-9) ===
+            % === Arcade games only (1-9, Shift+1-9) ===
             obj.registerGame("1", @games.TargetPractice, "Target Practice");
-            obj.registerGame("2", @games.ShapeTracing, "Shape Tracing");
-            obj.registerGame("3", @games.Fireflies, "Fireflies");
-            obj.registerGame("4", @games.FlickIt, "Flick It");
-            obj.registerGame("5", @games.Pong, "Pong");
-            obj.registerGame("6", @games.Juggling, "Juggling");
-            obj.registerGame("7", @games.GlyphTracing, "Glyph Tracing");
-            obj.registerGame("8", @games.Keyboard, "Keyboard");
-            obj.registerGame("9", @games.Breakout, "Breakout");
-
-            % === Shift + number keys ===
-            obj.registerGame("shift+1", @games.FlappyBird, "Flappy Bird");
-            obj.registerGame("shift+2", @games.FruitNinja, "Fruit Ninja");
-            obj.registerGame("shift+3", @games.SpaceInvaders, "Space Invaders");
-            obj.registerGame("shift+4", @games.Snake, "Snake");
-            obj.registerGame("shift+5", @games.Asteroids, "Asteroids");
-            obj.registerGame("shift+6", @games.OrbitalDefense, "Orbital Defense");
-            obj.registerGame("shift+7", @games.GravityWell, "Gravity Well");
-            obj.registerGame("shift+8", @games.ShieldGuardian, "Shield Guardian");
-            obj.registerGame("shift+9", @games.RailShooter, "Rail Shooter");
-
-            % === Alt + number keys ===
-            obj.registerGame("alt+1", @games.MoleculeGrid, "Molecule Grid");
-            obj.registerGame("alt+2", @games.FluidSim, "Fluid Sim");
-            obj.registerGame("alt+3", @games.Dobryakov, "Dobryakov");
-            obj.registerGame("alt+4", @games.RippleTank, "Ripple Tank");
-            obj.registerGame("alt+5", @games.ReactionDiffusion, "Reaction-Diffusion");
-            obj.registerGame("alt+6", @games.WindTunnel, "Wind Tunnel");
-            obj.registerGame("alt+7", @games.Elements, "Elements");
-            obj.registerGame("alt+8", @games.StringHarmonics, "String Harmonics");
-            obj.registerGame("alt+9", @games.ThreeBody, "Three-Body");
-            obj.registerGame("alt+0", @games.Voronoi, "Voronoi");
-
-            % === Special keys ===
-            obj.registerGame("0", @games.GameOfLife, "Game of Life");
-            obj.registerGame("shift+0", @games.Lissajous, "Lissajous");
-            obj.registerGame("alt+p", @games.Piano, "Piano");
-            obj.registerGame("alt+c", @games.CrystalGrowth, "Crystal Growth");
-
-            % === Numpad keys ===
-            obj.registerGame("numpad1", @games.Cloth, "Cloth");
-            obj.registerGame("numpad2", @games.Boids, "Boids");
-            obj.registerGame("numpad3", @games.DoublePendulum, "Double Pendulum");
-            obj.registerGame("numpad4", @games.Smoke, "Smoke");
-            obj.registerGame("numpad5", @games.Fire, "Fire");
-            obj.registerGame("numpad6", @games.NewtonsCradle, "Newton's Cradle");
-            obj.registerGame("numpad7", @games.EmField, "EM Field");
-            obj.registerGame("numpad8", @games.Planets, "Planets");
-            obj.registerGame("numpad9", @games.StrangeAttractors, "Strange Attractors");
-            obj.registerGame("numpad0", @games.FourierEpicycle, "Fourier Epicycle");
-            obj.registerGame("alt+e", @games.Ecosystem, "Ecosystem");
+            obj.registerGame("2", @games.Fireflies, "Fireflies");
+            obj.registerGame("3", @games.FlickIt, "Flick It");
+            obj.registerGame("4", @games.Pong, "Pong");
+            obj.registerGame("5", @games.Juggling, "Juggling");
+            obj.registerGame("6", @games.Breakout, "Breakout");
+            obj.registerGame("7", @games.FlappyBird, "Flappy Bird");
+            obj.registerGame("8", @games.FruitNinja, "Fruit Ninja");
+            obj.registerGame("9", @games.SpaceInvaders, "Space Invaders");
+            obj.registerGame("shift+1", @games.Snake, "Snake");
+            obj.registerGame("shift+2", @games.Asteroids, "Asteroids");
+            obj.registerGame("shift+3", @games.OrbitalDefense, "Orbital Defense");
+            obj.registerGame("shift+4", @games.ShieldGuardian, "Shield Guardian");
+            obj.registerGame("shift+5", @games.RailShooter, "Rail Shooter");
         end
 
         function registerGame(obj, key, ctor, name)
