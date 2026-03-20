@@ -656,11 +656,11 @@ classdef (Sealed) GameMenu < handle
             for k = 1:nComets
                 obj.CometH(k) = line(ax, nanTrail, nanTrail, ...
                     "LineStyle", "-", "LineWidth", 1.5, ...
-                    "Color", [0.35 0.43 0.50], ...
+                    "Color", [0.45 0.60 0.80], ...
                     "Visible", "off", "Tag", tag + "Comet");
                 obj.CometHeadH(k) = line(ax, 0, 0, ...
                     "LineStyle", "none", "Marker", ".", ...
-                    "MarkerSize", 5, "Color", [0.70 0.85 1.0], ...
+                    "MarkerSize", 5, "Color", [0.85 0.92 1.0], ...
                     "Visible", "off", "Tag", tag + "CometHd");
                 uistack(obj.CometH(k), "bottom");
                 uistack(obj.CometHeadH(k), "bottom");
@@ -1122,50 +1122,62 @@ classdef (Sealed) GameMenu < handle
                     fade = 1.0;
                 end
                 fade = max(0, fade);
-                obj.CometH(k).Color = [0.35 0.43 0.50] * (0.2 + 0.8 * fade);
+                obj.CometH(k).Color = [0.45 0.60 0.80] * (0.2 + 0.8 * fade);
 
                 % Head dot
                 obj.CometHeadH(k).XData = headX;
                 obj.CometHeadH(k).YData = headY;
                 obj.CometHeadH(k).Visible = "on";
-                obj.CometHeadH(k).Color = [0.70 0.85 1.0] * (0.3 + 0.7 * fade);
+                obj.CometHeadH(k).Color = [0.85 0.92 1.0] * (0.3 + 0.7 * fade);
             end
         end
 
         function spawnComet(obj, k, dx, dy, rangeW, rangeH)
-            %spawnComet  Spawn from top or sides, always diagonal (never vertical/upward).
-            %   Top: diagonal down-left or down-right (30-60 deg from vertical)
-            %   Left side: diagonal down-right (30-60 deg below horizontal)
-            %   Right side: diagonal down-left (30-60 deg below horizontal)
-            %   Never from bottom. Never vertical. Always has horizontal component.
-            edge = randi(3);  % 1=top, 2=left, 3=right (no bottom)
-            switch edge
-                case 1  % top edge
-                    startX = dx(1) + (0.1 + rand() * 0.8) * rangeW;
-                    startY = dy(1);
-                    % Diagonal downward: 30-60 deg from vertical, random left or right
-                    angleDeg = 30 + rand() * 30;  % 30-60 from vertical
-                    if rand() > 0.5; angleDeg = -angleDeg; end
-                    angle = pi/2 + angleDeg * pi / 180;  % convert to math angle
-                case 2  % left edge (upper 70%)
-                    startX = dx(1);
-                    startY = dy(1) + rand() * rangeH * 0.7;
-                    % Diagonal down-right: 20-50 deg below horizontal
-                    angle = (20 + rand() * 30) * pi / 180;
-                case 3  % right edge (upper 70%)
-                    startX = dx(2);
-                    startY = dy(1) + rand() * rangeH * 0.7;
-                    % Diagonal down-left: 20-50 deg below horizontal
-                    angle = pi - (20 + rand() * 30) * pi / 180;
+            %spawnComet  Radiant-point meteor shower style.
+            %   All comets emanate from a radiant in the upper-left quadrant
+            %   and streak toward the lower-right with ±20° spread.
+            %   Creates a cohesive "shower" effect, not random chaos.
+
+            % Radiant point: upper-left area (~25%, ~15%)
+            radX = dx(1) + rangeW * 0.25;
+            radY = dy(1) + rangeH * 0.15;
+
+            % Spawn near the radiant — on top or left edge within 40% of radiant
+            if rand() > 0.4
+                % Top edge, left half
+                startX = dx(1) + rand() * rangeW * 0.5;
+                startY = dy(1);
+            else
+                % Left edge, upper half
+                startX = dx(1);
+                startY = dy(1) + rand() * rangeH * 0.4;
             end
-            speed = (0.6 + rand() * 0.4) * max(rangeW, rangeH);
-            vx = speed * cos(angle);
-            vy = speed * sin(angle);
+
+            % Direction: from radiant outward (away from upper-left)
+            % Base angle points from radiant to start, then continues outward
+            dirX = startX - radX;
+            dirY = startY - radY;
+            baseAngle = atan2(dirY, dirX);
+
+            % Add ±20° spread for variety
+            spread = (rand() - 0.5) * 40 * pi / 180;
+            angle = baseAngle + spread;
+
+            % Ensure always has downward + rightward component (no upward/leftward)
+            vx = cos(angle);
+            vy = sin(angle);
+            if vy < 0.15; vy = 0.15 + rand() * 0.2; end  % enforce downward
+            if vx < -0.3; vx = abs(vx); end  % flip to rightward if too leftward
+            norm_v = sqrt(vx^2 + vy^2);
+
+            speed = (0.5 + rand() * 0.3) * max(rangeW, rangeH);
+            vx = vx / norm_v * speed;
+            vy = vy / norm_v * speed;
 
             obj.CometPos(:, k) = [startX; startY];
             obj.CometVel(:, k) = [vx; vy];
             obj.CometProgress(k) = 0;
-            obj.CometDuration(k) = 1.0 + rand() * 0.8;  % 1.0-1.8 seconds
+            obj.CometDuration(k) = 1.2 + rand() * 0.8;  % 1.2-2.0 seconds
             obj.CometActive(k) = true;
         end
     end
