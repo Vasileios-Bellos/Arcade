@@ -588,13 +588,16 @@ classdef Tetris < GameBase
 
             % Determine click type from figure SelectionType
             fig = ancestor(obj.Ax, "figure");
-            if ~isempty(fig) && isvalid(fig) && strcmp(fig.SelectionType, "alt")
-                % Right-click: soft drop (accelerate piece like down arrow)
-                obj.IsSoftDrop = true;
-                obj.SoftDropTimer = 0;
-            else
-                % Left-click (or any other): hard drop
-                obj.hardDrop();
+            if ~isempty(fig) && isvalid(fig)
+                selType = fig.SelectionType;
+                if strcmp(selType, "alt")
+                    % Right-click: continuous soft drop until piece locks
+                    obj.IsSoftDrop = true;
+                    obj.SoftDropTimer = -Inf;  % never expires
+                elseif strcmp(selType, "normal")
+                    % Left-click: hard drop
+                    obj.hardDrop();
+                end
             end
         end
 

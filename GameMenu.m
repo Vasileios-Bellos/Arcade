@@ -672,38 +672,34 @@ classdef (Sealed) GameMenu < handle
             % --- Shooting star comets (2 pre-allocated, smooth fading trail) ---
             nComets = 2;
             nTP = 40;
-            nVerts = nTP + 1;  % +1: dup of head at alpha=0 for closure seam
 
-            % Pre-compute per-vertex alpha: dup=0, head=peak, fades to 0
-            bAlpha = zeros(nVerts, 1);
-            bAlpha(2) = 0.7;
-            bAlpha(3:end) = linspace(0.65, 0, nTP - 1)';
+            % Per-vertex alpha: peak at head, fade to 0 at tail.
+            % Closure edge is collinear (straight trail) so hidden.
+            bAlpha = linspace(1, 0, nTP)';
             obj.CometBaseAlpha = bAlpha;
 
-            % Pre-compute per-vertex color: head bright → tail dim
+            % Per-vertex color: head bright → tail dim
             headClr = [0.85 0.90 0.95];
             tailClr = [0.30 0.35 0.50];
-            bColor = zeros(nVerts, 3);
-            bColor(1, :) = headClr;
-            bColor(2, :) = headClr;
-            for v = 3:nVerts
-                frac = (v - 2) / (nVerts - 2);
+            bColor = zeros(nTP, 3);
+            for v = 1:nTP
+                frac = (v - 1) / max(1, nTP - 1);
                 bColor(v, :) = headClr * (1 - frac) + tailClr * frac;
             end
             obj.CometBaseColor = bColor;
 
-            faces = 1:nVerts;
+            faces = [(1:nTP-1)', (2:nTP)'];
 
             obj.CometH = gobjects(1, nComets);
             obj.CometHeadH = gobjects(1, nComets);
             for k = 1:nComets
                 obj.CometH(k) = patch(ax, ...
-                    "Vertices", nan(nVerts, 2), ...
+                    "Vertices", nan(nTP, 2), ...
                     "Faces", faces, ...
                     "FaceColor", "none", ...
                     "EdgeColor", "interp", ...
                     "FaceVertexCData", bColor, ...
-                    "FaceVertexAlphaData", zeros(nVerts, 1), ...
+                    "FaceVertexAlphaData", zeros(nTP, 1), ...
                     "EdgeAlpha", "interp", ...
                     "AlphaDataMapping", "none", ...
                     "LineWidth", 1.5, ...
@@ -1150,13 +1146,11 @@ classdef (Sealed) GameMenu < handle
                 % Grow trail over first 10% of flight
                 effectiveLen = trailLen * min(1, p / 0.1);
 
-                % Build vertices: dup of head + trail points
+                % Build vertices: head to tail
                 fracs = linspace(0, 1, nTP);
                 trailX = headX - fracs * effectiveLen * dirX;
                 trailY = headY - fracs * effectiveLen * dirY;
-                verts = zeros(nTP + 1, 2);
-                verts(1, :) = [headX, headY];
-                verts(2:end, :) = [trailX', trailY'];
+                verts = [trailX', trailY'];
 
                 % Fade in only (first 15%), then full opacity until off-screen
                 if p < 0.15
@@ -1217,7 +1211,7 @@ classdef (Sealed) GameMenu < handle
             if vx < -0.3; vx = abs(vx); end  % flip to rightward if too leftward
             norm_v = sqrt(vx^2 + vy^2);
 
-            speed = (0.5 + rand() * 0.3) * max(rangeW, rangeH);
+            speed = (0.35 + rand() * 0.2) * max(rangeW, rangeH);
             vx = vx / norm_v * speed;
             vy = vy / norm_v * speed;
 
