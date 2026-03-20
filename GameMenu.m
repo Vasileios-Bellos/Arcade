@@ -108,7 +108,7 @@ classdef (Sealed) GameMenu < handle
     % LAYOUT (scaled to display range in constructor)
     % =================================================================
     properties (SetAccess = private)
-        ItemWidth       = 220
+        ItemWidth       = 200
         ItemHeight      = 46
         ItemGap         = 10
         ItemCornerR     = 20
@@ -171,7 +171,7 @@ classdef (Sealed) GameMenu < handle
             actualWidth = diff(displayRange.X);
             s = actualWidth / refWidth;
             obj.LayoutScale = s;
-            obj.ItemWidth = round(220 * s);
+            obj.ItemWidth = round(200 * s);
             obj.ItemHeight = round(46 * s);
             obj.ItemGap = round(10 * s);
             obj.ItemCornerR = round(20 * s);
@@ -274,7 +274,7 @@ classdef (Sealed) GameMenu < handle
             actualWidth = diff(newDisplayRange.X);
             s = actualWidth / refWidth;
             obj.LayoutScale = s;
-            obj.ItemWidth = round(220 * s);
+            obj.ItemWidth = round(200 * s);
             obj.ItemHeight = round(46 * s);
             obj.ItemGap = round(10 * s);
             obj.ItemCornerR = round(20 * s);
