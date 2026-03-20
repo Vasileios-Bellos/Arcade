@@ -269,7 +269,16 @@ classdef ArcadeGameLauncher < handle
         end
 
         function onMouseDown(obj)
-            %onMouseDown  Click on game item or start scroll thumb drag.
+            %onMouseDown  Click on game item, forward to active game, or start scroll thumb drag.
+
+            % Forward click to active game during gameplay
+            if obj.State == "active"
+                if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
+                    obj.ActiveGame.onMouseDown();
+                end
+                return;
+            end
+
             if obj.State ~= "menu"; return; end
             if any(isnan(obj.MousePos)); return; end
             if isempty(obj.Menu); return; end

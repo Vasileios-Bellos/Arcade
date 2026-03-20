@@ -1,8 +1,14 @@
 classdef FlappyBird < GameBase
-    %FlappyBird  Pipe-dodge game controlled by finger position.
+    %FlappyBird  Pipe-dodge game with two control modes.
     %   Navigate a bird through scrolling pipe gaps. Combo resets on
     %   collision (no lives). Gap narrows and speed increases as combo
     %   grows. Collision triggers invulnerability blink.
+    %
+    %   Control modes (auto-detected from host capabilities):
+    %     Direct position (webcam) — bird follows finger position
+    %     Gravity+flap (arcade/standalone) — bird X fixed at 25% width,
+    %       gravity pulls bird down, Space/Click to flap upward.
+    %       Hitting top or bottom of screen triggers collision.
     %
     %   Standalone: games.FlappyBird().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
@@ -21,7 +27,7 @@ classdef FlappyBird < GameBase
         BirdRadius      (1,1) double = 8
         CollisionR      (1,1) double = 4
 
-        % Pipe parameters — ring buffer of pre-allocated patches
+        % Pipe parameters -- ring buffer of pre-allocated patches
         PipePoolTop                 % cell array of top patch handles
         PipePoolBot                 % cell array of bottom patch handles
         PoolSize        (1,1) double = 6   % max pipes on screen + buffer
@@ -34,7 +40,7 @@ classdef FlappyBird < GameBase
         PipeSpeed       (1,1) double = 0.625
         PipeBaseSpeed   (1,1) double = 0.625
         PipeTargetSpeed (1,1) double = 0.625   % speed decays toward this after hit
-        PipeSpeedDecay  (1,1) double = 0.0021 % linear ramp per frame (slow)
+        PipeSpeedDecay  (1,1) double = 0.0021  % linear ramp per frame (slow)
         PipeWidth       (1,1) double = 20
         PipeGapH        (1,1) double = 40
         PipeBaseGapH    (1,1) double = 40
@@ -43,6 +49,15 @@ classdef FlappyBird < GameBase
         % Session
         PipesCleared    (1,1) double = 0
         InvulnFrames    (1,1) double = 0
+
+        % Gravity+flap mode
+        FlapMode        (1,1) logical = false  % true = gravity+flap, false = direct
+        FlpBirdY        (1,1) double = 0       % bird Y in data coords
+        FlpBirdVelY     (1,1) double = 0       % bird Y velocity (positive = downward)
+        FlpBirdFixedX   (1,1) double = 0       % fixed bird X position (25% of width)
+        FlpGravity      (1,1) double = 0       % gravity acceleration per frame (scaled to display)
+        FlpFlapImpulse  (1,1) double = 0       % upward velocity on flap (negative = up in YDir reverse)
+        FlpFlapPending  (1,1) logical = false   % set by onMouseDown/onKeyPress, consumed by onUpdate
     end
 
     % =================================================================
@@ -57,13 +72,13 @@ classdef FlappyBird < GameBase
     % ABSTRACT METHOD IMPLEMENTATIONS
     % =================================================================
     methods
-        function onInit(obj, ax, displayRange, ~)
+        function onInit(obj, ax, displayRange, caps)
             %onInit  Create pipe-dodge graphics and initialize state.
             arguments
                 obj
                 ax
                 displayRange struct
-                ~
+                caps         struct = struct()
             end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
@@ -75,6 +90,9 @@ classdef FlappyBird < GameBase
             dy = displayRange.Y;
             areaW = diff(dx);
             areaH = diff(dy);
+
+            % Detect host type: empty struct = arcade/standalone = gravity+flap
+            obj.FlapMode = isempty(fieldnames(caps));
 
             % Scale sizes to display area
             obj.BirdRadius = max(6, round(min(areaW, areaH) * 0.06));
@@ -99,6 +117,16 @@ classdef FlappyBird < GameBase
             % Reset session state
             obj.PipesCleared = 0;
             obj.InvulnFrames = 0;
+
+            % Initialize flap mode state
+            if obj.FlapMode
+                obj.FlpBirdFixedX = dx(1) + areaW * 0.25;
+                obj.FlpBirdY = mean(dy);
+                obj.FlpBirdVelY = 0;
+                obj.FlpGravity = areaH * 0.0008;       % tuned for ~480-height display
+                obj.FlpFlapImpulse = -areaH * 0.018;    % upward burst (negative in YDir=reverse)
+                obj.FlpFlapPending = false;
+            end
 
             % Pre-allocate pipe patch pool (no patch() calls during play)
             nPool = obj.PoolSize;
@@ -126,8 +154,13 @@ classdef FlappyBird < GameBase
             end
 
             % Create bird graphics (2-layer: glow + core)
-            cx = mean(dx);
-            cy = mean(dy);
+            if obj.FlapMode
+                cx = obj.FlpBirdFixedX;
+                cy = obj.FlpBirdY;
+            else
+                cx = mean(dx);
+                cy = mean(dy);
+            end
             glowSize = max(15, obj.BirdRadius * 4);
             coreSize = max(8, obj.BirdRadius * 2);
 
@@ -143,7 +176,6 @@ classdef FlappyBird < GameBase
 
         function onUpdate(obj, pos)
             %onUpdate  Per-frame pipe-dodge logic.
-            if any(isnan(pos)); return; end
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
@@ -155,9 +187,46 @@ classdef FlappyBird < GameBase
             pw = obj.PipeWidth;
             active = obj.PipeIdx;
 
-            % ---- Bird position (clamped to display) ----
-            bx = max(dx(1) + cr, min(dx(2) - cr, pos(1)));
-            by = max(dy(1) + cr, min(dy(2) - cr, pos(2)));
+            % ---- Bird position ----
+            if obj.FlapMode
+                % Gravity+flap: apply pending flap impulse
+                if obj.FlpFlapPending
+                    obj.FlpBirdVelY = obj.FlpFlapImpulse;
+                    obj.FlpFlapPending = false;
+                end
+
+                % Physics: gravity accelerates downward (positive Y = down in reverse axes)
+                obj.FlpBirdVelY = obj.FlpBirdVelY + obj.FlpGravity * ds;
+                obj.FlpBirdY = obj.FlpBirdY + obj.FlpBirdVelY * ds;
+
+                bx = obj.FlpBirdFixedX;
+                by = obj.FlpBirdY;
+
+                % Clamp to display bounds + boundary collision
+                if by - cr < dy(1)
+                    by = dy(1) + cr;
+                    obj.FlpBirdY = by;
+                    obj.FlpBirdVelY = 0;
+                    if obj.InvulnFrames <= 0
+                        obj.loseLife([bx, by]);
+                        return;
+                    end
+                elseif by + cr > dy(2)
+                    by = dy(2) - cr;
+                    obj.FlpBirdY = by;
+                    obj.FlpBirdVelY = 0;
+                    if obj.InvulnFrames <= 0
+                        obj.loseLife([bx, by]);
+                        return;
+                    end
+                end
+            else
+                % Direct position mode (webcam)
+                if any(isnan(pos)); return; end
+                bx = max(dx(1) + cr, min(dx(2) - cr, pos(1)));
+                by = max(dy(1) + cr, min(dy(2) - cr, pos(2)));
+            end
+
             if ~isempty(obj.BirdCoreH) && isvalid(obj.BirdCoreH)
                 obj.BirdCoreH.XData = bx;
                 obj.BirdCoreH.YData = by;
@@ -267,7 +336,7 @@ classdef FlappyBird < GameBase
                             totalPts = round(100 * obj.comboMultiplier());
                             obj.addScore(totalPts);
 
-                            % Scaling — set target, speed ramps smoothly
+                            % Scaling -- set target, speed ramps smoothly
                             obj.PipeTargetSpeed = obj.PipeBaseSpeed ...
                                 * (1 + 0.06 * obj.Combo);
                             obj.PipeGapH = max(obj.CollisionR * 8, ...
@@ -312,9 +381,21 @@ classdef FlappyBird < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_flappy");
         end
 
-        function handled = onKeyPress(~, ~)
-            %onKeyPress  No mode-specific keys for flappy bird.
+        function handled = onKeyPress(obj, key)
+            %onKeyPress  Space to flap in gravity mode.
+            if obj.FlapMode && key == "space"
+                obj.FlpFlapPending = true;
+                handled = true;
+                return;
+            end
             handled = false;
+        end
+
+        function onMouseDown(obj)
+            %onMouseDown  Mouse click triggers flap in gravity mode.
+            if obj.FlapMode
+                obj.FlpFlapPending = true;
+            end
         end
 
         function r = getResults(obj)
@@ -323,6 +404,15 @@ classdef FlappyBird < GameBase
             r.Lines = {
                 sprintf("Pipes: %d", obj.PipesCleared)
             };
+        end
+
+        function s = getHudText(obj)
+            %getHudText  Show control hint in flap mode.
+            if obj.FlapMode
+                s = "SPACE / CLICK to flap";
+            else
+                s = "";
+            end
         end
     end
 
@@ -357,7 +447,7 @@ classdef FlappyBird < GameBase
             obj.PipeGapHSlot(s) = gapH;
             obj.PipeScored(s)  = false;
 
-            % Update patch geometry (no allocation — just property sets)
+            % Update patch geometry (no allocation -- just property sets)
             xd = [spawnX, spawnX + pw, spawnX + pw, spawnX];
             obj.PipePoolTop{s}.XData = xd;
             obj.PipePoolTop{s}.YData = [dy(1) - 10, dy(1) - 10, gapTop, gapTop];
@@ -374,7 +464,7 @@ classdef FlappyBird < GameBase
         end
 
         function loseLife(obj, birdPos)
-            %loseLife  Handle pipe collision -- reset combo, decay speed to base.
+            %loseLife  Handle pipe or boundary collision -- reset combo, decay speed.
             obj.resetCombo();
             obj.PipeGapH = obj.PipeBaseGapH;
             obj.PipeTargetSpeed = obj.PipeBaseSpeed;
@@ -389,6 +479,11 @@ classdef FlappyBird < GameBase
             end
             if ~isempty(obj.BirdGlowH) && isvalid(obj.BirdGlowH)
                 obj.BirdGlowH.CData = obj.ColorRed;
+            end
+
+            % In flap mode, bounce bird back to center after boundary hit
+            if obj.FlapMode
+                obj.FlpBirdVelY = 0;
             end
         end
     end

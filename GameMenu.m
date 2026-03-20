@@ -462,9 +462,16 @@ classdef (Sealed) GameMenu < handle
             sx = dx(1) + rand(nStars, 1) * rangeW;
             sy = dy(1) + rand(nStars, 1) * rangeH;
             ssz = 1 + rand(nStars, 1) * 2.5;
-            obj.StarfieldH = scatter(ax, sx, sy, ssz, ...
-                ones(nStars, 1) * [0.35 0.40 0.55], "filled", ...
-                "MarkerFaceAlpha", 0.18, "Tag", tag + "Star");
+            try
+                obj.StarfieldH = scatter(ax, sx, sy, ssz, ...
+                    ones(nStars, 1) * [0.35 0.40 0.55], "filled", ...
+                    "MarkerFaceAlpha", 0.18, "Tag", tag + "Star");
+            catch
+                % Timer interrupt during scatter creation — retry without alpha
+                obj.StarfieldH = scatter(ax, sx, sy, ssz, ...
+                    ones(nStars, 1) * [0.35 0.40 0.55], "filled", ...
+                    "Tag", tag + "Star");
+            end
 
             % --- Title ---
             s = obj.LayoutScale;

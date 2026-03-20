@@ -136,6 +136,11 @@ classdef (Abstract) GameBase < handle
             %   delta — scroll amount (positive = down, negative = up)
         end
 
+        function onMouseDown(~)
+            %onMouseDown  Called on mouse click during active gameplay.
+            %   Override in subclasses to handle click events.
+        end
+
         function onPause(~)
             %onPause  Called when host pauses game. Override if needed.
         end
@@ -577,6 +582,7 @@ classdef (Abstract) GameBase < handle
             kbMode = false;           % true while arrows drive cursor
 
             fig.WindowButtonMotionFcn = @(~, ~) updateMouse();
+            fig.WindowButtonDownFcn = @(~, ~) obj.onMouseDown();
             fig.KeyPressFcn = @(~, e) onKey(e);
             fig.KeyReleaseFcn = @(~, e) onKeyRelease(e);
 
