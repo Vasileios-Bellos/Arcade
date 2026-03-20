@@ -1047,21 +1047,23 @@ classdef ArcadeGameLauncher < handle
             obj.Registry = dictionary;
             obj.RegistryOrder = strings(0);
 
-            % === Arcade games (sequential numbering, no keyboard shortcuts) ===
-            obj.registerGame("1", @games.TargetPractice, "Target Practice");
-            obj.registerGame("2", @games.Fireflies, "Fireflies");
-            obj.registerGame("3", @games.FlickIt, "Flick It");
-            obj.registerGame("4", @games.Pong, "Pong");
-            obj.registerGame("5", @games.Juggling, "Juggling");
-            obj.registerGame("6", @games.Breakout, "Breakout");
+            % === Classics first ===
+            obj.registerGame("1", @games.Pong, "Pong");
+            obj.registerGame("2", @games.Breakout, "Breakout");
+            obj.registerGame("3", @games.Snake, "Snake");
+            obj.registerGame("4", @games.Tetris, "Tetris");
+            obj.registerGame("5", @games.Asteroids, "Asteroids");
+            obj.registerGame("6", @games.SpaceInvaders, "Space Invaders");
             obj.registerGame("7", @games.FlappyBird, "Flappy Bird");
             obj.registerGame("8", @games.FruitNinja, "Fruit Ninja");
-            obj.registerGame("9", @games.SpaceInvaders, "Space Invaders");
-            obj.registerGame("10", @games.Snake, "Snake");
-            obj.registerGame("11", @games.Asteroids, "Asteroids");
-            obj.registerGame("12", @games.OrbitalDefense, "Orbital Defense");
-            obj.registerGame("13", @games.ShieldGuardian, "Shield Guardian");
-            obj.registerGame("14", @games.RailShooter, "Rail Shooter");
+            % === Originals ===
+            obj.registerGame("9", @games.TargetPractice, "Target Practice");
+            obj.registerGame("10", @games.Fireflies, "Fireflies");
+            obj.registerGame("11", @games.FlickIt, "Flick It");
+            obj.registerGame("12", @games.Juggling, "Juggling");
+            obj.registerGame("13", @games.OrbitalDefense, "Orbital Defense");
+            obj.registerGame("14", @games.ShieldGuardian, "Shield Guardian");
+            obj.registerGame("15", @games.RailShooter, "Rail Shooter");
         end
 
         function registerGame(obj, key, ctor, name)
