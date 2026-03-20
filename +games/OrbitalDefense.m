@@ -265,7 +265,7 @@ classdef OrbitalDefense < GameBase
                     obj.FireCD = 0;
                     launchX = obj.BasePos(1);
                     launchY = obj.BasePos(2);
-                    intSpeed = max(0.833, diff(dy) * 0.0104);
+                    intSpeed = max(1.667, diff(dy) * 0.0208);
 
                     % Find inactive interceptor slot
                     slot = find(~obj.IntActive, 1);
