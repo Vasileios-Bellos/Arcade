@@ -503,7 +503,7 @@ classdef (Sealed) GameMenu < handle
             s = obj.LayoutScale;
             titleY = dy(1) + rangeH * 0.09;
             titleStr = obj.MenuTitle;
-            glowOff = max(1, round(2 * s));
+            glowOff = max(2, round(3.5 * s));
             obj.TitleGlowH = text(ax, cx + glowOff, titleY + glowOff, titleStr, ...
                 "Color", [0.00 0.35 0.50], "FontSize", obj.TitleFontSize, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
@@ -635,7 +635,7 @@ classdef (Sealed) GameMenu < handle
             obj.TwinkleH = gobjects(1, nTwinkle);
             obj.TwinklePhase = rand(1, nTwinkle) * 2 * pi;
             obj.TwinkleSpeed = 1.5 + rand(1, nTwinkle) * 2.5;
-            obj.TwinkleBaseSize = 4 + rand(1, nTwinkle) * 4;
+            obj.TwinkleBaseSize = 6 + rand(1, nTwinkle) * 8;
             for k = 1:nTwinkle
                 tx = dx(1) + rand() * rangeW;
                 ty = dy(1) + rand() * rangeH;
@@ -1039,9 +1039,9 @@ classdef (Sealed) GameMenu < handle
                     if ~isvalid(obj.TwinkleH(k)); continue; end
                     if obj.TwinkleH(k).Visible == "off"; continue; end
                     pulse = 0.5 + 0.5 * sin(t * obj.TwinkleSpeed(k) + obj.TwinklePhase(k));
-                    brightness = 0.15 + 0.35 * pulse;
+                    brightness = 0.2 + 0.8 * pulse;
                     obj.TwinkleH(k).Color = baseColor * brightness;
-                    obj.TwinkleH(k).MarkerSize = obj.TwinkleBaseSize(k) * (0.7 + 0.3 * pulse);
+                    obj.TwinkleH(k).MarkerSize = obj.TwinkleBaseSize(k) * (0.5 + 0.5 * pulse);
                 end
             end
 
@@ -1073,7 +1073,7 @@ classdef (Sealed) GameMenu < handle
                     obj.spawnComet(slotK, dx, dy, rangeW, rangeH);
                 end
                 obj.CometLastSpawnT = t;
-                obj.CometNextSpawn = 4 + rand() * 4;
+                obj.CometNextSpawn = 2 + rand() * 3;
             end
 
             % --- Update active comets ---
