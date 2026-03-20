@@ -53,7 +53,6 @@ classdef StrangeAttractors < GameBase
     properties (Access = private)
         TrailH
         GlowH
-        ParticleH
         BgImageH
         HudTextH
     end
@@ -123,16 +122,6 @@ classdef StrangeAttractors < GameBase
             end
             obj.TrailH = trailArr;
             obj.GlowH = [];
-
-            % Particle scatter
-            cdata = zeros(N, 3);
-            for k = 1:N
-                [cdata(k, 1), cdata(k, 2), cdata(k, 3)] = ...
-                    GameBase.hsvToRgb(obj.Hues(k));
-            end
-            obj.ParticleH = scatter(ax, NaN(N, 1), NaN(N, 1), 35, ...
-                cdata, "filled", "MarkerFaceAlpha", 0.9, ...
-                "Tag", "GT_strangeattractors");
 
             % HUD text
             obj.HudTextH = text(ax, dxRange(1) + 5, dyRange(2) - 5, ...
@@ -303,21 +292,6 @@ classdef StrangeAttractors < GameBase
             % Render trails — filled ribbon quads with FaceAlpha="interp"
             obj.renderTrails(N);
 
-            % Update scatter (rebuild CData if N changed)
-            if ~isempty(obj.ParticleH) && isvalid(obj.ParticleH)
-                if numel(obj.ParticleH.XData) ~= N
-                    cdata = zeros(N, 3);
-                    for k = 1:N
-                        [cdata(k,1), cdata(k,2), cdata(k,3)] = ...
-                            GameBase.hsvToRgb(obj.Hues(k));
-                    end
-                    set(obj.ParticleH, "XData", dispX(:), ...
-                        "YData", dispY(:), "CData", cdata);
-                else
-                    set(obj.ParticleH, "XData", dispX(:), ...
-                        "YData", dispY(:));
-                end
-            end
         end
 
         function onCleanup(obj)
@@ -332,7 +306,7 @@ classdef StrangeAttractors < GameBase
                     if isvalid(obj.GlowH(k)); delete(obj.GlowH(k)); end
                 end
             end
-            simpleH = {obj.ParticleH, obj.BgImageH, obj.HudTextH};
+            simpleH = {obj.BgImageH, obj.HudTextH};
             for k = 1:numel(simpleH)
                 h = simpleH{k};
                 if ~isempty(h) && isvalid(h); delete(h); end
@@ -343,7 +317,6 @@ classdef StrangeAttractors < GameBase
 
             obj.TrailH = [];
             obj.GlowH = [];
-            obj.ParticleH = [];
             obj.BgImageH = [];
             obj.HudTextH = [];
             obj.State = zeros(3, 0);
