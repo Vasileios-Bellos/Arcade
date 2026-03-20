@@ -525,11 +525,8 @@ classdef SpaceInvaders < GameBase
                 wElapsed = toc(obj.WaveFlashTic);
                 wShowDur = 1.2;
                 wFadeDur = 0.5;
-                if wElapsed < wShowDur
-                    obj.WaveTextH.Color = obj.ColorGold;
-                elseif wElapsed < wShowDur + wFadeDur
-                    wAlpha = 1 - (wElapsed - wShowDur) / wFadeDur;
-                    obj.WaveTextH.Color = [obj.ColorGold, max(0, wAlpha)];
+                if wElapsed < wShowDur + wFadeDur
+                    obj.WaveTextH.Visible = "on";
                 else
                     obj.WaveTextH.Visible = "off";
                     obj.WaveFlashTic = [];
