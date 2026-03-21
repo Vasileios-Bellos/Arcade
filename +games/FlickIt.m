@@ -481,7 +481,7 @@ classdef FlickIt < GameBase
             if ~isempty(obj.CoreH) && isvalid(obj.CoreH)
                 obj.CoreH.XData = bx;
                 obj.CoreH.YData = by;
-                coreSize = 10 * breath * obj.getPixelScale();
+                coreSize = 10 * breath * obj.FontScale;
                 obj.CoreH.MarkerSize = coreSize;
                 coreAlpha = min(1, 0.8 + spd * 0.02);
                 obj.CoreH.Color = [1, 1, 1, coreAlpha];
@@ -500,7 +500,7 @@ classdef FlickIt < GameBase
             if ~isempty(obj.AuraH) && isvalid(obj.AuraH)
                 obj.AuraH.XData = bx;
                 obj.AuraH.YData = by;
-                auraSize = 27 * auraScale * obj.getPixelScale();
+                auraSize = 27 * auraScale * obj.FontScale;
                 auraAlpha = 0.1 + min(0.2, spd * 0.015);
                 obj.AuraH.MarkerSize = auraSize;
                 obj.AuraH.Color = [clr, auraAlpha];
@@ -520,7 +520,7 @@ classdef FlickIt < GameBase
                     ty = ty(firstValid:end);
                 end
 
-                gps = obj.getPixelScale();
+                gps = obj.FontScale;
                 trailAlpha = min(0.6, 0.2 + spd * 0.04);
                 trailWidth = min(2.2 * gps, (0.8 + spd * 0.08) * gps);
                 glowTrailWidth = trailWidth * 3;

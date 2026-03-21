@@ -431,7 +431,7 @@ classdef Juggling < GameBase
                 obj.BallAuraH.XData = bx;
                 obj.BallAuraH.YData = by;
                 auraScale = 1 + min(1.5, ballSpeed * 0.08);
-                obj.BallAuraH.MarkerSize = 27 * auraScale * obj.getPixelScale();
+                obj.BallAuraH.MarkerSize = 27 * auraScale * obj.FontScale;
                 obj.BallAuraH.Color = [clr, 0.12];
             end
             % Trail
@@ -445,7 +445,7 @@ classdef Juggling < GameBase
                     tx = tx(firstValid:end);
                     ty = ty(firstValid:end);
                 end
-                gps = obj.getPixelScale();
+                gps = obj.FontScale;
                 trailAlpha = min(0.6, 0.2 + ballSpeed * 0.04);
                 trailWidth = min(2.2 * gps, (0.8 + ballSpeed * 0.08) * gps);
                 if ~isempty(obj.BallTrailH) && isvalid(obj.BallTrailH)
@@ -662,7 +662,7 @@ classdef Juggling < GameBase
                     h.XData = bx;
                     h.YData = by;
                     auraScale = 1 + min(1.5, extraSpeed * 0.08);
-                    h.MarkerSize = 27 * auraScale * obj.getPixelScale();
+                    h.MarkerSize = 27 * auraScale * obj.FontScale;
                     h.Color = [clr, 0.12];
                 end
                 % Trail
@@ -676,7 +676,7 @@ classdef Juggling < GameBase
                         tx = tx(fv:end);
                         ty = ty(fv:end);
                     end
-                    egps = obj.getPixelScale();
+                    egps = obj.FontScale;
                     trailAlpha = min(0.6, 0.2 + extraSpeed * 0.04);
                     trailWidth = min(2.2 * egps, (0.8 + extraSpeed * 0.08) * egps);
                     h = obj.ExtraBallTrailH{bi};

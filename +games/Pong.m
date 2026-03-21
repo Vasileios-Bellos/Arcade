@@ -272,7 +272,7 @@ classdef Pong < GameBase
                         obj.ServeTextH.String = string(remaining);
                         progress = mod(obj.ServeCountdown, 40) / 40;
                         serveScale = 1 + 0.2 * sin(progress * pi);
-                        obj.ServeTextH.FontSize = 16 * obj.getPixelScale() * serveScale;
+                        obj.ServeTextH.FontSize = 16 * obj.FontScale * serveScale;
                         obj.ServeTextH.Visible = "on";
                     end
                 end

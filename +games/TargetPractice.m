@@ -389,7 +389,7 @@ classdef TargetPractice < GameBase
             r = obj.TargetRadius;
             cx = obj.TargetPos(1);
             cy = obj.TargetPos(2);
-            ps = obj.getPixelScale();
+            ps = obj.FontScale;
 
             % Breathing
             breathe = 1 + 0.12 * sin(obj.PulsePhase);
