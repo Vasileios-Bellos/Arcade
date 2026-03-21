@@ -166,18 +166,18 @@ classdef RailShooter < GameBase
             gridAngles = [-0.6, -0.3, 0, 0.3, 0.6];
             nGrid = numel(gridAngles);
             obj.GridLinesH = gobjects(1, nGrid);
+            groundY = dy(2) - areaH * 0.08;
             for g = 1:nGrid
                 endX = vpX + gridAngles(g) * areaW;
-                endY = dy(2);
+                endY = groundY;
                 obj.GridLinesH(g) = line(ax, [vpX, endX], [vpY, endY], ...
                     "Color", [0.15, 0.25, 0.35, 0.12], "LineWidth", 0.54 * ps, ...
                     "LineStyle", "-", "Tag", "GT_railshooter");
             end
 
             % --- Ground plane indicator ---
-            groundY = dy(2) - areaH * 0.08;
             obj.GroundLineH = line(ax, [dx(1), dx(2)], [groundY, groundY], ...
-                "Color", [0.1, 0.4, 0.5, 0.25], "LineWidth", 1.6 * ps, ...
+                "Color", [0.35, 0.65, 0.75, 0.4], "LineWidth", 1.1 * ps, ...
                 "Tag", "GT_railshooter");
 
             % --- Crosshair: glow + inner cross + red center dot + ring ---
