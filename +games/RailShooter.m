@@ -549,16 +549,16 @@ classdef RailShooter < GameBase
                     m.bossNameH.Color = [obj.ColorOrange, depthAlpha];
                 end
 
-                % Boss weak point (pulsing circle)
+                % Boss weak point (pulsing scatter)
                 if m.type == 4 && ~isempty(m.detailH) && isvalid(m.detailH)
                     wpPulse = 0.2 + 0.08 * sin(m.phase * 3);
                     wpR = bodySize * wpPulse;
-                    wpAlpha = 0.5 + 0.3 * sin(m.phase * 3);
-                    theta = linspace(0, 2*pi, 20);
-                    m.detailH.XData = m.screenX + wpR * cos(theta);
-                    m.detailH.YData = m.screenY + wpR * sin(theta);
-                    m.detailH.Color = [obj.ColorRed, wpAlpha * depthAlpha];
-                    m.detailH.LineWidth = 2 + sin(m.phase * 3);
+                    wpAlpha = (0.5 + 0.3 * sin(m.phase * 3)) * depthAlpha;
+                    glowDiam = wpR * 2.5 * obj.FontScale;
+                    m.detailH.XData = m.screenX;
+                    m.detailH.YData = m.screenY;
+                    m.detailH.SizeData = pi * (glowDiam/2)^2;
+                    m.detailH.MarkerFaceAlpha = wpAlpha;
                 end
 
                 obj.Monsters(k) = m;
@@ -842,10 +842,10 @@ classdef RailShooter < GameBase
             bossNameH = [];
             if mType == 4
                 wpR = bodySize * 0.25;
-                theta = linspace(0, 2*pi, 20);
-                detailH = line(ax, scrX + wpR * cos(theta), ...
-                    scrY + wpR * sin(theta), ...
-                    "Color", [obj.ColorRed, 0.7], "LineWidth", 2.5, ...
+                ps = obj.getPixelScale();
+                glowDiam = wpR * 2.5 * ps;
+                detailH = scatter(ax, scrX, scrY, pi * (glowDiam/2)^2, ...
+                    obj.ColorRed, "filled", "MarkerFaceAlpha", 0.7, ...
                     "Tag", "GT_railshooter");
                 bossNameH = text(ax, scrX, barY - 4, "DREADNOUGHT", ...
                     "Color", [obj.ColorOrange, 0.8], "FontSize", 8, ...
