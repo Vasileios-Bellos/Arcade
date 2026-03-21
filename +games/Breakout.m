@@ -999,19 +999,16 @@ classdef Breakout < GameBase
                 return;
             end
 
-            % Level transition
-            obj.LevelPhase = "transition";
-            obj.LevelTransFrames = 96;
-
-            % Flash remaining bricks white
-            for k = 1:numel(obj.Bricks)
-                brk = obj.Bricks(k);
-                if ~isempty(brk.patchH) && isvalid(brk.patchH)
-                    brk.patchH.FaceColor = [1, 1, 1];
-                    brk.patchH.FaceAlpha = 0.8;
-                end
+            % Build new grid and announce
+            obj.buildBrickGrid(obj.Level);
+            obj.serveBall();
+            obj.LevelPhase = "announce";
+            obj.LevelTransFrames = 60;
+            if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
+                obj.LevelTextH.Color = [obj.ColorCyan, 1];
+                obj.LevelTextH.Visible = "on";
             end
-
 
             % Level clear bonus
             obj.addScore(500 * (obj.Level - 1));
