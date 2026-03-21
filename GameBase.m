@@ -220,7 +220,7 @@ classdef (Abstract) GameBase < handle
             if points > 0
                 handles(end) = text(ax, pos(1), pos(2) - sparkLen - 4, ...
                     sprintf("+%d", points), ...
-                    "Color", clr, "FontSize", 10, ...
+                    "Color", clr, "FontSize", 5 * obj.getPixelScale(), ...
                     "FontWeight", "bold", "HorizontalAlignment", "center", ...
                     "VerticalAlignment", "bottom", "Tag", "GT_fx");
             else
@@ -272,13 +272,13 @@ classdef (Abstract) GameBase < handle
             if points > 0
                 handles(end) = text(ax, pos(1), pos(2) - effectRadius - 8, ...
                     sprintf("+%d", points), ...
-                    "Color", clr, "FontSize", 14, ...
+                    "Color", clr, "FontSize", 7 * obj.getPixelScale(), ...
                     "FontWeight", "bold", "HorizontalAlignment", "center", ...
                     "VerticalAlignment", "bottom", "Tag", "GT_fx");
             else
                 handles(end) = text(ax, pos(1), pos(2) - effectRadius - 8, ...
                     "MISS", ...
-                    "Color", clr, "FontSize", 12, ...
+                    "Color", clr, "FontSize", 6 * obj.getPixelScale(), ...
                     "FontWeight", "bold", "HorizontalAlignment", "center", ...
                     "VerticalAlignment", "bottom", "Tag", "GT_fx");
             end
@@ -362,7 +362,7 @@ classdef (Abstract) GameBase < handle
                 if isvalid(textH) && isa(textH, "matlab.graphics.primitive.Text")
                     textH.Position(2) = fx.y - baseR - 8 - eased * 20;
                     textH.Color = [fx.color, max(alpha, 0)];
-                    textH.FontSize = 14 * (1 + eased * 0.3);
+                    textH.FontSize = 7 * obj.getPixelScale() * (1 + eased * 0.3);
                 end
             end
 
@@ -563,12 +563,11 @@ classdef (Abstract) GameBase < handle
             fig.KeyPressFcn = @(~, e) onKey(e);
             fig.KeyReleaseFcn = @(~, e) onKeyRelease(e);
 
-            % Capture reference pixel size for font scaling
             gameAR = diff(range.X) / diff(range.Y);
-            refPixSize = getpixelposition(ax);
-            refPixW = refPixSize(3);
-            refPixH = refPixSize(4);
-            baseFontSize = 14;
+            prevAxPxPlay = getpixelposition(ax);
+            prevAxPxPlay = prevAxPxPlay(3:4);
+            ps = obj.getPixelScale();
+            baseFontSize = 7 * ps;
 
             fig.SizeChangedFcn = @(~, ~) onFigResize();
 
@@ -580,7 +579,7 @@ classdef (Abstract) GameBase < handle
 
             % --- Combo HUD ---
             comboH = text(ax, mean(range.X), range.Y(1) + 2, "", ...
-                "Color", obj.ColorGreen * 0.9, "FontSize", baseFontSize - 1, ...
+                "Color", obj.ColorGreen * 0.9, "FontSize", 6 * ps, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
                 "Tag", "GT_standaloneHUD");
@@ -606,11 +605,15 @@ classdef (Abstract) GameBase < handle
             function onFigResize()
                 if ~isvalid(fig) || ~isvalid(ax); return; end
                 GameBase.letterboxAxes(fig, ax, gameAR);
-                % Scale all screen-space objects (fonts, markers, line widths)
                 axPx = getpixelposition(ax);
-                pixelScale = min(axPx(3) / refPixW, axPx(4) / refPixH);
-                obj.FontScale = pixelScale;
-                GameBase.scaleScreenSpaceObjects(ax, pixelScale);
+                newPs = min(axPx(3) / 854, axPx(4) / 480);
+                oldPs = min(prevAxPxPlay(1) / 854, prevAxPxPlay(2) / 480);
+                if oldPs > 0
+                    relScale = newPs / oldPs;
+                    GameBase.scaleScreenSpaceObjects(ax, relScale);
+                end
+                prevAxPxPlay = axPx(3:4);
+                obj.FontScale = newPs;
             end
 
             function updateMouse()
