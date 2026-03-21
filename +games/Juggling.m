@@ -151,9 +151,10 @@ classdef Juggling < GameBase
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                 "MarkerSize", 50, "LineStyle", "none", "Tag", "GT_juggle");
-            theta = linspace(0, 2*pi, 48);
-            obj.BallGlowH = line(ax, cx + r*cos(theta), cy*0.7 + r*sin(theta), ...
-                "Color", [obj.ColorCyan, 0.4], "LineWidth", 6, "Tag", "GT_juggle");
+            ps = obj.getPixelScale();
+            glowSize = r * 2.5 * ps;
+            obj.BallGlowH = scatter(ax, cx, cy*0.7, pi * (glowSize/2)^2, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, "Tag", "GT_juggle");
             obj.BallCoreH = line(ax, cx, cy*0.7, ...
                 "Color", [1, 1, 1, 1], "Marker", ".", "MarkerSize", 18, ...
                 "LineStyle", "none", "Tag", "GT_juggle");
@@ -421,10 +422,9 @@ classdef Juggling < GameBase
             end
             % Glow ring
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
-                theta = linspace(0, 2*pi, 48);
-                obj.BallGlowH.XData = bx + r * cos(theta);
-                obj.BallGlowH.YData = by + r * sin(theta);
-                obj.BallGlowH.Color = [clr, 0.4];
+                obj.BallGlowH.XData = bx;
+                obj.BallGlowH.YData = by;
+                obj.BallGlowH.CData = clr;
             end
             % Aura
             if ~isempty(obj.BallAuraH) && isvalid(obj.BallAuraH)
@@ -518,7 +518,8 @@ classdef Juggling < GameBase
             obj.ExtraBallTrailIdx(end+1) = 0;
 
             r = obj.BallRadius;
-            theta = linspace(0, 2*pi, 48);
+            ps = obj.getPixelScale();
+            glowSize = r * 2.5 * ps;
 
             % Graphics (same z-order as main ball)
             trailGlowH = line(ax, NaN, NaN, ...
@@ -531,8 +532,8 @@ classdef Juggling < GameBase
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                 "MarkerSize", 50, "LineStyle", "none", ...
                 "Tag", "GT_juggle");
-            glowH = line(ax, xPos + r*cos(theta), yPos + r*sin(theta), ...
-                "Color", [obj.ColorCyan, 0.4], "LineWidth", 6, ...
+            glowH = scatter(ax, xPos, yPos, pi * (glowSize/2)^2, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
                 "Tag", "GT_juggle");
             coreH = line(ax, xPos, yPos, ...
                 "Color", [1, 1, 1, 1], "Marker", ".", "MarkerSize", 18, ...
@@ -649,10 +650,9 @@ classdef Juggling < GameBase
                 % Glow ring
                 h = obj.ExtraBallGlowH{bi};
                 if ~isempty(h) && isvalid(h)
-                    theta = linspace(0, 2*pi, 48);
-                    h.XData = bx + r * cos(theta);
-                    h.YData = by + r * sin(theta);
-                    h.Color = [clr, 0.4];
+                    h.XData = bx;
+                    h.YData = by;
+                    h.CData = clr;
                 end
                 % Aura
                 h = obj.ExtraBallAuraH{bi};
