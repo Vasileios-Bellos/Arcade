@@ -136,6 +136,7 @@ classdef Breakout < GameBase
             dx = displayRange.X;
             dy = displayRange.Y;
             cx = mean(dx);
+            cy = mean(dy);
             areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
 
