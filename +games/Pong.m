@@ -118,6 +118,7 @@ classdef Pong < GameBase
             % Scale sizes to display area
             areaH = dy(2) - dy(1);
             areaW = dx(2) - dx(1);
+            ps = obj.getPixelScale();
             obj.PaddleHalfH = max(8, round(areaH * 0.15));
             obj.PaddleWidth = max(3, round(areaW * 0.025));
             obj.PaddleMargin = max(6, round(areaW * 0.06));
@@ -222,7 +223,6 @@ classdef Pong < GameBase
                 "LineWidth", 2.5 * ps, "Tag", "GT_pong");
 
             % Score text
-            ps = obj.getPixelScale();
             obj.ScoreTextH = text(ax, cx, dy(1) + 5, "CPU  0 - 0  YOU", ...
                 "Color", [1, 1, 1] * 0.8, "FontSize", 26 * ps, ...
                 "FontWeight", "bold", ...
