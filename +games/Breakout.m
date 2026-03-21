@@ -780,7 +780,7 @@ classdef Breakout < GameBase
         function serveBall(obj)
             %serveBall  Place ball on paddle, prepare serve.
             obj.Serving = true;
-            obj.ServeCountdown = 60;  % ~1s at 60fps
+            obj.ServeCountdown = 20;  % ~0.33s at 60fps
             obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius];
             obj.BallVel = [0, 0];
             obj.CatchHeld = false;
