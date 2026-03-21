@@ -23,7 +23,7 @@ games.Tetris().play()
 | 1 | Pong | AI opponent with rally escalation and paddle hit angle |
 | 2 | Breakout | 5 levels, power-ups, multi-ball, neon bricks |
 | 3 | Snake | Arrow keys or mouse-directed, grid-based, wrap-around |
-| 4 | Tetris | SRS rotation, wall kicks, ghost piece, 3-piece preview |
+| 4 | Tetris | SRS rotation, wall kicks, ghost piece, 3-piece preview, instant lock |
 | 5 | Asteroids | Wireframe polygons, splitting on destroy, auto-fire |
 | 6 | Space Invaders | 3 alien types, 5 wave formations, power-ups, shields |
 | 7 | Flappy Bird | Pipe dodge with aggressive gap/speed scaling |
@@ -48,6 +48,7 @@ games.Tetris().play()
 
 ### In-Game (all games)
 - **Mouse** -- move cursor (or arrow keys as fallback)
+- **Left-click** -- game-specific action (hard drop in Tetris, forward to game)
 - **P** -- pause / resume
 - **R** -- restart current game
 - **Esc** -- end game, show results
@@ -60,7 +61,7 @@ games.Tetris().play()
 
 **Snake**: Arrow keys to change direction (or mouse-directed movement)
 
-**Tetris**: Left/Right to move, Up/Z to rotate clockwise, X to rotate counter-clockwise, Down arrow or right-click for soft drop, Space or left-click for hard drop, scroll wheel to rotate
+**Tetris**: Left/Right arrows to move, Up/Z to rotate clockwise, X to rotate counter-clockwise, Down arrow or right-click for soft drop, Space or left-click for hard drop, scroll wheel to rotate. Pieces lock instantly on landing (no lock delay).
 
 ---
 
