@@ -101,10 +101,14 @@ classdef (Abstract) GameBase < handle
     methods
         function init(obj, ax, displayRange, caps)
             %init  Common setup: axes, display range, FontScale, then onInit.
+            %   If FontScale was set by the host before calling init(), it is
+            %   kept. Otherwise (standalone), it is computed from the axes.
             if nargin < 4; caps = struct(); end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
-            obj.getPixelScale();  % computes and caches FontScale
+            if obj.FontScale == 1
+                obj.getPixelScale();  % standalone: compute from axes
+            end
             obj.onInit(ax, displayRange, caps);
         end
     end

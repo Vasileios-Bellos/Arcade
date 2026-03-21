@@ -152,8 +152,12 @@ classdef ArcadeGameLauncher < handle
             obj.FpsLastTic = tic;
             obj.buildRegistry();
             obj.createFigure();
+
+            % Set FontScale + PrevAxPx before any graphics creation
             axPx = getpixelposition(obj.Ax);
+            obj.PrevAxPx = axPx(3:4);
             obj.FontScale = min(axPx(3) / 854, axPx(4) / 480);
+
             obj.createHUD();
 
             % Create shared menu component
@@ -167,9 +171,6 @@ classdef ArcadeGameLauncher < handle
                 "Subtitle", menuSubtitle);
 
             obj.enterMenu();
-            axPx = getpixelposition(obj.Ax);
-            obj.PrevAxPx = axPx(3:4);
-            obj.FontScale = min(axPx(3) / 854, axPx(4) / 480);
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
             obj.startTimer();
         end
@@ -831,6 +832,7 @@ classdef ArcadeGameLauncher < handle
             obj.ActiveGameName = entry.name;
 
             game = entry.ctor();
+            game.FontScale = obj.FontScale;
             game.init(obj.Ax, obj.DisplayRange);
             game.beginGame();
             obj.ActiveGame = game;
