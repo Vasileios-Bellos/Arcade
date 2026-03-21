@@ -452,25 +452,13 @@ classdef Tetris < GameBase
                         obj.LockTimer = 0;
                     end
                 else
-                    % Piece cannot move down: on a surface
-                    if ~obj.LockActive
-                        obj.LockActive = true;
-                        obj.LockTimer = 0;
-                        obj.LockMoveCount = 0;
-                    end
-                    break;
-                end
-            end
-
-            % =============================================================
-            % LOCK DELAY
-            % =============================================================
-            if obj.LockActive
-                obj.LockTimer = obj.LockTimer + ds;
-                if obj.LockTimer >= obj.LockDelay
+                    % Piece cannot move down: lock immediately
                     obj.lockPiece();
                     return;
                 end
+            end
+
+            if false  %#ok — lock delay disabled (instant lock on landing)
             end
 
             % =============================================================
@@ -645,11 +633,6 @@ classdef Tetris < GameBase
                 obj.CurCol = newCol;
                 obj.CurRow = newRow;
                 ok = true;
-                % Reset lock delay on successful move (max 15 resets)
-                if obj.LockActive && obj.LockMoveCount < 15
-                    obj.LockTimer = 0;
-                    obj.LockMoveCount = obj.LockMoveCount + 1;
-                end
             else
                 ok = false;
             end
@@ -689,11 +672,6 @@ classdef Tetris < GameBase
                     obj.CurCol = testCol;
                     obj.CurRow = testRow;
                     obj.CurRot = newRot;
-                    % Reset lock delay on successful rotation
-                    if obj.LockActive && obj.LockMoveCount < 15
-                        obj.LockTimer = 0;
-                        obj.LockMoveCount = obj.LockMoveCount + 1;
-                    end
                     return;
                 end
             end
