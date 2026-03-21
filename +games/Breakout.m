@@ -433,7 +433,7 @@ classdef Breakout < GameBase
             % --- Brick collisions ---
             if ~any(isnan(obj.BallPos))
                 [obj.BallPos, obj.BallVel] = obj.brickCollision( ...
-                    obj.BallPos, obj.BallVel);
+                    prePos, obj.BallPos, obj.BallVel);
                 obj.BallSpeed = norm(obj.BallVel);
             end
 
@@ -745,10 +745,10 @@ classdef Breakout < GameBase
             obj.Serving = false;
         end
 
-        function [newPos, newVel] = brickCollision(obj, ballPos, ballVel)
-            %brickCollision  AABB ball-brick collision with center-based reflection.
-            %   Returns updated [newPos, newVel] after all brick bounces.
-            %   In fireball mode, ball burns through bricks without bouncing.
+        function [newPos, newVel] = brickCollision(obj, prePos, ballPos, ballVel)
+            %brickCollision  Swept ball-brick collision.
+            %   Tests the ball path from prePos to ballPos against each
+            %   brick AABB. Uses expanded AABB (by ballR) for point-vs-rect.
             ballR = obj.BallRadius;
             newPos = ballPos;
             newVel = ballVel;
@@ -760,36 +760,59 @@ classdef Breakout < GameBase
                     continue;
                 end
 
-                % AABB closest-point distance check
-                bx1 = brk.x;
-                bx2 = brk.x + brk.w;
-                by1 = brk.y;
-                by2 = brk.y + brk.h;
-                nearX = max(bx1, min(newPos(1), bx2));
-                nearY = max(by1, min(newPos(2), by2));
-                distSq = (newPos(1) - nearX)^2 + (newPos(2) - nearY)^2;
-                if distSq > ballR^2; continue; end
+                % Expand brick AABB by ball radius (Minkowski sum)
+                bx1 = brk.x - ballR;
+                bx2 = brk.x + brk.w + ballR;
+                by1 = brk.y - ballR;
+                by2 = brk.y + brk.h + ballR;
 
-                % Hit face: compare ball-to-center offset
+                % Swept point-vs-expanded-rect: find earliest t in [0,1]
+                dx = newPos(1) - prePos(1);
+                dy = newPos(2) - prePos(2);
+                tMin = 0; tMax = 1;
+
+                % X slab
+                if abs(dx) < 1e-12
+                    if prePos(1) < bx1 || prePos(1) > bx2; continue; end
+                else
+                    t1 = (bx1 - prePos(1)) / dx;
+                    t2 = (bx2 - prePos(1)) / dx;
+                    if t1 > t2; tmp = t1; t1 = t2; t2 = tmp; end
+                    tMin = max(tMin, t1);
+                    tMax = min(tMax, t2);
+                    if tMin > tMax; continue; end
+                end
+
+                % Y slab
+                if abs(dy) < 1e-12
+                    if prePos(2) < by1 || prePos(2) > by2; continue; end
+                else
+                    t1 = (by1 - prePos(2)) / dy;
+                    t2 = (by2 - prePos(2)) / dy;
+                    if t1 > t2; tmp = t1; t1 = t2; t2 = tmp; end
+                    tMin = max(tMin, t1);
+                    tMax = min(tMax, t2);
+                    if tMin > tMax; continue; end
+                end
+
+                % Hit — determine which face was entered
+                hitPt = prePos + tMin * [dx, dy];
                 bcx = brk.x + brk.w / 2;
                 bcy = brk.y + brk.h / 2;
-                dcx = newPos(1) - bcx;
-                dcy = newPos(2) - bcy;
+                dcx = hitPt(1) - bcx;
+                dcy = hitPt(2) - bcy;
 
-                if isFireball
-                    bounceNormal = [0, sign(dcy)];
-                else
+                if ~isFireball
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
-                        bounceNormal = [sign(dcx), 0];
                         newVel(1) = -newVel(1);
                         newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 1);
-                        newVel = newVel * 1.008;
+                        newPos(2) = hitPt(2);
                     else
-                        bounceNormal = [0, sign(dcy)];
                         newVel(2) = -newVel(2);
                         newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 1);
-                        newVel = newVel * 1.008;
+                        newPos(1) = hitPt(1);
                     end
+                    newVel = newVel * 1.008;
                 end
 
                 % Damage brick
@@ -1219,6 +1242,7 @@ classdef Breakout < GameBase
             extraToRemove = [];
             for k = 1:numel(obj.ExtraBalls)
                 eb = obj.ExtraBalls(k);
+                ebPrePos = eb.pos;
                 eb.pos = eb.pos + eb.vel * obj.DtScale;
 
                 % Wall bounces
@@ -1255,7 +1279,7 @@ classdef Breakout < GameBase
                 end
 
                 % Brick collision for extra ball
-                [eb.pos, eb.vel] = obj.brickCollision(eb.pos, eb.vel);
+                [eb.pos, eb.vel] = obj.brickCollision(ebPrePos, eb.pos, eb.vel);
 
                 % Trail
                 eb.trailIdx = mod(eb.trailIdx, 15) + 1;
