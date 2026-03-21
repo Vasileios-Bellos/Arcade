@@ -96,6 +96,20 @@ classdef (Abstract) GameBase < handle
     end
 
     % =================================================================
+    % PUBLIC INITIALIZATION (called by hosts before onInit)
+    % =================================================================
+    methods
+        function init(obj, ax, displayRange, caps)
+            %init  Common setup: axes, display range, FontScale, then onInit.
+            if nargin < 4; caps = struct(); end
+            obj.Ax = ax;
+            obj.DisplayRange = displayRange;
+            obj.getPixelScale();  % computes and caches FontScale
+            obj.onInit(ax, displayRange, caps);
+        end
+    end
+
+    % =================================================================
     % PUBLIC SESSION CONTROL (called by hosts)
     % =================================================================
     methods
@@ -550,7 +564,7 @@ classdef (Abstract) GameBase < handle
             range = struct("X", [0 rangeX], "Y", [0 rangeY]);
 
             % Initialize game
-            obj.onInit(ax, range, struct());
+            obj.init(ax, range);
             obj.beginGame();
 
             % Mouse tracking state (closure variable)

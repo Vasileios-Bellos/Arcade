@@ -826,7 +826,7 @@ classdef ArcadeGameLauncher < handle
             obj.ActiveGameName = entry.name;
 
             game = entry.ctor();
-            game.onInit(obj.Ax, obj.DisplayRange, struct());
+            game.init(obj.Ax, obj.DisplayRange);
             game.beginGame();
             obj.ActiveGame = game;
             obj.SessionStartTic = tic;
