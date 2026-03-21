@@ -325,8 +325,8 @@ classdef Breakout < GameBase
                     if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
                         set(obj.PaddleGlowH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
                     end
-                    if ~isempty(obj.PaddleFaceH) && isvalid(obj.PaddleFaceH)
-                        set(obj.PaddleFaceH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
+                    if ~isempty(obj.PaddleH) && isvalid(obj.PaddleH)
+                        set(obj.PaddleH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
                     end
                 end
                 obj.updateBallGraphics();
