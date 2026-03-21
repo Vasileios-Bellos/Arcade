@@ -91,16 +91,17 @@ classdef TargetPractice < GameBase
             areaH = diff(dy);
             obj.Sc = min(areaW, areaH) / 180;
 
-            % --- Target rings ---
-            obj.TargetGlow = line(ax, NaN, NaN, ...
-                "Color", [obj.ColorCyan, 0.15], "LineWidth", 12, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_targetpractice");
-            obj.TargetRingOuter = line(ax, NaN, NaN, ...
-                "Color", [obj.ColorCyan, 0.6], "LineWidth", 2.5, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_targetpractice");
-            obj.TargetRingInner = line(ax, NaN, NaN, ...
-                "Color", [obj.ColorWhite, 0.9], "LineWidth", 1.5, ...
-                "LineStyle", "-", "Visible", "off", "Tag", "GT_targetpractice");
+            % --- Target rings (scatter for proper transparency) ---
+            ps = obj.getPixelScale();
+            obj.TargetGlow = scatter(ax, NaN, NaN, 1, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.15, ...
+                "Visible", "off", "Tag", "GT_targetpractice");
+            obj.TargetRingOuter = scatter(ax, NaN, NaN, 1, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
+                "Visible", "off", "Tag", "GT_targetpractice");
+            obj.TargetRingInner = scatter(ax, NaN, NaN, 1, ...
+                obj.ColorWhite, "filled", "MarkerFaceAlpha", 0.3, ...
+                "Visible", "off", "Tag", "GT_targetpractice");
             obj.TargetDot = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 1], "Marker", ".", ...
                 "MarkerSize", 8, "LineStyle", "none", ...
@@ -345,24 +346,26 @@ classdef TargetPractice < GameBase
         function showTarget(obj)
             %showTarget  Make target visible at current TargetPos.
             if any(isnan(obj.TargetPos)); return; end
-            theta = linspace(0, 2*pi, 48);
             r = obj.TargetRadius;
             cx = obj.TargetPos(1);
             cy = obj.TargetPos(2);
+            ps = obj.getPixelScale();
 
-            xOuter = cx + r * cos(theta);
-            yOuter = cy + r * sin(theta);
-            xInner = cx + r * 0.5 * cos(theta);
-            yInner = cy + r * 0.5 * sin(theta);
+            outerDiam = r * 2.5 * ps;
+            innerDiam = r * 0.5 * 2.5 * ps;
+            glowDiam = r * 3.5 * ps;
 
             if ~isempty(obj.TargetGlow) && isvalid(obj.TargetGlow)
-                set(obj.TargetGlow, "XData", xOuter, "YData", yOuter, "Visible", "on");
+                set(obj.TargetGlow, "XData", cx, "YData", cy, ...
+                    "SizeData", pi * (glowDiam/2)^2, "Visible", "on");
             end
             if ~isempty(obj.TargetRingOuter) && isvalid(obj.TargetRingOuter)
-                set(obj.TargetRingOuter, "XData", xOuter, "YData", yOuter, "Visible", "on");
+                set(obj.TargetRingOuter, "XData", cx, "YData", cy, ...
+                    "SizeData", pi * (outerDiam/2)^2, "Visible", "on");
             end
             if ~isempty(obj.TargetRingInner) && isvalid(obj.TargetRingInner)
-                set(obj.TargetRingInner, "XData", xInner, "YData", yInner, "Visible", "on");
+                set(obj.TargetRingInner, "XData", cx, "YData", cy, ...
+                    "SizeData", pi * (innerDiam/2)^2, "Visible", "on");
             end
             if ~isempty(obj.TargetDot) && isvalid(obj.TargetDot)
                 set(obj.TargetDot, "XData", cx, "YData", cy, "Visible", "on");
@@ -383,29 +386,28 @@ classdef TargetPractice < GameBase
         function animateTarget(obj, elapsed, fingerPos)
             %animateTarget  Per-frame target animation (breathing + color).
             if any(isnan(obj.TargetPos)); return; end
-            theta = linspace(0, 2*pi, 48);
             r = obj.TargetRadius;
             cx = obj.TargetPos(1);
             cy = obj.TargetPos(2);
+            ps = obj.FontScale;
 
             % Breathing
             breathe = 1 + 0.12 * sin(obj.PulsePhase);
             rOuter = r * breathe;
             rInner = r * 0.5 * breathe;
 
-            xOuter = cx + rOuter * cos(theta);
-            yOuter = cy + rOuter * sin(theta);
-            xInner = cx + rInner * cos(theta);
-            yInner = cy + rInner * sin(theta);
+            outerDiam = rOuter * 2.5 * ps;
+            innerDiam = rInner * 2.5 * ps;
+            glowDiam = rOuter * 3.5 * ps;
 
             if ~isempty(obj.TargetRingOuter) && isvalid(obj.TargetRingOuter)
-                set(obj.TargetRingOuter, "XData", xOuter, "YData", yOuter);
+                obj.TargetRingOuter.SizeData = pi * (outerDiam/2)^2;
             end
             if ~isempty(obj.TargetGlow) && isvalid(obj.TargetGlow)
-                set(obj.TargetGlow, "XData", xOuter, "YData", yOuter);
+                obj.TargetGlow.SizeData = pi * (glowDiam/2)^2;
             end
             if ~isempty(obj.TargetRingInner) && isvalid(obj.TargetRingInner)
-                set(obj.TargetRingInner, "XData", xInner, "YData", yInner);
+                obj.TargetRingInner.SizeData = pi * (innerDiam/2)^2;
             end
 
             % Color shift: cyan -> red as timeout approaches
@@ -417,10 +419,12 @@ classdef TargetPractice < GameBase
                 ringColor = obj.ColorCyan * (1 - t) + obj.ColorRed * t;
             end
             if ~isempty(obj.TargetRingOuter) && isvalid(obj.TargetRingOuter)
-                obj.TargetRingOuter.Color = [ringColor, 0.7 + 0.3 * sin(obj.PulsePhase)];
+                obj.TargetRingOuter.CData = ringColor;
+                obj.TargetRingOuter.MarkerFaceAlpha = 0.3 + 0.3 * sin(obj.PulsePhase);
             end
             if ~isempty(obj.TargetGlow) && isvalid(obj.TargetGlow)
-                obj.TargetGlow.Color = [ringColor, 0.1 + 0.08 * sin(obj.PulsePhase)];
+                obj.TargetGlow.CData = ringColor;
+                obj.TargetGlow.MarkerFaceAlpha = 0.1 + 0.08 * sin(obj.PulsePhase);
             end
 
             % Ghost trail from finger to target
