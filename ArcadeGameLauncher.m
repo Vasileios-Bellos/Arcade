@@ -704,9 +704,12 @@ classdef ArcadeGameLauncher < handle
                     if obj.CountdownValue > 0
                         obj.CountdownFrames = totalPerNum;
                     else
-                        obj.CountdownFrames = 8;
+                        obj.CountdownFrames = 12;
                     end
                 else
+                    if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
+                        obj.StatusTextH.Visible = "off";
+                    end
                     obj.launchGame();
                 end
             end
