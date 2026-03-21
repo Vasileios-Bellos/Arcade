@@ -515,10 +515,11 @@ classdef Breakout < GameBase
                 showDur = 0.6;
                 fadeDur = 0.4;
                 if flashElapsed < showDur
-                    obj.LivesH.Color = obj.ColorRed;
+                    % hold (color already set by updateLivesDisplay)
                 elseif flashElapsed < showDur + fadeDur
                     fadeAlpha = 1 - (flashElapsed - showDur) / fadeDur;
-                    obj.LivesH.Color = [obj.ColorRed, max(0, fadeAlpha)];
+                    baseClr = obj.LivesH.Color(1:3);
+                    obj.LivesH.Color = [baseClr, max(0, fadeAlpha)];
                 else
                     obj.LivesH.Visible = "off";
                     obj.LivesFlashTic = [];
@@ -974,8 +975,9 @@ classdef Breakout < GameBase
             end
         end
 
-        function updateLivesDisplay(obj)
+        function updateLivesDisplay(obj, clr)
             %updateLivesDisplay  Flash lives remaining in center of screen.
+            if nargin < 2; clr = obj.ColorRed; end
             if isempty(obj.LivesH) || ~isgraphics(obj.LivesH) || ~isvalid(obj.LivesH)
                 return;
             end
@@ -984,7 +986,7 @@ classdef Breakout < GameBase
             else
                 obj.LivesH.String = "GAME OVER";
             end
-            obj.LivesH.Color = obj.ColorRed;
+            obj.LivesH.Color = clr;
             obj.LivesH.Visible = "on";
             obj.LivesFlashTic = tic;
         end
@@ -1092,7 +1094,7 @@ classdef Breakout < GameBase
                     % Extra life
                     if obj.Lives < obj.MaxLives
                         obj.Lives = obj.Lives + 1;
-                        obj.updateLivesDisplay();
+                        obj.updateLivesDisplay(obj.ColorGreen);
                         obj.updateHud();
                     end
             end
