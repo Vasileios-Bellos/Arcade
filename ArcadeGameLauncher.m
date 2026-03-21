@@ -78,6 +78,7 @@ classdef ArcadeGameLauncher < handle
         DtScale         (1,1) double = 1        % rawDt * RefFPS
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
         PrevAxPx        (1,2) double = [0, 0]  % previous [width, height] in pixels
+        FontScale       (1,1) double = 1       % min(axPx/[854,480]) — current scale
     end
 
     % =================================================================
@@ -151,6 +152,8 @@ classdef ArcadeGameLauncher < handle
             obj.FpsLastTic = tic;
             obj.buildRegistry();
             obj.createFigure();
+            axPx = getpixelposition(obj.Ax);
+            obj.FontScale = min(axPx(3) / 854, axPx(4) / 480);
             obj.createHUD();
 
             % Create shared menu component
@@ -166,6 +169,7 @@ classdef ArcadeGameLauncher < handle
             obj.enterMenu();
             axPx = getpixelposition(obj.Ax);
             obj.PrevAxPx = axPx(3:4);
+            obj.FontScale = min(axPx(3) / 854, axPx(4) / 480);
             obj.Fig.SizeChangedFcn = @(~, ~) obj.onFigResize();
             obj.startTimer();
         end
@@ -345,6 +349,7 @@ classdef ArcadeGameLauncher < handle
                 relScale = 1.0;
             end
             obj.PrevAxPx = axPx(3:4);
+            obj.FontScale = newPs;
 
             % During gameplay
             if obj.State ~= "menu"
@@ -687,7 +692,7 @@ classdef ArcadeGameLauncher < handle
                 else
                     obj.StatusTextH.String = "GO!";
                 end
-                obj.StatusTextH.FontSize = 30 * obj.getPixelScale() * scale;
+                obj.StatusTextH.FontSize = 30 * obj.FontScale * scale;
                 obj.StatusTextH.Color = [obj.ColorCyan, max(fadeAlpha, 0)];
                 obj.StatusTextH.Visible = "on";
             end
@@ -728,7 +733,7 @@ classdef ArcadeGameLauncher < handle
                 cy = mean(obj.DisplayRange.Y);
                 obj.StatusTextH.Position = [cx, cy, 0];
                 obj.StatusTextH.String = "PAUSED";
-                obj.StatusTextH.FontSize = 20 * obj.getPixelScale();
+                obj.StatusTextH.FontSize = 20 * obj.FontScale;
                 obj.StatusTextH.Color = obj.ColorGold * 0.9;
                 obj.StatusTextH.Visible = "on";
             end
@@ -769,7 +774,7 @@ classdef ArcadeGameLauncher < handle
                     titleStr = results.Title;
                 end
                 obj.StatusTextH.String = titleStr;
-                obj.StatusTextH.FontSize = 20 * obj.getPixelScale();
+                obj.StatusTextH.FontSize = 20 * obj.FontScale;
                 obj.StatusTextH.Color = obj.ColorGold;
                 obj.StatusTextH.Visible = "on";
             end
@@ -803,7 +808,7 @@ classdef ArcadeGameLauncher < handle
                 detailLines{end + 1} = "";
                 detailLines{end + 1} = "[R] PLAY AGAIN   |   [ESC] MENU";
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);
-                obj.ComboTextH.FontSize = 9 * obj.getPixelScale();
+                obj.ComboTextH.FontSize = 9 * obj.FontScale;
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
                 obj.ComboTextH.Visible = "on";
             end
@@ -885,7 +890,7 @@ classdef ArcadeGameLauncher < handle
             dy = obj.DisplayRange.Y;
             cx = mean(dx);
             cy = mean(dy);
-            ps = obj.getPixelScale();
+            ps = obj.FontScale;
 
             obj.ScoreTextH = text(ax, dx(1) + 4, dy(1) + 2, "Score: 0", ...
                 "Color", obj.ColorGreen * 0.9, ...
@@ -924,15 +929,6 @@ classdef ArcadeGameLauncher < handle
                 "Tag", "GT_arcFps");
         end
 
-        function ps = getPixelScale(obj)
-            %getPixelScale  Deterministic scale from current axes vs 854x480.
-            if isempty(obj.Ax) || ~isvalid(obj.Ax)
-                ps = 1.0;
-                return;
-            end
-            axPx = getpixelposition(obj.Ax);
-            ps = min(axPx(3) / 854, axPx(4) / 480);
-        end
 
 
         function handleArrowPress(obj, key)
@@ -984,7 +980,7 @@ classdef ArcadeGameLauncher < handle
             obj.ComboFadeTic = [];
             obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
             obj.ComboTextH.Color = obj.ColorGreen * 0.9;
-            obj.ComboTextH.FontSize = 9 * obj.getPixelScale();
+            obj.ComboTextH.FontSize = 9 * obj.FontScale;
             cx = mean(obj.DisplayRange.X);
             obj.ComboTextH.Position = [cx, obj.DisplayRange.Y(1) + 2, 0];
             obj.ComboTextH.HorizontalAlignment = "center";
