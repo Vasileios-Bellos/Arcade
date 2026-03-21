@@ -1008,7 +1008,8 @@ classdef ArcadeGameLauncher < handle
             end
 
             if ~isempty(obj.ComboShowTic) && isempty(obj.ComboFadeTic)
-                if toc(obj.ComboShowTic) >= 1.0
+                autoFade = isempty(obj.ActiveGame) || obj.ActiveGame.ComboAutoFade;
+                if autoFade && toc(obj.ComboShowTic) >= 1.0
                     obj.ComboFadeTic = tic;
                     obj.ComboFadeColor = obj.ColorGreen * 0.9;
                     obj.ComboShowTic = [];

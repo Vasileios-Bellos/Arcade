@@ -28,6 +28,7 @@ classdef (Abstract) GameBase < handle
         IsRunning       (1,1) logical = false
         StartTic                        % tic at game start
         ShowHostCombo   (1,1) logical = true   % false = game shows its own combo
+        ComboAutoFade   (1,1) logical = true   % false = combo stays until game resets it
     end
 
     % =================================================================
@@ -182,7 +183,9 @@ classdef (Abstract) GameBase < handle
             obj.Combo = obj.Combo + 1;
             obj.MaxCombo = max(obj.MaxCombo, obj.Combo);
         end
+    end
 
+    methods
         function resetCombo(obj)
             %resetCombo  Reset combo counter to zero.
             obj.Combo = 0;
