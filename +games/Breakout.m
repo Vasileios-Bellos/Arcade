@@ -246,7 +246,7 @@ classdef Breakout < GameBase
 
             % Place ball on paddle and announce LEVEL 1
             obj.PaddleX = cx;
-            obj.BallPos = [cx, obj.PaddleY - obj.BallRadius - 2];
+            obj.BallPos = [cx, obj.PaddleY - obj.BallRadius - 5];
             obj.LevelPhase = "announce";
             obj.LevelTransFrames = 60;
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
@@ -315,7 +315,7 @@ classdef Breakout < GameBase
                 % Paddle + ball follow mouse during announce
                 if ~any(isnan(pos))
                     obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
-                    obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 2];
+                    obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
                     px = obj.PaddleX; pw = obj.PaddleW; ph = obj.PaddleHt; py = obj.PaddleY;
                     xv = [px-pw/2, px+pw/2, px+pw/2, px-pw/2];
                     if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
