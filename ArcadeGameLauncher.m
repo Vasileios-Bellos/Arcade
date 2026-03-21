@@ -826,7 +826,6 @@ classdef ArcadeGameLauncher < handle
             obj.ActiveGameName = entry.name;
 
             game = entry.ctor();
-            game.FontScale = obj.getPixelScale();
             game.onInit(obj.Ax, obj.DisplayRange, struct());
             game.beginGame();
             obj.ActiveGame = game;

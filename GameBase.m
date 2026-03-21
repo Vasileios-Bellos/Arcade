@@ -393,14 +393,14 @@ classdef (Abstract) GameBase < handle
     methods (Access = protected)
         function ps = getPixelScale(obj)
             %getPixelScale  Deterministic font scale from current axes pixels.
-            %   ps = min(axPx(3)/854, axPx(4)/480). Use for ALL FontSize
-            %   assignments: FontSize = base * ps (no rounding).
+            %   ps = min(axPx(3)/854, axPx(4)/480). Also caches in FontScale.
             if isempty(obj.Ax) || ~isvalid(obj.Ax)
                 ps = 1.0;
                 return;
             end
             axPx = getpixelposition(obj.Ax);
             ps = min(axPx(3) / 854, axPx(4) / 480);
+            obj.FontScale = ps;
         end
 
         function c = flickSpeedColor(obj, speed)
