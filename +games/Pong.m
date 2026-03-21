@@ -178,11 +178,11 @@ classdef Pong < GameBase
                 "Color", [obj.ColorCyan, 0.5], "LineWidth", 2.5 * ps, ...
                 "LineStyle", "-", "Tag", "GT_pong");
 
-            % Ball: outer scatter (transparent) + inner line dots
+            % Ball aura, glow ring, core (screen-space sizes scaled by ps)
             r = obj.BallRadius;
-            auraSize = r * 5;
-            coreSize = r * 2;
-            glowWidth = r * 0.6;
+            auraSize = r * 5 * ps;
+            coreSize = r * 2 * ps;
+            glowWidth = r * 0.6 * ps;
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                 "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_pong");
@@ -711,7 +711,7 @@ classdef Pong < GameBase
             if ~isempty(obj.BallAuraH) && isvalid(obj.BallAuraH)
                 obj.BallAuraH.XData = bx;
                 obj.BallAuraH.YData = by;
-                obj.BallAuraH.CData = clr;
+                obj.BallAuraH.Color = [clr, 0.12];
             end
 
             % Trail
