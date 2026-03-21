@@ -329,17 +329,18 @@ classdef Breakout < GameBase
 
             % --- Ball physics ---
             prePos = obj.BallPos;
-            obj.BallPos = obj.BallPos + obj.BallVel * ds;
+            stepVel = obj.BallVel * ds;
+            obj.BallPos = prePos + stepVel;
 
-            % Wall collisions (top, left, right)
+            % Wall collisions (parametric — same as FlickIt)
             bounced = false;
             bouncePos = obj.BallPos;
             bounceNormal = [0, 0];
 
             % Top wall
-            if obj.BallPos(2) < dy(1) && obj.BallVel(2) ~= 0
-                tWall = min(1, max(0, (dy(1) - prePos(2)) / obj.BallVel(2)));
-                obj.BallPos(1) = prePos(1) + tWall * obj.BallVel(1);
+            if obj.BallPos(2) < dy(1) && stepVel(2) ~= 0
+                tHit = min(1, max(0, (dy(1) - prePos(2)) / stepVel(2)));
+                obj.BallPos(1) = prePos(1) + tHit * stepVel(1);
                 obj.BallPos(2) = dy(1);
                 obj.BallVel(2) = -obj.BallVel(2);
                 bounced = true;
@@ -347,9 +348,9 @@ classdef Breakout < GameBase
                 bounceNormal = [0, 1];
             end
             % Left wall
-            if obj.BallPos(1) < dx(1) && obj.BallVel(1) ~= 0
-                tWall = min(1, max(0, (dx(1) - prePos(1)) / obj.BallVel(1)));
-                obj.BallPos(2) = prePos(2) + tWall * obj.BallVel(2);
+            if obj.BallPos(1) < dx(1) && stepVel(1) ~= 0
+                tHit = min(1, max(0, (dx(1) - prePos(1)) / stepVel(1)));
+                obj.BallPos(2) = prePos(2) + tHit * stepVel(2);
                 obj.BallPos(1) = dx(1);
                 obj.BallVel(1) = -obj.BallVel(1);
                 bounced = true;
@@ -357,9 +358,9 @@ classdef Breakout < GameBase
                 bounceNormal = [1, 0];
             end
             % Right wall
-            if obj.BallPos(1) > dx(2) && obj.BallVel(1) ~= 0
-                tWall = min(1, max(0, (dx(2) - prePos(1)) / obj.BallVel(1)));
-                obj.BallPos(2) = prePos(2) + tWall * obj.BallVel(2);
+            if obj.BallPos(1) > dx(2) && stepVel(1) ~= 0
+                tHit = min(1, max(0, (dx(2) - prePos(1)) / stepVel(1)));
+                obj.BallPos(2) = prePos(2) + tHit * stepVel(2);
                 obj.BallPos(1) = dx(2);
                 obj.BallVel(1) = -obj.BallVel(1);
                 bounced = true;
