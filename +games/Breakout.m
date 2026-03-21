@@ -245,9 +245,9 @@ classdef Breakout < GameBase
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 6 * obj.FontScale, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_breakout");
 
-            % Place ball on paddle and show "LEVEL 1" before first serve
+            % Show "LEVEL 1" before first serve — ball hidden until announce renders
             obj.PaddleX = cx;
-            obj.serveBall();
+            obj.BallPos = [cx, obj.PaddleY - obj.BallRadius - 5];
             obj.LevelPhase = "announce";
             obj.LevelTransFrames = 60;
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
