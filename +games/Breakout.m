@@ -245,9 +245,15 @@ classdef Breakout < GameBase
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 6 * obj.FontScale, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_breakout");
 
-            % Place ball on paddle
+            % Show "LEVEL 1" announcement before first serve
             obj.PaddleX = cx;
-            obj.serveBall();
+            obj.LevelPhase = "announce";
+            obj.LevelTransFrames = 60;
+            if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                obj.LevelTextH.String = "LEVEL 1";
+                obj.LevelTextH.Color = [obj.ColorCyan, 1];
+                obj.LevelTextH.Visible = "on";
+            end
         end
 
         function onUpdate(obj, pos)
@@ -283,11 +289,33 @@ classdef Breakout < GameBase
                 end
 
                 if obj.LevelTransFrames <= 0
+                    % Build new grid and show level announcement
+                    obj.buildBrickGrid(obj.Level);
+                    obj.LevelPhase = "announce";
+                    obj.LevelTransFrames = 60;
+                    if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                        obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
+                        obj.LevelTextH.Color = [obj.ColorCyan, 1];
+                        obj.LevelTextH.Visible = "on";
+                    end
+                end
+                return;
+            end
+
+            % --- Level announce phase (show level number, then serve) ---
+            if obj.LevelPhase == "announce"
+                obj.LevelTransFrames = obj.LevelTransFrames - ds;
+                if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                    tProg = 1 - max(0, obj.LevelTransFrames) / 60;
+                    if tProg > 0.7
+                        obj.LevelTextH.Color = [obj.ColorCyan, max(0, (1 - tProg) / 0.3)];
+                    end
+                end
+                if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
                     if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
                         obj.LevelTextH.Visible = "off";
                     end
-                    obj.buildBrickGrid(obj.Level);
                     obj.serveBall();
                 end
                 return;
@@ -969,9 +997,9 @@ classdef Breakout < GameBase
                 end
             end
 
-            % Show level text
+            % Show "LEVEL CLEARED"
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
+                obj.LevelTextH.String = "LEVEL CLEARED";
                 obj.LevelTextH.Color = [obj.ColorGold, 1];
                 obj.LevelTextH.Visible = "on";
             end
