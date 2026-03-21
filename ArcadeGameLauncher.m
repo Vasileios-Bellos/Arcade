@@ -406,6 +406,8 @@ classdef ArcadeGameLauncher < handle
                         end
                     case "countdown"
                         obj.updateCountdown();
+                    case "launching"
+                        obj.launchGame();
                     case "active"
                         obj.updateActive();
                     case "paused"
@@ -715,7 +717,8 @@ classdef ArcadeGameLauncher < handle
                     if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
                         obj.StatusTextH.Visible = "off";
                     end
-                    obj.launchGame();
+                    % Launch next frame so drawnow clears GO first
+                    obj.State = "launching";
                 end
             end
         end
