@@ -693,7 +693,7 @@ classdef ArcadeGameLauncher < handle
                 else
                     obj.StatusTextH.String = "GO!";
                 end
-                obj.StatusTextH.FontSize = max(14, round(30 * obj.getPixelScale() * scale));
+                obj.StatusTextH.FontSize = max(4, round(30 * obj.getPixelScale() * scale));
                 obj.StatusTextH.Color = [obj.ColorCyan, max(fadeAlpha, 0)];
                 obj.StatusTextH.Visible = "on";
             end
@@ -734,7 +734,7 @@ classdef ArcadeGameLauncher < handle
                 cy = mean(obj.DisplayRange.Y);
                 obj.StatusTextH.Position = [cx, cy, 0];
                 obj.StatusTextH.String = "PAUSED";
-                obj.StatusTextH.FontSize = max(14, round(16 * obj.getPixelScale()));
+                obj.StatusTextH.FontSize = max(4, round(16 * obj.getPixelScale()));
                 obj.StatusTextH.Color = obj.ColorGold * 0.9;
                 obj.StatusTextH.Visible = "on";
             end
@@ -775,7 +775,7 @@ classdef ArcadeGameLauncher < handle
                     titleStr = results.Title;
                 end
                 obj.StatusTextH.String = titleStr;
-                obj.StatusTextH.FontSize = max(14, round(16 * obj.getPixelScale()));
+                obj.StatusTextH.FontSize = max(4, round(16 * obj.getPixelScale()));
                 obj.StatusTextH.Color = obj.ColorGold;
                 obj.StatusTextH.Visible = "on";
             end
@@ -809,7 +809,7 @@ classdef ArcadeGameLauncher < handle
                 detailLines{end + 1} = "";
                 detailLines{end + 1} = "[R] PLAY AGAIN   |   [ESC] MENU";
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);
-                obj.ComboTextH.FontSize = max(8, round(7 * obj.getPixelScale()));
+                obj.ComboTextH.FontSize = max(4, round(7 * obj.getPixelScale()));
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
                 obj.ComboTextH.Visible = "on";
             end
@@ -909,7 +909,7 @@ classdef ArcadeGameLauncher < handle
 
             obj.StatusTextH = text(ax, cx, cy, "", ...
                 "Color", obj.ColorCyan * 0.95, ...
-                "FontSize", max(10, round(15 * ps)), ...
+                "FontSize", max(4, round(15 * ps)), ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "middle", "Visible", "off", ...
                 "Tag", "GT_arcStatus");
@@ -990,7 +990,7 @@ classdef ArcadeGameLauncher < handle
             obj.ComboFadeTic = [];
             obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
             obj.ComboTextH.Color = obj.ColorGreen * 0.9;
-            obj.ComboTextH.FontSize = max(8, round(7 * obj.getPixelScale()));
+            obj.ComboTextH.FontSize = max(4, round(7 * obj.getPixelScale()));
             cx = mean(obj.DisplayRange.X);
             obj.ComboTextH.Position = [cx, obj.DisplayRange.Y(1) + 2, 0];
             obj.ComboTextH.HorizontalAlignment = "center";
