@@ -827,15 +827,20 @@ classdef Breakout < GameBase
 
                 if ~isFireball
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
-                        bounceNormal = [sign(dcx), 0];
-                        newVel(1) = -newVel(1);
-                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 1);
+                        % Only bounce if moving toward the brick on X
+                        if sign(newVel(1)) ~= sign(dcx)
+                            bounceNormal = [sign(dcx), 0];
+                            newVel(1) = -newVel(1);
+                            newVel = newVel * 1.008;
+                        end
                     else
-                        bounceNormal = [0, sign(dcy)];
-                        newVel(2) = -newVel(2);
-                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 1);
+                        % Only bounce if moving toward the brick on Y
+                        if sign(newVel(2)) ~= sign(dcy)
+                            bounceNormal = [0, sign(dcy)];
+                            newVel(2) = -newVel(2);
+                            newVel = newVel * 1.008;
+                        end
                     end
-                    newVel = newVel * 1.008;
                 end
 
                 % Damage brick
