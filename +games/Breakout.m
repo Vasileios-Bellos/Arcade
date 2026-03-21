@@ -136,7 +136,6 @@ classdef Breakout < GameBase
             dx = displayRange.X;
             dy = displayRange.Y;
             cx = mean(dx);
-            cy = mean(dy);
             areaW = dx(2) - dx(1);
             areaH = dy(2) - dy(1);
 
@@ -162,7 +161,7 @@ classdef Breakout < GameBase
             obj.Lives = 3;
             obj.Level = 1;
             obj.BricksDestroyed = 0;
-            obj.Serving = false;
+            obj.Serving = true;
             obj.ServeCountdown = 0;
             obj.CatchHeld = false;
             obj.CatchOffset = 0;
@@ -201,10 +200,10 @@ classdef Breakout < GameBase
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                 "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_breakout");
-            obj.BallGlowH = scatter(ax, NaN, NaN, pi * (glowSize/2)^2, ...
+            obj.BallGlowH = scatter(ax, cx, cx, pi * (glowSize/2)^2, ...
                 obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
                 "Tag", "GT_breakout");
-            obj.BallCoreH = line(ax, NaN, NaN, ...
+            obj.BallCoreH = line(ax, cx, cx, ...
                 "Color", [1, 1, 1, 1], "Marker", ".", ...
                 "MarkerSize", coreSize, "LineStyle", "none", "Tag", "GT_breakout");
 
@@ -245,16 +244,9 @@ classdef Breakout < GameBase
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 6 * obj.FontScale, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_breakout");
 
-            % Show "LEVEL 1" before first serve — ball hidden until announce renders
+            % Place ball on paddle
             obj.PaddleX = cx;
-            obj.BallPos = [cx, obj.PaddleY - obj.BallRadius - 2];
-            obj.LevelPhase = "announce";
-            obj.LevelTransFrames = 60;
-            if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                obj.LevelTextH.String = "LEVEL 1";
-                obj.LevelTextH.Color = [obj.ColorCyan, 1];
-                obj.LevelTextH.Visible = "on";
-            end
+            obj.serveBall();
         end
 
         function onUpdate(obj, pos)
@@ -290,51 +282,11 @@ classdef Breakout < GameBase
                 end
 
                 if obj.LevelTransFrames <= 0
-                    % Build new grid and show level announcement
-                    obj.buildBrickGrid(obj.Level);
-                    obj.LevelPhase = "announce";
-                    obj.LevelTransFrames = 60;
-                    if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                        obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
-                        obj.LevelTextH.Color = [obj.ColorCyan, 1];
-                        obj.LevelTextH.Visible = "on";
-                    end
-                end
-                return;
-            end
-
-            % --- Level announce phase (show level number, then serve) ---
-            if obj.LevelPhase == "announce"
-                obj.LevelTransFrames = obj.LevelTransFrames - ds;
-                if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                    tProg = 1 - max(0, obj.LevelTransFrames) / 60;
-                    if tProg > 0.7
-                        obj.LevelTextH.Color = [obj.ColorCyan, max(0, (1 - tProg) / 0.3)];
-                    end
-                end
-                % Track paddle + ball on paddle during announce
-                if ~any(isnan(pos))
-                    obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
-                    obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 2];
-                    % Update paddle visuals
-                    px = obj.PaddleX;
-                    pw = obj.PaddleW;
-                    ph = obj.PaddleHt;
-                    py = obj.PaddleY;
-                    xv = [px-pw/2, px+pw/2, px+pw/2, px-pw/2];
-                    if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
-                        set(obj.PaddleGlowH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
-                    end
-                    if ~isempty(obj.PaddleH) && isvalid(obj.PaddleH)
-                        set(obj.PaddleH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
-                    end
-                end
-                obj.updateBallGraphics();
-                if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
                     if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
                         obj.LevelTextH.Visible = "off";
                     end
+                    obj.buildBrickGrid(obj.Level);
                     obj.serveBall();
                 end
                 return;
@@ -366,7 +318,7 @@ classdef Breakout < GameBase
 
             % --- Serve mode ---
             if obj.Serving
-                obj.BallPos = [obj.PaddleX, py - obj.BallRadius - 2];
+                obj.BallPos = [obj.PaddleX, py - obj.BallRadius - 5];
                 obj.ServeCountdown = obj.ServeCountdown - ds;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
@@ -427,7 +379,7 @@ classdef Breakout < GameBase
 
             % --- Paddle collision (swept: detect crossing from above) ---
             ballR = obj.BallRadius;
-            pyHit = py - ballR - 2;  % ball edge touches paddle top
+            pyHit = py - ballR - 5;  % ball edge touches paddle top + offset
             crossedPaddle = prePos(2) < pyHit && obj.BallPos(2) >= pyHit && obj.BallVel(2) > 0;
             atPaddle = obj.BallPos(2) >= pyHit && obj.BallPos(2) <= py + ph && obj.BallVel(2) > 0;
             if crossedPaddle || atPaddle
@@ -780,8 +732,8 @@ classdef Breakout < GameBase
         function serveBall(obj)
             %serveBall  Place ball on paddle, prepare serve.
             obj.Serving = true;
-            obj.ServeCountdown = 20;  % ~0.33s at 60fps
-            obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 2];
+            obj.ServeCountdown = 60;  % ~1s at 60fps
+            obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
             obj.BallVel = [0, 0];
             obj.CatchHeld = false;
             obj.TrailBufX(:) = NaN;
@@ -796,8 +748,10 @@ classdef Breakout < GameBase
             obj.Serving = false;
         end
 
-        function [newPos, newVel] = brickCollision(obj, ~, ballPos, ballVel)
-            %brickCollision  AABB ball-brick collision with center-based reflection.
+        function [newPos, newVel] = brickCollision(obj, prePos, ballPos, ballVel)
+            %brickCollision  Swept ball-brick collision.
+            %   Tests the ball path from prePos to ballPos against each
+            %   brick AABB expanded by BallRadius.
             ballR = obj.BallRadius;
             newPos = ballPos;
             newVel = ballVel;
@@ -809,38 +763,59 @@ classdef Breakout < GameBase
                     continue;
                 end
 
-                % AABB closest-point distance check
-                bx1 = brk.x;
-                bx2 = brk.x + brk.w;
-                by1 = brk.y;
-                by2 = brk.y + brk.h;
-                nearX = max(bx1, min(newPos(1), bx2));
-                nearY = max(by1, min(newPos(2), by2));
-                distSq = (newPos(1) - nearX)^2 + (newPos(2) - nearY)^2;
-                if distSq > ballR^2; continue; end
+                % Expand brick AABB by ball radius (Minkowski sum)
+                bx1 = brk.x - ballR;
+                bx2 = brk.x + brk.w + ballR;
+                by1 = brk.y - ballR;
+                by2 = brk.y + brk.h + ballR;
 
-                % Hit face: compare ball-to-center offset
+                % Swept point-vs-expanded-rect: find earliest t in (0,1]
+                dx = newPos(1) - prePos(1);
+                dy = newPos(2) - prePos(2);
+                tMin = 1e-6; tMax = 1;
+
+                % X slab
+                if abs(dx) < 1e-12
+                    if prePos(1) < bx1 || prePos(1) > bx2; continue; end
+                else
+                    t1 = (bx1 - prePos(1)) / dx;
+                    t2 = (bx2 - prePos(1)) / dx;
+                    if t1 > t2; tmp = t1; t1 = t2; t2 = tmp; end
+                    tMin = max(tMin, t1);
+                    tMax = min(tMax, t2);
+                    if tMin > tMax; continue; end
+                end
+
+                % Y slab
+                if abs(dy) < 1e-12
+                    if prePos(2) < by1 || prePos(2) > by2; continue; end
+                else
+                    t1 = (by1 - prePos(2)) / dy;
+                    t2 = (by2 - prePos(2)) / dy;
+                    if t1 > t2; tmp = t1; t1 = t2; t2 = tmp; end
+                    tMin = max(tMin, t1);
+                    tMax = min(tMax, t2);
+                    if tMin > tMax; continue; end
+                end
+
+                % Hit — determine which face was entered
+                hitPt = prePos + tMin * [dx, dy];
                 bcx = brk.x + brk.w / 2;
                 bcy = brk.y + brk.h / 2;
-                dcx = newPos(1) - bcx;
-                dcy = newPos(2) - bcy;
+                dcx = hitPt(1) - bcx;
+                dcy = hitPt(2) - bcy;
 
                 if ~isFireball
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
-                        % Only bounce if moving toward the brick on X
-                        if sign(newVel(1)) ~= sign(dcx)
-                            bounceNormal = [sign(dcx), 0];
-                            newVel(1) = -newVel(1);
-                            newVel = newVel * 1.008;
-                        end
+                        newVel(1) = -newVel(1);
+                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
+                        newPos(2) = hitPt(2);
                     else
-                        % Only bounce if moving toward the brick on Y
-                        if sign(newVel(2)) ~= sign(dcy)
-                            bounceNormal = [0, sign(dcy)];
-                            newVel(2) = -newVel(2);
-                            newVel = newVel * 1.008;
-                        end
+                        newVel(2) = -newVel(2);
+                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
+                        newPos(1) = hitPt(1);
                     end
+                    newVel = newVel * 1.008;
                 end
 
                 % Damage brick
@@ -872,10 +847,10 @@ classdef Breakout < GameBase
                     if isFireball
                         if abs(dcx / brk.w) > abs(dcy / brk.h)
                             newVel(1) = -newVel(1);
-                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 0.01);
+                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
                         else
                             newVel(2) = -newVel(2);
-                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 0.01);
+                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
                         end
                     end
                     spd = norm(ballVel);
@@ -992,9 +967,9 @@ classdef Breakout < GameBase
                 end
             end
 
-            % Show "LEVEL CLEARED"
+            % Show level text
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                obj.LevelTextH.String = "LEVEL CLEARED";
+                obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
                 obj.LevelTextH.Color = [obj.ColorGold, 1];
                 obj.LevelTextH.Visible = "on";
             end
