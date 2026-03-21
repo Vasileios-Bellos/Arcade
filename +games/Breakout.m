@@ -317,7 +317,7 @@ classdef Breakout < GameBase
                     obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
                     obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
                 end
-                obj.updateGraphics();
+                obj.updateBallGraphics();
                 if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
                     if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
