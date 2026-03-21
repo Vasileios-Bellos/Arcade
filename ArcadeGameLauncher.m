@@ -491,6 +491,7 @@ classdef ArcadeGameLauncher < handle
                 if obj.Combo >= 2
                     if obj.Combo ~= prevCombo
                         obj.showCombo();
+                        obj.ComboFadeTic = [];  % cancel fade if scoring
                     end
                 elseif obj.Combo == 0 && prevCombo > 0
                     % Start fade-out on combo loss
@@ -1020,6 +1021,11 @@ classdef ArcadeGameLauncher < handle
             if elapsed >= fadeDur
                 obj.ComboTextH.Visible = "off";
                 obj.ComboFadeTic = [];
+                % Combo lost when fade completes
+                if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
+                    obj.ActiveGame.resetCombo();
+                end
+                obj.Combo = 0;
             else
                 comboAlpha = max(0, 1 - elapsed / fadeDur);
                 obj.ComboTextH.Color = [obj.ComboFadeColor, comboAlpha];

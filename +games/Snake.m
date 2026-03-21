@@ -296,13 +296,6 @@ classdef Snake < GameBase
                 obj.Body = [newHead; obj.Body(1:end-1, :)];
             end
 
-            % Combo timeout
-            if obj.Combo > 0 && ~isempty(obj.LastFoodTic) && ...
-                    toc(obj.LastFoodTic) >= obj.ComboTimeout
-                obj.resetCombo();
-                obj.LastFoodTic = [];
-            end
-
             % Update graphics
             obj.updateBodyGraphics();
         end

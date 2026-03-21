@@ -260,13 +260,6 @@ classdef SpaceInvaders < GameBase
 
             ds = obj.DtScale;
 
-            % Combo timeout
-            if obj.Combo > 0 && ~isempty(obj.LastKillTic) && ...
-                    toc(obj.LastKillTic) >= obj.ComboTimeout
-                obj.resetCombo();
-                obj.LastKillTic = [];
-            end
-
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
