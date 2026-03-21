@@ -60,6 +60,10 @@ No pending scaling work for arcade games.
 
 ---
 
+## Documentation
+
+- [ ] Move screen-space scaling documentation from CLAUDE.md to ARCADE_DETAILS.md — the FontScale system, creation/resize rules, onFigResize flow, standalone vs hosted, scaleScreenSpaceObjects
+
 ## Code Quality
 
 - [ ] Checkcode warnings cleanup across arcade files
