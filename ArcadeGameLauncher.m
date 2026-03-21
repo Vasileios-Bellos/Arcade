@@ -649,11 +649,7 @@ classdef ArcadeGameLauncher < handle
         end
 
         function enterCountdown(obj)
-            %enterCountdown  Start 3-2-1 countdown before game.
-            obj.State = "countdown";
-            obj.CountdownValue = 3;
-            obj.CountdownTimer = obj.CountdownNumDur;
-
+            %enterCountdown  Reset scores and launch game directly (no countdown).
             obj.Score = 0;
             obj.ScoreDisplayed = 0;
             obj.Combo = 0;
@@ -678,6 +674,8 @@ classdef ArcadeGameLauncher < handle
             if ~isempty(obj.HudTextH) && isvalid(obj.HudTextH)
                 obj.HudTextH.Visible = "off";
             end
+
+            obj.launchGame();
         end
 
         function updateCountdown(obj)
