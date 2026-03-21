@@ -312,6 +312,12 @@ classdef Breakout < GameBase
                         obj.LevelTextH.Color = [obj.ColorCyan, max(0, (1 - tProg) / 0.3)];
                     end
                 end
+                % Track paddle during announce
+                if ~any(isnan(pos))
+                    obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
+                    obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
+                end
+                obj.updateGraphics();
                 if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
                     if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
