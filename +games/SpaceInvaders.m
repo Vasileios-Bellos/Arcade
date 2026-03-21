@@ -809,8 +809,9 @@ classdef SpaceInvaders < GameBase
             obj.InvulnFrames = 144;
         end
 
-        function updateLivesDisplay(obj)
+        function updateLivesDisplay(obj, clr)
             %updateLivesDisplay  Flash lives remaining in center of screen.
+            if nargin < 2; clr = obj.ColorRed; end
             if isempty(obj.LivesTextH) || ~isgraphics(obj.LivesTextH) || ...
                     ~isvalid(obj.LivesTextH); return; end
             if obj.Lives > 0
@@ -818,7 +819,7 @@ classdef SpaceInvaders < GameBase
             else
                 obj.LivesTextH.String = "GAME OVER";
             end
-            obj.LivesTextH.Color = obj.ColorRed;
+            obj.LivesTextH.Color = clr;
             obj.LivesTextH.Visible = "on";
             obj.LivesFlashTic = tic;
         end
@@ -906,7 +907,7 @@ classdef SpaceInvaders < GameBase
                     end
                 case "+"
                     obj.Lives = min(obj.Lives + 1, 5);
-                    obj.updateLivesDisplay();
+                    obj.updateLivesDisplay(obj.ColorGreen);
             end
             obj.addScore(50);
         end
