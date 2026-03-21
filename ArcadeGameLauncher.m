@@ -704,11 +704,14 @@ classdef ArcadeGameLauncher < handle
             end
 
             if obj.CountdownTimer <= 0
-                obj.CountdownValue = obj.CountdownValue - 1;
                 if obj.CountdownValue > 0
-                    obj.CountdownTimer = obj.CountdownNumDur;
+                    obj.CountdownValue = obj.CountdownValue - 1;
+                    if obj.CountdownValue > 0
+                        obj.CountdownTimer = obj.CountdownNumDur;
+                    else
+                        obj.CountdownTimer = obj.CountdownGoDur;
+                    end
                 else
-                    % Hide immediately and launch
                     if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
                         obj.StatusTextH.Visible = "off";
                     end
