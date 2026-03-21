@@ -142,7 +142,7 @@ classdef Breakout < GameBase
             obj.Sc = min(areaW, areaH) / 180;
 
             % Scale sizes to display area
-            obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
+            obj.BallRadius = max(3, round(min(areaH, areaW) * 0.03125));
             obj.BallBaseSpeed = max(0.625, areaH * 0.01125);
             obj.BallSpeed = obj.BallBaseSpeed;
             obj.PaddleBaseW = max(20, round(areaW * 0.15));
@@ -240,7 +240,7 @@ classdef Breakout < GameBase
             % Bottom-left HUD text
             obj.ModeTextH = text(ax, dx(1) + 5, dy(2) - 5, ...
                 obj.buildHudString(), ...
-                "Color", [obj.ColorCyan, 0.6], "FontSize", 4 * obj.FontScale, ...
+                "Color", [obj.ColorCyan, 0.6], "FontSize", 6 * obj.FontScale, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_breakout");
 
             % Place ball on paddle
