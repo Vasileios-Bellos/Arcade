@@ -36,6 +36,7 @@ classdef Breakout < GameBase
         BallPos         (1,2) double = [NaN, NaN]
         BallVel         (1,2) double = [0, 0]
         BallRadius      (1,1) double = 6
+        BallCollisionR  (1,1) double = 3    % core radius in data units
         BallPhase       (1,1) double = 0
         BallBaseSpeed   (1,1) double = 1.458
         BallSpeed       (1,1) double = 1.458
@@ -143,6 +144,15 @@ classdef Breakout < GameBase
 
             % Scale sizes to display area
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
+
+            % Collision radius: convert core MarkerSize (points) to data
+            % units so collision matches the visible ball, not the glow.
+            coreDiamPts = max(6, obj.BallRadius * 2);        % same as coreSize
+            axPos = getpixelposition(ax);
+            pxPerUnit = axPos(3) / areaW;
+            dpi = get(groot, "ScreenPixelsPerInch");
+            obj.BallCollisionR = coreDiamPts / 2 * (dpi / 72) / pxPerUnit;
+
             obj.BallBaseSpeed = max(0.625, areaH * 0.01125);
             obj.BallSpeed = obj.BallBaseSpeed;
             obj.PaddleBaseW = max(20, round(areaW * 0.15));
@@ -749,7 +759,7 @@ classdef Breakout < GameBase
             %brickCollision  AABB ball-brick collision with center-based reflection.
             %   Returns updated [newPos, newVel] after all brick bounces.
             %   In fireball mode, ball burns through bricks without bouncing.
-            ballR = obj.BallRadius;
+            ballR = obj.BallCollisionR;
             newPos = ballPos;
             newVel = ballVel;
             isFireball = ~isnan(obj.ActivePowers.fireball);
