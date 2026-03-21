@@ -495,8 +495,11 @@ classdef ArcadeGameLauncher < handle
                         obj.showCombo();
                     end
                 elseif obj.Combo == 0 && prevCombo > 0
-                    obj.ComboFadeTic = tic;
-                    obj.ComboFadeColor = obj.ColorGreen * 0.9;
+                    % Hide immediately on combo reset (e.g., hit in FlappyBird)
+                    if ~isempty(obj.ComboTextH) && isvalid(obj.ComboTextH)
+                        obj.ComboTextH.Visible = "off";
+                    end
+                    obj.ComboFadeTic = [];
                     obj.ComboShowTic = [];
                 end
             end
