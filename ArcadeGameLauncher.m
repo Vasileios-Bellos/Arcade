@@ -669,10 +669,6 @@ classdef ArcadeGameLauncher < handle
             obj.ComboShowTic = [];
             obj.ComboFadeTic = [];
 
-            if ~isempty(obj.Menu)
-                obj.Menu.hide();
-            end
-
             if ~isempty(obj.ScoreTextH) && isvalid(obj.ScoreTextH)
                 obj.ScoreTextH.String = "Score: 0";
                 obj.ScoreTextH.Visible = "on";
@@ -840,6 +836,9 @@ classdef ArcadeGameLauncher < handle
         function launchGame(obj)
             %launchGame  Instantiate and start the pending game.
             obj.State = "active";
+            if ~isempty(obj.Menu)
+                obj.Menu.hide();
+            end
             if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
                 obj.StatusTextH.Visible = "off";
             end

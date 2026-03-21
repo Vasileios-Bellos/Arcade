@@ -251,6 +251,8 @@ classdef (Sealed) GameMenu < handle
             obj.updateSlotContent();
             obj.setAllVisible("on");
             obj.AnimStartTic = tic;
+            obj.CometLastSpawnT = 0;
+            obj.CometNextSpawn = 1 + rand() * 1.5;
             obj.resetDwell();
         end
 
