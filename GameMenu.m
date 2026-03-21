@@ -278,12 +278,12 @@ classdef (Sealed) GameMenu < handle
             % 854x480 reference (resize recreates graphics, so these are final).
             axPx = getpixelposition(obj.Ax);
             pxScale = min(axPx(3) / 854, axPx(4) / 480);
-            obj.TitleFontSize = max(14, round(29 * pxScale));
-            obj.SubtitleFontSize = max(8, round(13 * pxScale));
-            obj.NameFontSize = max(9, round(12 * pxScale));
-            obj.KeyFontSize = max(8, round(10 * pxScale));
-            obj.ScoreFontSize = max(8, round(10 * pxScale));
-            obj.FooterFontSize = max(6, round(9 * pxScale));
+            obj.TitleFontSize = 29 * pxScale;
+            obj.SubtitleFontSize = 13 * pxScale;
+            obj.NameFontSize = 12 * pxScale;
+            obj.KeyFontSize = 10 * pxScale;
+            obj.ScoreFontSize = 10 * pxScale;
+            obj.FooterFontSize = 9 * pxScale;
 
             obj.deleteGraphics();
             obj.createGraphics();
@@ -348,12 +348,12 @@ classdef (Sealed) GameMenu < handle
             axPx = getpixelposition(obj.Ax);
             ps = min(axPx(3) / 854, axPx(4) / 480);
 
-            titleSz = max(14, round(29 * ps));
-            subSz   = max(8,  round(13 * ps));
-            nameSz  = max(9,  round(12 * ps));
-            keySz   = max(8,  round(10 * ps));
-            scoreSz = max(8,  round(10 * ps));
-            footSz  = max(6,  round(9 * ps));
+            titleSz = 29 * ps;
+            subSz   = 13 * ps;
+            nameSz  = 12 * ps;
+            keySz   = 10 * ps;
+            scoreSz = 10 * ps;
+            footSz  = 9 * ps;
 
             GameMenu.setFs(obj.TitleGlowH, titleSz);
             GameMenu.setFs(obj.TitleMainH, titleSz);

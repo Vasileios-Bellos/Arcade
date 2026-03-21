@@ -362,7 +362,7 @@ classdef (Abstract) GameBase < handle
                 if isvalid(textH) && isa(textH, "matlab.graphics.primitive.Text")
                     textH.Position(2) = fx.y - baseR - 8 - eased * 20;
                     textH.Color = [fx.color, max(alpha, 0)];
-                    textH.FontSize = max(8, round(14 * (1 + eased * 0.3)));
+                    textH.FontSize = 14 * (1 + eased * 0.3);
                 end
             end
 
@@ -394,7 +394,7 @@ classdef (Abstract) GameBase < handle
         function ps = getPixelScale(obj)
             %getPixelScale  Deterministic font scale from current axes pixels.
             %   ps = min(axPx(3)/854, axPx(4)/480). Use for ALL FontSize
-            %   assignments: FontSize = max(floor, round(base * ps)).
+            %   assignments: FontSize = base * ps (no rounding).
             if isempty(obj.Ax) || ~isvalid(obj.Ax)
                 ps = 1.0;
                 return;
