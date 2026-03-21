@@ -768,10 +768,10 @@ classdef Breakout < GameBase
                 by1 = brk.y - ballR;
                 by2 = brk.y + brk.h + ballR;
 
-                % Swept point-vs-expanded-rect: find earliest t in [0,1]
+                % Swept point-vs-expanded-rect: find earliest t in (0,1]
                 dx = newPos(1) - prePos(1);
                 dy = newPos(2) - prePos(2);
-                tMin = 0; tMax = 1;
+                tMin = 1e-6; tMax = 1;
 
                 % X slab
                 if abs(dx) < 1e-12
