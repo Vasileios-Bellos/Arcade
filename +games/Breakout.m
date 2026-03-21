@@ -36,7 +36,6 @@ classdef Breakout < GameBase
         BallPos         (1,2) double = [NaN, NaN]
         BallVel         (1,2) double = [0, 0]
         BallRadius      (1,1) double = 6
-        LastHitBrick    (1,1) double = 0    % index of last brick hit (skip next frame)
         BallPhase       (1,1) double = 0
         BallBaseSpeed   (1,1) double = 1.458
         BallSpeed       (1,1) double = 1.458
@@ -757,14 +756,12 @@ classdef Breakout < GameBase
             newPos = ballPos;
             newVel = ballVel;
             isFireball = ~isnan(obj.ActivePowers.fireball);
-            hitBrick = 0;
 
             for k = 1:numel(obj.Bricks)
                 brk = obj.Bricks(k);
                 if isempty(brk.patchH) || ~isvalid(brk.patchH)
                     continue;
                 end
-                if k == obj.LastHitBrick; continue; end
 
                 % Expand brick AABB by ball radius (Minkowski sum)
                 bx1 = brk.x - ballR;
@@ -809,13 +806,14 @@ classdef Breakout < GameBase
                 dcy = hitPt(2) - bcy;
 
                 if ~isFireball
+                    eps = 0.01;
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
                         newVel(1) = -newVel(1);
-                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
+                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + eps);
                         newPos(2) = hitPt(2);
                     else
                         newVel(2) = -newVel(2);
-                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
+                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + eps);
                         newPos(1) = hitPt(1);
                     end
                     newVel = newVel * 1.008;
@@ -850,10 +848,10 @@ classdef Breakout < GameBase
                     if isFireball
                         if abs(dcx / brk.w) > abs(dcy / brk.h)
                             newVel(1) = -newVel(1);
-                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
+                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 0.01);
                         else
                             newVel(2) = -newVel(2);
-                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
+                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 0.01);
                         end
                     end
                     spd = norm(ballVel);
@@ -863,13 +861,10 @@ classdef Breakout < GameBase
                         bounceNormal, 0, mSpeed);
                 end
 
-                hitBrick = k;
                 if ~isFireball
                     break;  % one collision per frame (fireball passes through)
                 end
             end
-
-            obj.LastHitBrick = hitBrick;
         end
 
         function destroyBrick(obj, brickIdx)
