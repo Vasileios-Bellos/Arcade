@@ -178,15 +178,16 @@ classdef (Sealed) GameMenu < handle
             obj.ItemCornerR = round(20 * s);
             obj.KeyBadgeSz = round(28 * s);
             obj.MaxVisibleItems = min(5, max(3, floor(diff(displayRange.Y) * 0.70 / (obj.ItemHeight + obj.ItemGap))));
-            % Font sizes: base values for RefPixelSize=[854,480] reference.
-            % scaleScreenSpaceObjects scales these by currentPx/854x480,
-            % producing consistent final sizes regardless of MATLAB version.
-            obj.TitleFontSize = 29;
-            obj.SubtitleFontSize = 13;
-            obj.NameFontSize = 12;
-            obj.KeyFontSize = 10;
-            obj.ScoreFontSize = 10;
-            obj.FooterFontSize = 9;
+            % Font sizes: base * ps, same pattern as games.
+            % Resize handled by scaleScreenSpaceObjects (relative).
+            axPx = getpixelposition(ax);
+            ps = min(axPx(3) / 854, axPx(4) / 480);
+            obj.TitleFontSize = 29 * ps;
+            obj.SubtitleFontSize = 13 * ps;
+            obj.NameFontSize = 12 * ps;
+            obj.KeyFontSize = 10 * ps;
+            obj.ScoreFontSize = 10 * ps;
+            obj.FooterFontSize = 9 * ps;
 
             obj.createGraphics();
         end

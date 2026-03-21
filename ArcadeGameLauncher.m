@@ -365,11 +365,6 @@ classdef ArcadeGameLauncher < handle
             if relScale ~= 1.0
                 GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
             end
-
-            % Impose deterministic menu font sizes from current pixel size
-            if ~isempty(obj.Menu)
-                obj.Menu.scaleFonts();
-            end
         end
     end
 
@@ -640,7 +635,6 @@ classdef ArcadeGameLauncher < handle
             obj.hideGameplayHUD();
             if ~isempty(obj.Menu)
                 obj.Menu.show();
-                obj.Menu.scaleFonts();
             end
         end
 
