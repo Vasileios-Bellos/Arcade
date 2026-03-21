@@ -64,6 +64,10 @@ No pending scaling work for arcade games.
 
 - [ ] Move screen-space scaling documentation from CLAUDE.md to ARCADE_DETAILS.md — the FontScale system, creation/resize rules, onFigResize flow, standalone vs hosted, scaleScreenSpaceObjects
 
+## Game Bugs
+
+- [ ] Tetris: rapidly rotating a piece on low speed can stall it indefinitely on the landing row — instant lock doesn't prevent rotation-based stalling
+
 ## Code Quality
 
 - [ ] Checkcode warnings cleanup across arcade files
