@@ -783,7 +783,7 @@ classdef ArcadeGameLauncher < handle
             cy = mean(dy);
 
             if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
-                obj.StatusTextH.Position = [cx, cy - diff(dy) * 0.08, 0];
+                obj.StatusTextH.Position = [cx, cy - diff(dy) * 0.15, 0];
                 titleStr = "GAME OVER";
                 if isfield(results, "Title") && strlength(results.Title) > 0
                     titleStr = results.Title;
@@ -795,7 +795,7 @@ classdef ArcadeGameLauncher < handle
             end
 
             if ~isempty(obj.ComboTextH) && isvalid(obj.ComboTextH)
-                obj.ComboTextH.Position = [cx, cy + diff(dy) * 0.02, 0];
+                obj.ComboTextH.Position = [cx, cy - diff(dy) * 0.05, 0];
                 obj.ComboTextH.HorizontalAlignment = "center";
                 detailLines = {};
                 % Line 1: game-specific details

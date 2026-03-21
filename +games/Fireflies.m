@@ -304,12 +304,8 @@ classdef Fireflies < GameBase
         function r = getResults(obj)
             %getResults  Return catching-specific results.
             r.Title = "FIREFLIES";
-            nHit = obj.FirefliesCaught;
-            nTotal = nHit + obj.FirefliesMissed;
-            accuracy = 0;
-            if nTotal > 0; accuracy = nHit / nTotal * 100; end
             r.Lines = {
-                sprintf("Caught: %d/%d (%.0f%%)", nHit, nTotal, accuracy)
+                sprintf("Caught: %d", obj.FirefliesCaught)
             };
         end
     end
