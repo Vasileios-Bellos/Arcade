@@ -317,7 +317,7 @@ classdef Breakout < GameBase
 
             % --- Serve mode ---
             if obj.Serving
-                obj.BallPos = [obj.PaddleX, py - obj.BallRadius - 2];
+                obj.BallPos = [obj.PaddleX, py - obj.BallRadius];
                 obj.ServeCountdown = obj.ServeCountdown - ds;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
@@ -732,7 +732,7 @@ classdef Breakout < GameBase
             %serveBall  Place ball on paddle, prepare serve.
             obj.Serving = true;
             obj.ServeCountdown = 60;  % ~1s at 60fps
-            obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 2];
+            obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius];
             obj.BallVel = [0, 0];
             obj.CatchHeld = false;
             obj.TrailBufX(:) = NaN;
