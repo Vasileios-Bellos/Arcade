@@ -58,6 +58,10 @@ classdef SpaceInvaders < GameBase
         FireCD              (1,1) double = 0
         FireRate             (1,1) double = 29           % frames between shots
 
+        % Combo timeout
+        LastKillTic                         % tic of last alien kill
+        ComboTimeout    (1,1) double = 2.4  % seconds before combo resets
+
         % Wave / Lives
         Wave                (1,1) double = 1
         Lives               (1,1) double = 3
@@ -256,6 +260,13 @@ classdef SpaceInvaders < GameBase
 
             ds = obj.DtScale;
 
+            % Combo timeout
+            if obj.Combo > 0 && ~isempty(obj.LastKillTic) && ...
+                    toc(obj.LastKillTic) >= obj.ComboTimeout
+                obj.resetCombo();
+                obj.LastKillTic = [];
+            end
+
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -324,6 +335,7 @@ classdef SpaceInvaders < GameBase
                             obj.Aliens(a) = [];
                             obj.addScore(50 * al.type);
                             obj.incrementCombo();
+                            obj.LastKillTic = tic;
                             % Chance to drop power-up
                             if rand < 0.08
                                 obj.spawnPowerUp(al.x, al.y);
