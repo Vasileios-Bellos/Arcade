@@ -782,7 +782,7 @@ classdef Tetris < GameBase
                         obj.BoardCell(r, c).FaceColor = clr;
                         obj.BoardCell(r, c).FaceAlpha = 0.75;
                         obj.BoardCell(r, c).EdgeColor = brightClr;
-                        obj.BoardCell(r, c).LineWidth = 0.81 * obj.getPixelScale();
+                        obj.BoardCell(r, c).LineWidth = 0.81 * obj.FontScale;
                         obj.BoardCell(r, c).Visible = "on";
                     end
                 end
@@ -1138,7 +1138,7 @@ classdef Tetris < GameBase
                             obj.BoardCell(r, c).FaceColor = clr;
                             obj.BoardCell(r, c).FaceAlpha = 0.75;
                             obj.BoardCell(r, c).EdgeColor = brightClr;
-                            obj.BoardCell(r, c).LineWidth = 0.81 * obj.getPixelScale();
+                            obj.BoardCell(r, c).LineWidth = 0.81 * obj.FontScale;
                             obj.BoardCell(r, c).Visible = "on";
                         end
                     else

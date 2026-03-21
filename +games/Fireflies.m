@@ -425,7 +425,7 @@ classdef Fireflies < GameBase
             hTrail = obj.FFPoolTrailH{slot};
             hTrailGlow = obj.FFPoolTrailGlowH{slot};
 
-            ffps = obj.getPixelScale();
+            ffps = obj.FontScale;
             set(hAura, "XData", startX, "YData", startY, ...
                 "SizeData", (auraSize * ffps)^2, "MarkerFaceColor", clr, "Visible", "on");
             set(hTrailGlow, "XData", NaN, "YData", NaN, ...

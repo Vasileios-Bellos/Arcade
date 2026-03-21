@@ -517,11 +517,11 @@ classdef Juggling < GameBase
             obj.ExtraBallTrailIdx(end+1) = 0;
 
             r = obj.BallRadius;
-            ps = obj.getPixelScale();
+            ps = obj.FontScale;
             glowSize = r * 2.5 * ps;
 
             % Graphics (same z-order as main ball)
-            eps_ = obj.getPixelScale();
+            eps_ = obj.FontScale;
             trailGlowH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.12], "LineWidth", 4.3 * eps_, ...
                 "Tag", "GT_juggle");

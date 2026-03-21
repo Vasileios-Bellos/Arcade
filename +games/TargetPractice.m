@@ -348,7 +348,7 @@ classdef TargetPractice < GameBase
             r = obj.TargetRadius;
             cx = obj.TargetPos(1);
             cy = obj.TargetPos(2);
-            ps = obj.getPixelScale();
+            ps = obj.FontScale;
 
             outerDiam = r * 2.5 * ps;
             innerDiam = r * 0.5 * 2.5 * ps;

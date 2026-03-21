@@ -696,7 +696,7 @@ classdef SpaceInvaders < GameBase
                     px = alienX + sx;
                     py = alienY + sy;
 
-                    aps = obj.getPixelScale();
+                    aps = obj.FontScale;
                     glowH = patch(ax, "XData", px, "YData", py, ...
                         "FaceColor", clr, "FaceAlpha", 0.15, ...
                         "EdgeColor", clr * 0.5, "LineWidth", 1.4 * aps, "Tag", "GT_spaceinvaders");

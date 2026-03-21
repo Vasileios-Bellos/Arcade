@@ -707,7 +707,7 @@ classdef Breakout < GameBase
                           by + brickH - brickGap/2, by + brickH - brickGap/2];
 
                     % Glow (behind)
-                    bps = obj.getPixelScale();
+                    bps = obj.FontScale;
                     glowH = patch(ax, xv, yv, brickColor, ...
                         "FaceAlpha", 0, "EdgeColor", brickColor * 0.35, ...
                         "LineWidth", 2.2 * bps, "Tag", "GT_breakout");
@@ -989,7 +989,7 @@ classdef Breakout < GameBase
             pSpeed = 0.625 * obj.Sc;
 
             % Glow aura
-            pups = obj.getPixelScale();
+            pups = obj.FontScale;
             glowH = line(ax, x, y, "Color", [pColor, 0.2], ...
                 "Marker", ".", "MarkerSize", 11 * pups, ...
                 "LineStyle", "none", "Tag", "GT_breakout");
@@ -1158,7 +1158,7 @@ classdef Breakout < GameBase
             if isempty(ax) || ~isvalid(ax); return; end
 
             ballR = obj.BallRadius;
-            ps = obj.getPixelScale();
+            ps = obj.FontScale;
             auraSize = max(15, ballR * 5);
             coreSize = max(6, ballR * 2);
             glowSize = ballR * 2.5 * ps;
@@ -1193,7 +1193,7 @@ classdef Breakout < GameBase
                     cH = line(ax, bpos(1), bpos(2), ...
                         "Color", [1, 1, 1, 1], "Marker", ".", ...
                         "MarkerSize", coreSize, "LineStyle", "none", "Tag", "GT_breakout");
-                    ebps = obj.getPixelScale();
+                    ebps = obj.FontScale;
                     tH = line(ax, NaN, NaN, ...
                         "Color", [obj.ColorCyan, 0.3], "LineWidth", 0.8 * ebps, "Tag", "GT_breakout");
                     tgH = line(ax, NaN, NaN, ...

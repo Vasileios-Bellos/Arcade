@@ -314,7 +314,7 @@ classdef RailShooter < GameBase
                     obj.buildSpawnWave(obj.Wave);
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
                         obj.WaveTextH.String = sprintf("WAVE %d", obj.Wave);
-                        obj.WaveTextH.FontSize = 7.6 * obj.getPixelScale();
+                        obj.WaveTextH.FontSize = 7.6 * obj.FontScale;
                         % Restore to top-center HUD position
                         obj.WaveTextH.Position(2) = dy(1) + 14;
                     end
@@ -631,7 +631,7 @@ classdef RailShooter < GameBase
                     if ~isempty(obj.WaveTextH) && isvalid(obj.WaveTextH)
                         obj.WaveTextH.String = "WAVE CLEARED!";
                         obj.WaveTextH.Color = [obj.ColorGreen, 1];
-                        obj.WaveTextH.FontSize = 9.7 * obj.getPixelScale();
+                        obj.WaveTextH.FontSize = 9.7 * obj.FontScale;
                         % Move to 35% from top so it does not overlap combo text
                         obj.WaveTextH.Position(2) = dy(1) + areaH * 0.35;
                     end
@@ -799,7 +799,7 @@ classdef RailShooter < GameBase
             faceCol = obj.monsterColor(mType);
 
             % Body patch
-            mps = obj.getPixelScale();
+            mps = obj.FontScale;
             bodyPatchH = patch(ax, scrX + shapeX * bodySize, ...
                 scrY + shapeY * bodySize, faceCol, ...
                 "FaceAlpha", 0.4, "EdgeColor", faceCol, ...
@@ -1017,7 +1017,7 @@ classdef RailShooter < GameBase
         function ribsH = createDetailLines(obj, mType, scrX, scrY, bodySize, faceCol)
             %createDetailLines  Create inner detail lines for a monster.
             ax = obj.Ax;
-            dlps = obj.getPixelScale();
+            dlps = obj.FontScale;
             detailAlpha = 0.3;
             switch mType
                 case 1  % Fighter: center spine line
