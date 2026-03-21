@@ -377,12 +377,14 @@ classdef Breakout < GameBase
             end
 
             % --- Paddle collision (swept: detect crossing from above) ---
-            crossedPaddle = prePos(2) < py && obj.BallPos(2) >= py && obj.BallVel(2) > 0;
-            atPaddle = obj.BallPos(2) >= py && obj.BallPos(2) <= py + ph && obj.BallVel(2) > 0;
+            ballR = obj.BallRadius;
+            pyHit = py - ballR;  % ball edge touches paddle top
+            crossedPaddle = prePos(2) < pyHit && obj.BallPos(2) >= pyHit && obj.BallVel(2) > 0;
+            atPaddle = obj.BallPos(2) >= pyHit && obj.BallPos(2) <= py + ph && obj.BallVel(2) > 0;
             if crossedPaddle || atPaddle
                 % Interpolate X at paddle Y crossing
                 if crossedPaddle && obj.BallVel(2) > 0
-                    tHit = (py - prePos(2)) / (obj.BallVel(2) * ds);
+                    tHit = (pyHit - prePos(2)) / (obj.BallVel(2) * ds);
                     hitX = prePos(1) + tHit * obj.BallVel(1) * ds;
                 else
                     hitX = obj.BallPos(1);
