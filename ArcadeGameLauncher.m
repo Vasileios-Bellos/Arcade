@@ -495,7 +495,7 @@ classdef ArcadeGameLauncher < handle
                 elseif obj.Combo == 0 && prevCombo > 0
                     % Start fade-out on combo loss
                     obj.ComboFadeTic = tic;
-                    obj.ComboFadeColor = obj.ColorRed;
+                    obj.ComboFadeColor = obj.ColorGreen * 0.9;
                     obj.ComboShowTic = [];
                 end
             end
