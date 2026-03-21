@@ -490,7 +490,7 @@ classdef (Abstract) GameBase < handle
             allText = findall(ax, "Type", "text");
             for k = 1:numel(allText)
                 t = allText(k);
-                t.FontSize = max(4, round(t.FontSize * pixelScale));
+                t.FontSize = t.FontSize * pixelScale;
             end
 
             % --- Scatter: scale SizeData (area scales as ratio^2) ---
