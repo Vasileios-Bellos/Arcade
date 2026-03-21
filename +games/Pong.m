@@ -178,20 +178,18 @@ classdef Pong < GameBase
                 "Color", [obj.ColorCyan, 0.5], "LineWidth", 2.5 * ps, ...
                 "LineStyle", "-", "Tag", "GT_pong");
 
-            % Ball aura, glow ring, core (screen-space sizes scaled by ps)
+            % Ball aura (scatter, transparent), glow dot, core dot
             r = obj.BallRadius;
             auraSize = r * 5 * ps;
-            coreSize = r * 2 * ps;
-            obj.BallAuraH = line(ax, NaN, NaN, ...
-                "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
-                "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_pong");
-            glowSize = r * 3 * ps;
-            obj.BallGlowH = scatter(ax, cx, cy, pi * (glowSize/2)^2, ...
-                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
+            obj.BallAuraH = scatter(ax, NaN, NaN, pi * (auraSize/2)^2, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.15, ...
                 "Tag", "GT_pong");
-            obj.BallCoreH = line(ax, cx, cy, ...
-                "Color", [1, 1, 1, 1], "Marker", ".", ...
-                "MarkerSize", coreSize, "LineStyle", "none", "Tag", "GT_pong");
+            obj.BallGlowH = line(ax, NaN, NaN, ...
+                "Color", obj.ColorCyan, "Marker", ".", ...
+                "MarkerSize", r * 3 * ps, "LineStyle", "none", "Tag", "GT_pong");
+            obj.BallCoreH = line(ax, NaN, NaN, ...
+                "Color", [1 1 1], "Marker", ".", ...
+                "MarkerSize", r * 2 * ps, "LineStyle", "none", "Tag", "GT_pong");
 
             % AI paddle (left, red) — outline only
             aiX = dx(1) + obj.PaddleMargin;
@@ -704,13 +702,13 @@ classdef Pong < GameBase
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
                 obj.BallGlowH.XData = bx;
                 obj.BallGlowH.YData = by;
-                obj.BallGlowH.CData = clr;
+                obj.BallGlowH.Color = clr;
             end
-            % Ball aura
+            % Ball aura (scatter)
             if ~isempty(obj.BallAuraH) && isvalid(obj.BallAuraH)
                 obj.BallAuraH.XData = bx;
                 obj.BallAuraH.YData = by;
-                obj.BallAuraH.Color = [clr, 0.12];
+                obj.BallAuraH.CData = clr;
             end
 
             % Trail
