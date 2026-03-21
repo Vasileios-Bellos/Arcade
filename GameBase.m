@@ -519,21 +519,15 @@ classdef (Abstract) GameBase < handle
             for k = 1:numel(allLines)
                 ln = allLines(k);
                 if ~isvalid(ln); continue; end
-                if ln.MarkerSize > 6
-                    ln.MarkerSize = max(1, ln.MarkerSize * pixelScale);
-                end
-                if ln.LineWidth > 0.5
-                    ln.LineWidth = max(0.5, ln.LineWidth * pixelScale);
-                end
+                ln.MarkerSize = ln.MarkerSize * pixelScale;
+                ln.LineWidth = ln.LineWidth * pixelScale;
             end
 
             % --- Patch: scale LineWidth ---
             allPatches = findall(ax, "Type", "patch");
             for k = 1:numel(allPatches)
                 p = allPatches(k);
-                if p.LineWidth > 0.5
-                    p.LineWidth = max(0.5, p.LineWidth * pixelScale);
-                end
+                p.LineWidth = p.LineWidth * pixelScale;
             end
         end
     end
