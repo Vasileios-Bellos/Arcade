@@ -122,6 +122,7 @@ classdef FruitNinja < GameBase
             obj.Score = 0;
             obj.Combo = 0;
             obj.MaxCombo = 0;
+            obj.ComboAutoFade = false;
 
             dx = displayRange.X;
             dy = displayRange.Y;
