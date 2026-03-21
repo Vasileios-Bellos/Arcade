@@ -58,8 +58,6 @@ classdef FlickIt < GameBase
         % Display scaling
         SpeedScale          (1,1) double = 1               % visual speed normalization: 180/minDim
 
-        % Cached constants
-        ThetaCircle48       (1,48) double                 % pre-computed linspace(0,2pi,48)
     end
 
     % =================================================================
@@ -67,7 +65,7 @@ classdef FlickIt < GameBase
     % =================================================================
     properties (Access = private)
         CoreH                   % line — bright core dot
-        GlowH                   % line — neon glow ring
+        GlowH                   % scatter — neon glow ring
         AuraH                   % line — outer soft aura
         TrailH                   % line — comet trail
         TrailGlowH               % line — trail soft glow
@@ -132,9 +130,6 @@ classdef FlickIt < GameBase
             obj.TrailBufY = NaN(1, obj.TrailLen);
             obj.TrailIdx = 0;
 
-            % Pre-compute constant arrays
-            obj.ThetaCircle48 = linspace(0, 2*pi, 48);
-
             % --- Create graphics (layered for depth) ---
 
             % Trail glow (wide, soft, behind everything)
@@ -153,12 +148,13 @@ classdef FlickIt < GameBase
                 "MarkerSize", 50, "LineStyle", "none", ...
                 "Visible", "on", "Tag", "GT_flick");
 
-            % Glow ring
-            theta = linspace(0, 2*pi, 48);
+            % Glow ring (scatter for proper transparency)
             rr = obj.BallRadius;
-            obj.GlowH = line(ax, cx + rr * cos(theta), cy + rr * sin(theta), ...
-                "Color", [obj.ColorCyan, 0.4], "LineWidth", 6, ...
-                "LineStyle", "-", "Visible", "on", "Tag", "GT_flick");
+            ps = obj.getPixelScale();
+            glowSize = rr * 2.5 * ps;
+            obj.GlowH = scatter(ax, cx, cy, pi * (glowSize/2)^2, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
+                "Visible", "on", "Tag", "GT_flick");
 
             % Bright core dot
             obj.CoreH = line(ax, cx, cy, ...
@@ -493,13 +489,11 @@ classdef FlickIt < GameBase
 
             % --- Glow ring ---
             if ~isempty(obj.GlowH) && isvalid(obj.GlowH)
-                gr = rr * breath;
-                obj.GlowH.XData = bx + gr * cos(obj.ThetaCircle48);
-                obj.GlowH.YData = by + gr * sin(obj.ThetaCircle48);
+                obj.GlowH.XData = bx;
+                obj.GlowH.YData = by;
                 glowAlpha = 0.3 + min(0.5, spd * 0.04);
-                glowWidth = (4 + min(4, spd * 0.3)) * obj.FontScale;
-                obj.GlowH.Color = [clr, glowAlpha];
-                obj.GlowH.LineWidth = max(0.5, glowWidth);
+                obj.GlowH.CData = clr;
+                obj.GlowH.MarkerFaceAlpha = glowAlpha;
             end
 
             % --- Outer aura ---
