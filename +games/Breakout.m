@@ -377,8 +377,9 @@ classdef Breakout < GameBase
             end
 
             % --- Paddle collision (swept: detect crossing from above) ---
-            crossedPaddle = prePos(2) < py && obj.BallPos(2) >= py && obj.BallVel(2) > 0;
-            atPaddle = obj.BallPos(2) >= py && obj.BallPos(2) <= py + ph && obj.BallVel(2) > 0;
+            collR = obj.BallRadius * 0.5;
+            crossedPaddle = prePos(2) + collR < py && obj.BallPos(2) + collR >= py && obj.BallVel(2) > 0;
+            atPaddle = obj.BallPos(2) + collR >= py && obj.BallPos(2) + collR <= py + ph && obj.BallVel(2) > 0;
             if crossedPaddle || atPaddle
                 % Interpolate X at paddle Y crossing
                 if crossedPaddle && obj.BallVel(2) > 0
@@ -747,9 +748,9 @@ classdef Breakout < GameBase
 
         function [newPos, newVel] = brickCollision(obj, prePos, ballPos, ballVel)
             %brickCollision  Swept ball-brick collision.
-            %   Tests the ball center path from prePos to ballPos against
-            %   each brick AABB. Center-point collision (same as Pong/FlickIt walls).
-            ballR = 0;
+            %   Tests the ball path from prePos to ballPos against each
+            %   brick AABB expanded by a small collision radius.
+            ballR = obj.BallRadius * 0.5;
             newPos = ballPos;
             newVel = ballVel;
             isFireball = ~isnan(obj.ActivePowers.fireball);
