@@ -90,9 +90,6 @@ classdef Breakout < GameBase
         Sc              (1,1) double = 1
 
         % Pre-computed circle geometry (avoid linspace/cos/sin per frame)
-        Theta48         (1,48) double       % glow ring (ball, extra balls)
-        CosT48          (1,48) double
-        SinT48          (1,48) double
         Theta24         (1,24) double       % power-up capsule
         CosT24          (1,24) double
         SinT24          (1,24) double
@@ -154,9 +151,6 @@ classdef Breakout < GameBase
             obj.PaddleY = dy(2) - round(areaH * 0.08);
 
             % Pre-compute circle geometry (avoid per-frame linspace/trig)
-            obj.Theta48 = linspace(0, 2*pi, 48);
-            obj.CosT48 = cos(obj.Theta48);
-            obj.SinT48 = sin(obj.Theta48);
             obj.Theta24 = linspace(0, 2*pi, 24);
             obj.CosT24 = cos(obj.Theta24);
             obj.SinT24 = sin(obj.Theta24);
@@ -199,15 +193,15 @@ classdef Breakout < GameBase
 
             % Ball aura, glow ring, core
             ballR = obj.BallRadius;
+            ps = obj.getPixelScale();
             auraSize = max(15, ballR * 5);
             coreSize = max(6, ballR * 2);
-            glowWidth = max(2, ballR * 0.6);
+            glowSize = ballR * 2.5 * ps;
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                 "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_breakout");
-            theta = linspace(0, 2*pi, 48);
-            obj.BallGlowH = line(ax, cx + ballR*cos(theta), cx + ballR*sin(theta), ...
-                "Color", [obj.ColorCyan, 0.4], "LineWidth", glowWidth, ...
+            obj.BallGlowH = scatter(ax, cx, cx, pi * (glowSize/2)^2, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
                 "Tag", "GT_breakout");
             obj.BallCoreH = line(ax, cx, cx, ...
                 "Color", [1, 1, 1, 1], "Marker", ".", ...
@@ -1153,10 +1147,10 @@ classdef Breakout < GameBase
             if isempty(ax) || ~isvalid(ax); return; end
 
             ballR = obj.BallRadius;
+            ps = obj.getPixelScale();
             auraSize = max(15, ballR * 5);
             coreSize = max(6, ballR * 2);
-            glowWidth = max(2, ballR * 0.6);
-            theta = linspace(0, 2*pi, 48);
+            glowSize = ballR * 2.5 * ps;
             splitAngles = [-pi/4, pi/4];
 
             % Collect source ball positions/velocities (primary + extras)
@@ -1182,8 +1176,8 @@ classdef Breakout < GameBase
                     aH = line(ax, bpos(1), bpos(2), ...
                         "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                         "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_breakout");
-                    gH = line(ax, bpos(1) + ballR*cos(theta), bpos(2) + ballR*sin(theta), ...
-                        "Color", [obj.ColorCyan, 0.4], "LineWidth", glowWidth, ...
+                    gH = scatter(ax, bpos(1), bpos(2), pi * (glowSize/2)^2, ...
+                        obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
                         "Tag", "GT_breakout");
                     cH = line(ax, bpos(1), bpos(2), ...
                         "Color", [1, 1, 1, 1], "Marker", ".", ...
@@ -1291,9 +1285,10 @@ classdef Breakout < GameBase
                     else
                         glC = ebColor; glA = 0.5;
                     end
-                    set(eb.glowH, "XData", eb.pos(1) + obj.BallRadius * obj.CosT48, ...
-                        "YData", eb.pos(2) + obj.BallRadius * obj.SinT48, ...
-                        "Color", [glC, glA]);
+                    eb.glowH.XData = eb.pos(1);
+                    eb.glowH.YData = eb.pos(2);
+                    eb.glowH.CData = glC;
+                    eb.glowH.MarkerFaceAlpha = glA;
                 end
                 if ~isempty(eb.coreH) && isvalid(eb.coreH)
                     set(eb.coreH, "XData", eb.pos(1), "YData", eb.pos(2));
@@ -1389,10 +1384,10 @@ classdef Breakout < GameBase
                     glowColor = ballColor;
                     glowAlpha = 0.5;
                 end
-                set(obj.BallGlowH, ...
-                    "XData", obj.BallPos(1) + ballR * obj.CosT48, ...
-                    "YData", obj.BallPos(2) + ballR * obj.SinT48, ...
-                    "Color", [glowColor, glowAlpha]);
+                obj.BallGlowH.XData = obj.BallPos(1);
+                obj.BallGlowH.YData = obj.BallPos(2);
+                obj.BallGlowH.CData = glowColor;
+                obj.BallGlowH.MarkerFaceAlpha = glowAlpha;
             end
 
             % Aura — larger red aura during fireball
