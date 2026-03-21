@@ -775,7 +775,7 @@ classdef RailShooter < GameBase
             switch mType
                 case 1; hp = 3;  spd = 0.0042; sizeMult = 1.0;
                 case 2; hp = 8;  spd = 0.0025; sizeMult = 1.5;
-                case 3; hp = 2;  spd = 0.0075; sizeMult = 0.7;
+                case 3; hp = 2;  spd = 0.005;  sizeMult = 0.7;
                 case 4; hp = 25; spd = 0.0017; sizeMult = 2.2;
                 otherwise; hp = 3; spd = 0.0042; sizeMult = 1.0;
             end
