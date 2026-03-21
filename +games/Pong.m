@@ -178,18 +178,21 @@ classdef Pong < GameBase
                 "Color", [obj.ColorCyan, 0.5], "LineWidth", 2.5 * ps, ...
                 "LineStyle", "-", "Tag", "GT_pong");
 
-            % Ball aura (scatter, transparent), glow dot, core dot
+            % Ball aura, glow ring, core (screen-space sizes scaled by ps)
             r = obj.BallRadius;
             auraSize = r * 5 * ps;
-            obj.BallAuraH = scatter(ax, NaN, NaN, pi * (auraSize/2)^2, ...
-                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.15, ...
+            coreSize = r * 2 * ps;
+            glowWidth = r * 0.6 * ps;
+            obj.BallAuraH = line(ax, NaN, NaN, ...
+                "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
+                "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_pong");
+            theta = linspace(0, 2*pi, 48);
+            obj.BallGlowH = line(ax, cx + r*cos(theta), cy + r*sin(theta), ...
+                "Color", [obj.ColorCyan, 0.4], "LineWidth", glowWidth, ...
                 "Tag", "GT_pong");
-            obj.BallGlowH = line(ax, NaN, NaN, ...
-                "Color", obj.ColorCyan, "Marker", ".", ...
-                "MarkerSize", r * 3 * ps, "LineStyle", "none", "Tag", "GT_pong");
-            obj.BallCoreH = line(ax, NaN, NaN, ...
-                "Color", [1 1 1], "Marker", ".", ...
-                "MarkerSize", r * 2 * ps, "LineStyle", "none", "Tag", "GT_pong");
+            obj.BallCoreH = line(ax, cx, cy, ...
+                "Color", [1, 1, 1, 1], "Marker", ".", ...
+                "MarkerSize", coreSize, "LineStyle", "none", "Tag", "GT_pong");
 
             % AI paddle (left, red) — outline only
             aiX = dx(1) + obj.PaddleMargin;
@@ -698,17 +701,17 @@ classdef Pong < GameBase
                 obj.BallCoreH.XData = bx;
                 obj.BallCoreH.YData = by;
             end
-            % Ball glow
+            % Ball glow ring
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
-                obj.BallGlowH.XData = bx;
-                obj.BallGlowH.YData = by;
-                obj.BallGlowH.Color = clr;
+                obj.BallGlowH.XData = bx + r * cos(obj.ThetaCircle48);
+                obj.BallGlowH.YData = by + r * sin(obj.ThetaCircle48);
+                obj.BallGlowH.Color = [clr, 0.4];
             end
-            % Ball aura (scatter)
+            % Ball aura
             if ~isempty(obj.BallAuraH) && isvalid(obj.BallAuraH)
                 obj.BallAuraH.XData = bx;
                 obj.BallAuraH.YData = by;
-                obj.BallAuraH.CData = clr;
+                obj.BallAuraH.Color = [clr, 0.12];
             end
 
             % Trail
