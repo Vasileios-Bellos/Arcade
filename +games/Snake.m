@@ -51,6 +51,8 @@ classdef Snake < GameBase
         KeyboardMode    (1,1) logical = false       % true while arrow keys drive direction
         PrevPos         (1,2) double = [NaN, NaN]   % previous mouse/finger position
         GameOver        (1,1) logical = false
+        LastFoodTic                         % tic of last food eaten
+        ComboTimeout    (1,1) double = 2.4  % seconds before combo resets (1.5x host fade)
 
         % Grid geometry
         GridCols        (1,1) double = 25
@@ -276,6 +278,7 @@ classdef Snake < GameBase
             if ~any(isnan(obj.FoodPos)) && isequal(newHead, obj.FoodPos)
                 ate = true;
                 obj.incrementCombo();
+                obj.LastFoodTic = tic;
                 totalPoints = round(100 * obj.comboMultiplier());
                 obj.addScore(totalPoints);
                 foodXY = obj.gridToData(obj.FoodPos);
@@ -291,6 +294,13 @@ classdef Snake < GameBase
                 obj.Body = [newHead; obj.Body];
             else
                 obj.Body = [newHead; obj.Body(1:end-1, :)];
+            end
+
+            % Combo timeout
+            if obj.Combo > 0 && ~isempty(obj.LastFoodTic) && ...
+                    toc(obj.LastFoodTic) >= obj.ComboTimeout
+                obj.resetCombo();
+                obj.LastFoodTic = [];
             end
 
             % Update graphics
