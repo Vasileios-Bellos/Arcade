@@ -193,8 +193,8 @@ classdef Breakout < GameBase
 
             % Ball aura, glow ring, core
             ballR = obj.BallRadius;
-            auraSize = max(15, ballR * 5);
-            coreSize = max(6, ballR * 2);
+            auraSize = ballR * 5 * obj.FontScale;
+            coreSize = ballR * 2 * obj.FontScale;
             glowSize = ballR * 2.5 * obj.FontScale;
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
@@ -1149,8 +1149,8 @@ classdef Breakout < GameBase
 
             ballR = obj.BallRadius;
             ps = obj.FontScale;
-            auraSize = max(15, ballR * 5);
-            coreSize = max(6, ballR * 2);
+            auraSize = ballR * 5 * ps;
+            coreSize = ballR * 2 * ps;
             glowSize = ballR * 2.5 * ps;
             splitAngles = [-pi/4, pi/4];
 
@@ -1274,11 +1274,11 @@ classdef Breakout < GameBase
                     if ebFireball
                         set(eb.auraH, "XData", eb.pos(1), "YData", eb.pos(2), ...
                             "Color", [obj.ColorRed, 0.25], ...
-                            "MarkerSize", max(20, obj.BallRadius * 7));
+                            "MarkerSize", obj.BallRadius * 7 * obj.FontScale);
                     else
                         set(eb.auraH, "XData", eb.pos(1), "YData", eb.pos(2), ...
                             "Color", [ebColor, 0.15], ...
-                            "MarkerSize", max(15, obj.BallRadius * 5));
+                            "MarkerSize", obj.BallRadius * 5 * obj.FontScale);
                     end
                 end
                 if ~isempty(eb.glowH) && isvalid(eb.glowH)
@@ -1397,11 +1397,11 @@ classdef Breakout < GameBase
                 if isFireball
                     auraColor = obj.ColorRed;
                     auraAlpha = 0.25;
-                    auraSize = max(20, ballR * 7);
+                    auraSize = ballR * 7 * obj.FontScale;
                 else
                     auraColor = ballColor;
                     auraAlpha = 0.15;
-                    auraSize = max(15, ballR * 5);
+                    auraSize = ballR * 5 * obj.FontScale;
                 end
                 set(obj.BallAuraH, "XData", obj.BallPos(1), ...
                     "YData", obj.BallPos(2), "Color", [auraColor, auraAlpha], ...
@@ -1427,7 +1427,7 @@ classdef Breakout < GameBase
                     ty = ty(firstValid:end);
                 end
                 trailAlpha = min(0.5, 0.15 + spd * 0.03);
-                trailWidth = min(3.5, 1.5 + spd * 0.1);
+                trailWidth = min(3.5, 1.5 + spd * 0.1) * obj.FontScale;
                 if isFireball
                     trailColor = obj.ColorRed;
                 else
