@@ -105,7 +105,7 @@ classdef ArcadeGameLauncher < handle
     properties (SetAccess = private)
         CountdownValue  (1,1) double = 3
         CountdownTimer  (1,1) double = 0    % seconds remaining for current number
-        CountdownNumDur (1,1) double = 0.5  % seconds per number (3, 2, 1)
+        CountdownNumDur (1,1) double = 0.67 % seconds per number (matches Pong: 40/60)
         CountdownGoDur  (1,1) double = 0.25 % seconds for GO!
         PendingGameKey  string = ""
     end
@@ -704,14 +704,11 @@ classdef ArcadeGameLauncher < handle
             end
 
             if obj.CountdownTimer <= 0
+                obj.CountdownValue = obj.CountdownValue - 1;
                 if obj.CountdownValue > 0
-                    obj.CountdownValue = obj.CountdownValue - 1;
-                    if obj.CountdownValue > 0
-                        obj.CountdownTimer = obj.CountdownNumDur;
-                    else
-                        obj.CountdownTimer = obj.CountdownGoDur;
-                    end
+                    obj.CountdownTimer = obj.CountdownNumDur;
                 else
+                    % Hide immediately and launch
                     if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
                         obj.StatusTextH.Visible = "off";
                     end
