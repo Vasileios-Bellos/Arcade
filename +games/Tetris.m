@@ -456,6 +456,7 @@ classdef Tetris < GameBase
                     if ~obj.LockActive
                         obj.LockActive = true;
                         obj.LockTimer = 0;
+                        obj.LockMoveCount = 0;
                     end
                     break;
                 end
