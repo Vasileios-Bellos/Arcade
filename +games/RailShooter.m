@@ -429,7 +429,7 @@ classdef RailShooter < GameBase
 
                 % Interceptor zigzag
                 if m.type == 3
-                    zigzag = sin(m.phase * 4) * areaW * 0.08 * scaleVal;
+                    zigzag = sin(m.phase * 2.5) * areaW * 0.05 * scaleVal;
                     m.screenX = m.screenX + zigzag;
                 end
 
