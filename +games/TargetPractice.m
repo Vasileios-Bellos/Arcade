@@ -104,7 +104,7 @@ classdef TargetPractice < GameBase
                 "Visible", "off", "Tag", "GT_targetpractice");
             obj.TargetDot = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorWhite, 1], "Marker", ".", ...
-                "MarkerSize", 8, "LineStyle", "none", ...
+                "MarkerSize", 4.3 * ps, "LineStyle", "none", ...
                 "Visible", "off", "Tag", "GT_targetpractice");
 
             % --- Trail line (ghost path to target) ---
@@ -389,7 +389,7 @@ classdef TargetPractice < GameBase
             r = obj.TargetRadius;
             cx = obj.TargetPos(1);
             cy = obj.TargetPos(2);
-            ps = obj.FontScale;
+            ps = obj.getPixelScale();
 
             % Breathing
             breathe = 1 + 0.12 * sin(obj.PulsePhase);
