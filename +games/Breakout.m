@@ -312,10 +312,22 @@ classdef Breakout < GameBase
                         obj.LevelTextH.Color = [obj.ColorCyan, max(0, (1 - tProg) / 0.3)];
                     end
                 end
-                % Track paddle during announce
+                % Track paddle + ball on paddle during announce
                 if ~any(isnan(pos))
                     obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
                     obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
+                    % Update paddle visuals
+                    px = obj.PaddleX;
+                    pw = obj.PaddleW;
+                    ph = obj.PaddleHt;
+                    py = obj.PaddleY;
+                    xv = [px-pw/2, px+pw/2, px+pw/2, px-pw/2];
+                    if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
+                        set(obj.PaddleGlowH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
+                    end
+                    if ~isempty(obj.PaddleFaceH) && isvalid(obj.PaddleFaceH)
+                        set(obj.PaddleFaceH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
+                    end
                 end
                 obj.updateBallGraphics();
                 if obj.LevelTransFrames <= 0
@@ -784,10 +796,8 @@ classdef Breakout < GameBase
             obj.Serving = false;
         end
 
-        function [newPos, newVel] = brickCollision(obj, prePos, ballPos, ballVel)
-            %brickCollision  Swept ball-brick collision.
-            %   Tests the ball path from prePos to ballPos against each
-            %   brick AABB expanded by BallRadius.
+        function [newPos, newVel] = brickCollision(obj, ~, ballPos, ballVel)
+            %brickCollision  AABB ball-brick collision with center-based reflection.
             ballR = obj.BallRadius;
             newPos = ballPos;
             newVel = ballVel;
@@ -799,58 +809,31 @@ classdef Breakout < GameBase
                     continue;
                 end
 
-                % Expand brick AABB by ball radius (Minkowski sum)
-                bx1 = brk.x - ballR;
-                bx2 = brk.x + brk.w + ballR;
-                by1 = brk.y - ballR;
-                by2 = brk.y + brk.h + ballR;
+                % AABB closest-point distance check
+                bx1 = brk.x;
+                bx2 = brk.x + brk.w;
+                by1 = brk.y;
+                by2 = brk.y + brk.h;
+                nearX = max(bx1, min(newPos(1), bx2));
+                nearY = max(by1, min(newPos(2), by2));
+                distSq = (newPos(1) - nearX)^2 + (newPos(2) - nearY)^2;
+                if distSq > ballR^2; continue; end
 
-                % Swept point-vs-expanded-rect: find earliest t in (0,1]
-                dx = newPos(1) - prePos(1);
-                dy = newPos(2) - prePos(2);
-                tMin = 1e-6; tMax = 1;
-
-                % X slab
-                if abs(dx) < 1e-12
-                    if prePos(1) < bx1 || prePos(1) > bx2; continue; end
-                else
-                    t1 = (bx1 - prePos(1)) / dx;
-                    t2 = (bx2 - prePos(1)) / dx;
-                    if t1 > t2; tmp = t1; t1 = t2; t2 = tmp; end
-                    tMin = max(tMin, t1);
-                    tMax = min(tMax, t2);
-                    if tMin > tMax; continue; end
-                end
-
-                % Y slab
-                if abs(dy) < 1e-12
-                    if prePos(2) < by1 || prePos(2) > by2; continue; end
-                else
-                    t1 = (by1 - prePos(2)) / dy;
-                    t2 = (by2 - prePos(2)) / dy;
-                    if t1 > t2; tmp = t1; t1 = t2; t2 = tmp; end
-                    tMin = max(tMin, t1);
-                    tMax = min(tMax, t2);
-                    if tMin > tMax; continue; end
-                end
-
-                % Hit — determine which face was entered
-                hitPt = prePos + tMin * [dx, dy];
+                % Hit face: compare ball-to-center offset
                 bcx = brk.x + brk.w / 2;
                 bcy = brk.y + brk.h / 2;
-                dcx = hitPt(1) - bcx;
-                dcy = hitPt(2) - bcy;
+                dcx = newPos(1) - bcx;
+                dcy = newPos(2) - bcy;
 
                 if ~isFireball
-                    eps = 0.01;
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
+                        bounceNormal = [sign(dcx), 0];
                         newVel(1) = -newVel(1);
-                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + eps);
-                        newPos(2) = hitPt(2);
+                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 1);
                     else
+                        bounceNormal = [0, sign(dcy)];
                         newVel(2) = -newVel(2);
-                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + eps);
-                        newPos(1) = hitPt(1);
+                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 1);
                     end
                     newVel = newVel * 1.008;
                 end
