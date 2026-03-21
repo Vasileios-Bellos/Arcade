@@ -486,11 +486,9 @@ classdef ArcadeGameLauncher < handle
                 obj.PrevSyncedScore = obj.Score;
             end
 
-            % Update combo display — only on change
+            % Update combo display — show while active, hide on reset
             if obj.ActiveGame.ShowHostCombo
-                scoringRecently = ~isempty(obj.LastScoreChangeTic) ...
-                    && toc(obj.LastScoreChangeTic) < 2.0;
-                if obj.Combo >= 2 && scoringRecently
+                if obj.Combo >= 2
                     if obj.Combo ~= prevCombo
                         obj.showCombo();
                     end
