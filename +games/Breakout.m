@@ -403,7 +403,7 @@ classdef Breakout < GameBase
                     obj.BallSpeed = newSpeed;
 
                     obj.BallVel = newSpeed * [sin(returnAngle), -cos(returnAngle)];
-                    obj.BallPos(2) = py - obj.BallRadius - 1;
+                    obj.BallPos(2) = py - obj.BallRadius;
 
                     % Clear trail on paddle hit
                     obj.TrailBufX(:) = NaN;
@@ -807,11 +807,11 @@ classdef Breakout < GameBase
                 if ~isFireball
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
                         newVel(1) = -newVel(1);
-                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 1);
+                        newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
                         newPos(2) = hitPt(2);
                     else
                         newVel(2) = -newVel(2);
-                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 1);
+                        newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
                         newPos(1) = hitPt(1);
                     end
                     newVel = newVel * 1.008;
@@ -846,10 +846,10 @@ classdef Breakout < GameBase
                     if isFireball
                         if abs(dcx / brk.w) > abs(dcy / brk.h)
                             newVel(1) = -newVel(1);
-                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR + 1);
+                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
                         else
                             newVel(2) = -newVel(2);
-                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR + 1);
+                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
                         end
                     end
                     spd = norm(ballVel);
