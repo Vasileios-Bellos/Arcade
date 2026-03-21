@@ -747,9 +747,9 @@ classdef Breakout < GameBase
 
         function [newPos, newVel] = brickCollision(obj, prePos, ballPos, ballVel)
             %brickCollision  Swept ball-brick collision.
-            %   Tests the ball path from prePos to ballPos against each
-            %   brick AABB expanded by BallRadius (same as Pong paddle).
-            ballR = obj.BallRadius;
+            %   Tests the ball center path from prePos to ballPos against
+            %   each brick AABB. Center-point collision (same as Pong/FlickIt walls).
+            ballR = 0;
             newPos = ballPos;
             newVel = ballVel;
             isFireball = ~isnan(obj.ActivePowers.fireball);
