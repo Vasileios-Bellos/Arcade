@@ -328,9 +328,6 @@ classdef Breakout < GameBase
                 obj.updateBallGraphics();
                 if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
-                    if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                        obj.LevelTextH.Visible = "off";
-                    end
                     obj.serveBall();
                 end
                 return;
@@ -366,6 +363,9 @@ classdef Breakout < GameBase
                 obj.ServeCountdown = obj.ServeCountdown - ds;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
+                    if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                        obj.LevelTextH.Visible = "off";
+                    end
                 end
                 obj.updateBallGraphics();
                 return;
