@@ -581,7 +581,7 @@ classdef Breakout < GameBase
     methods (Access = private)
         function s = buildHudString(obj)
             %buildHudString  Build HUD string with level and lives.
-            s = sprintf("Level %d/%d  |  Lives %d", ...
+            s = sprintf("Level: %d/%d  |  Lives: %d", ...
                 min(obj.Level, obj.MaxLevel), obj.MaxLevel, obj.Lives);
         end
 
