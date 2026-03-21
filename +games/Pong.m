@@ -182,13 +182,12 @@ classdef Pong < GameBase
             r = obj.BallRadius;
             auraSize = r * 5 * ps;
             coreSize = r * 2 * ps;
-            glowWidth = r * 0.6 * ps;
+            glowSize = r * 2.5 * ps;
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
                 "MarkerSize", auraSize, "LineStyle", "none", "Tag", "GT_pong");
-            theta = linspace(0, 2*pi, 48);
-            obj.BallGlowH = line(ax, cx + r*cos(theta), cy + r*sin(theta), ...
-                "Color", [obj.ColorCyan, 0.4], "LineWidth", glowWidth, ...
+            obj.BallGlowH = scatter(ax, cx, cy, pi * (glowSize/2)^2, ...
+                obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
                 "Tag", "GT_pong");
             obj.BallCoreH = line(ax, cx, cy, ...
                 "Color", [1, 1, 1, 1], "Marker", ".", ...
@@ -701,11 +700,11 @@ classdef Pong < GameBase
                 obj.BallCoreH.XData = bx;
                 obj.BallCoreH.YData = by;
             end
-            % Ball glow ring
+            % Ball glow
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
-                obj.BallGlowH.XData = bx + r * cos(obj.ThetaCircle48);
-                obj.BallGlowH.YData = by + r * sin(obj.ThetaCircle48);
-                obj.BallGlowH.Color = [clr, 0.4];
+                obj.BallGlowH.XData = bx;
+                obj.BallGlowH.YData = by;
+                obj.BallGlowH.CData = clr;
             end
             % Ball aura
             if ~isempty(obj.BallAuraH) && isvalid(obj.BallAuraH)
