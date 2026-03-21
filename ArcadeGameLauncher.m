@@ -104,7 +104,7 @@ classdef ArcadeGameLauncher < handle
     % =================================================================
     properties (SetAccess = private)
         CountdownValue  (1,1) double = 3
-        CountdownTic                        % tic for current number
+        CountdownTimer  (1,1) double = 0    % seconds remaining for current number
         CountdownNumDur (1,1) double = 0.5  % seconds per number (3, 2, 1)
         CountdownGoDur  (1,1) double = 0.25 % seconds for GO!
         PendingGameKey  string = ""
@@ -650,7 +650,7 @@ classdef ArcadeGameLauncher < handle
             %enterCountdown  Start 3-2-1 countdown before game.
             obj.State = "countdown";
             obj.CountdownValue = 3;
-            obj.CountdownTic = tic;
+            obj.CountdownTimer = obj.CountdownNumDur;
 
             obj.Score = 0;
             obj.ScoreDisplayed = 0;
@@ -679,13 +679,13 @@ classdef ArcadeGameLauncher < handle
         end
 
         function updateCountdown(obj)
-            %updateCountdown  Animate 3-2-1-GO countdown (time-based).
+            %updateCountdown  Animate 3-2-1-GO countdown (RawDt-based).
+            obj.CountdownTimer = obj.CountdownTimer - obj.RawDt;
             dur = obj.CountdownNumDur;
             if obj.CountdownValue == 0
                 dur = obj.CountdownGoDur;
             end
-            elapsed = toc(obj.CountdownTic);
-            progress = min(1, elapsed / dur);
+            progress = 1 - max(0, obj.CountdownTimer) / dur;
             scale = 1 + 0.3 * sin(progress * pi);
             fadeAlpha = 1 - max(0, progress - 0.7) / 0.3;
 
@@ -703,10 +703,14 @@ classdef ArcadeGameLauncher < handle
                 obj.StatusTextH.Visible = "on";
             end
 
-            if progress >= 1
+            if obj.CountdownTimer <= 0
                 if obj.CountdownValue > 0
                     obj.CountdownValue = obj.CountdownValue - 1;
-                    obj.CountdownTic = tic;
+                    if obj.CountdownValue > 0
+                        obj.CountdownTimer = obj.CountdownNumDur;
+                    else
+                        obj.CountdownTimer = obj.CountdownGoDur;
+                    end
                 else
                     if ~isempty(obj.StatusTextH) && isvalid(obj.StatusTextH)
                         obj.StatusTextH.Visible = "off";
