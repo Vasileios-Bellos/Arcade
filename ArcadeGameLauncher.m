@@ -339,7 +339,8 @@ classdef ArcadeGameLauncher < handle
             axPx = getpixelposition(obj.Ax);
             newPs = min(axPx(3) / 854, axPx(4) / 480);
             if obj.PrevAxPx(1) > 0
-                relScale = min(axPx(3) / obj.PrevAxPx(1), axPx(4) / obj.PrevAxPx(2));
+                oldPs = min(obj.PrevAxPx(1) / 854, obj.PrevAxPx(2) / 480);
+                relScale = newPs / oldPs;
             else
                 relScale = 1.0;
             end
