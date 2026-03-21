@@ -145,13 +145,13 @@ classdef Breakout < GameBase
             % Scale sizes to display area
             obj.BallRadius = max(3, round(min(areaH, areaW) * 0.025));
 
-            % Collision radius: convert core MarkerSize (points) to data
-            % units so collision matches the visible ball, not the glow.
-            coreDiamPts = max(6, obj.BallRadius * 2);        % same as coreSize
+            % Collision radius: tiny core-point radius so the ball must
+            % visually touch a brick before destroying it (tight gameplay).
+            % Convert 2 pts (centre pixel of the dot marker) to data units.
             axPos = getpixelposition(ax);
             pxPerUnit = axPos(3) / areaW;
             dpi = get(groot, "ScreenPixelsPerInch");
-            obj.BallCollisionR = coreDiamPts / 2 * (dpi / 72) / pxPerUnit;
+            obj.BallCollisionR = 2 * (dpi / 72) / pxPerUnit;
 
             obj.BallBaseSpeed = max(0.625, areaH * 0.01125);
             obj.BallSpeed = obj.BallBaseSpeed;
