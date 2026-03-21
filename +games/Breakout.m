@@ -161,7 +161,7 @@ classdef Breakout < GameBase
             obj.Lives = 3;
             obj.Level = 1;
             obj.BricksDestroyed = 0;
-            obj.Serving = true;
+            obj.Serving = false;
             obj.ServeCountdown = 0;
             obj.CatchHeld = false;
             obj.CatchOffset = 0;
@@ -244,9 +244,16 @@ classdef Breakout < GameBase
                 "Color", [obj.ColorCyan, 0.6], "FontSize", 6 * obj.FontScale, ...
                 "VerticalAlignment", "bottom", "Tag", "GT_breakout");
 
-            % Place ball on paddle
+            % Place ball on paddle and announce LEVEL 1
             obj.PaddleX = cx;
-            obj.serveBall();
+            obj.BallPos = [cx, obj.PaddleY - obj.BallRadius - 2];
+            obj.LevelPhase = "announce";
+            obj.LevelTransFrames = 60;
+            if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                obj.LevelTextH.String = "LEVEL 1";
+                obj.LevelTextH.Color = [obj.ColorCyan, 1];
+                obj.LevelTextH.Visible = "on";
+            end
         end
 
         function onUpdate(obj, pos)
@@ -282,11 +289,48 @@ classdef Breakout < GameBase
                 end
 
                 if obj.LevelTransFrames <= 0
+                    % Build new grid, then announce new level
+                    obj.buildBrickGrid(obj.Level);
+                    obj.serveBall();
+                    obj.LevelPhase = "announce";
+                    obj.LevelTransFrames = 60;
+                    if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                        obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
+                        obj.LevelTextH.Color = [obj.ColorCyan, 1];
+                        obj.LevelTextH.Visible = "on";
+                    end
+                end
+                return;
+            end
+
+            % --- Level announce phase ---
+            if obj.LevelPhase == "announce"
+                obj.LevelTransFrames = obj.LevelTransFrames - ds;
+                if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                    tProg = 1 - max(0, obj.LevelTransFrames) / 60;
+                    if tProg > 0.7
+                        obj.LevelTextH.Color = [obj.ColorCyan, max(0, (1 - tProg) / 0.3)];
+                    end
+                end
+                % Paddle + ball follow mouse during announce
+                if ~any(isnan(pos))
+                    obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
+                    obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 2];
+                    px = obj.PaddleX; pw = obj.PaddleW; ph = obj.PaddleHt; py = obj.PaddleY;
+                    xv = [px-pw/2, px+pw/2, px+pw/2, px-pw/2];
+                    if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
+                        set(obj.PaddleGlowH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
+                    end
+                    if ~isempty(obj.PaddleH) && isvalid(obj.PaddleH)
+                        set(obj.PaddleH, "XData", xv, "YData", [py, py, py+ph, py+ph]);
+                    end
+                end
+                obj.updateBallGraphics();
+                if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
                     if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
                         obj.LevelTextH.Visible = "off";
                     end
-                    obj.buildBrickGrid(obj.Level);
                     obj.serveBall();
                 end
                 return;
@@ -968,12 +1012,6 @@ classdef Breakout < GameBase
                 end
             end
 
-            % Show level text
-            if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
-                obj.LevelTextH.Color = [obj.ColorGold, 1];
-                obj.LevelTextH.Visible = "on";
-            end
 
             % Level clear bonus
             obj.addScore(500 * (obj.Level - 1));
