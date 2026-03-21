@@ -317,7 +317,7 @@ classdef Breakout < GameBase
 
             % --- Serve mode ---
             if obj.Serving
-                obj.BallPos = [obj.PaddleX, py - obj.BallRadius];
+                obj.BallPos = [obj.PaddleX, py - obj.BallRadius - 5];
                 obj.ServeCountdown = obj.ServeCountdown - ds;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
@@ -378,7 +378,7 @@ classdef Breakout < GameBase
 
             % --- Paddle collision (swept: detect crossing from above) ---
             ballR = obj.BallRadius;
-            pyHit = py - ballR;  % ball edge touches paddle top
+            pyHit = py - ballR - 5;  % ball edge touches paddle top + offset
             crossedPaddle = prePos(2) < pyHit && obj.BallPos(2) >= pyHit && obj.BallVel(2) > 0;
             atPaddle = obj.BallPos(2) >= pyHit && obj.BallPos(2) <= py + ph && obj.BallVel(2) > 0;
             if crossedPaddle || atPaddle
@@ -403,7 +403,7 @@ classdef Breakout < GameBase
                     obj.BallSpeed = newSpeed;
 
                     obj.BallVel = newSpeed * [sin(returnAngle), -cos(returnAngle)];
-                    obj.BallPos(2) = py - obj.BallRadius;
+                    obj.BallPos(2) = py - obj.BallRadius - 5;
 
                     % Clear trail on paddle hit
                     obj.TrailBufX(:) = NaN;
@@ -732,7 +732,7 @@ classdef Breakout < GameBase
             %serveBall  Place ball on paddle, prepare serve.
             obj.Serving = true;
             obj.ServeCountdown = 60;  % ~1s at 60fps
-            obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius];
+            obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
             obj.BallVel = [0, 0];
             obj.CatchHeld = false;
             obj.TrailBufX(:) = NaN;
