@@ -998,17 +998,8 @@ const arcade = {
     },
 
     drawPaused() {
-        // Render game frozen (no physics update, just redraw)
-        if (this.activeGame) {
-            ctx.fillStyle = BG_COLOR;
-            ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
-            try {
-                const mp = [input.mouseX, input.mouseY];
-                mp.x = input.mouseX; mp.y = input.mouseY;
-                this.activeGame.update(mp, 0, 0);
-            } catch(e) {}
-        }
-        // Semi-transparent overlay
+        // Don't call game.update() — MATLAB doesn't update during pause.
+        // Just draw the overlay on whatever was last rendered.
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
         ctx.fillStyle = rgb(Colors.gold, 0.9);
