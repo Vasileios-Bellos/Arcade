@@ -1,4 +1,4 @@
-classdef RailShooter < GameBase
+classdef RailShooter < engine.GameBase
     %RailShooter  House of the Dead style pseudo-3D rail shooter.
     %   Waves of enemy spaceships approach from a vanishing point. The
     %   crosshair auto-fires DPS damage at the monster under the cursor.
@@ -7,9 +7,9 @@ classdef RailShooter < GameBase
     %   screen shake, glowing eyes, and perspective grid.
     %
     %   Standalone: games.RailShooter().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
     %
     %   TODO: Rename "death" terminology (deathFrame, deathMaxFrames,
     %   deathAlpha, dying) to "defeat" or "elimination" in a future
@@ -697,7 +697,7 @@ classdef RailShooter < GameBase
             end
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_railshooter");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_railshooter");
         end
 
         function handled = onKeyPress(~, ~)

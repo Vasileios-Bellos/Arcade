@@ -1,13 +1,13 @@
-classdef Snake < GameBase
+classdef Snake < engine.GameBase
     %Snake  Classic snake game on a discrete integer grid with neon colormap.
     %   The snake moves one cell per step on a grid of integer [col, row]
     %   positions. Eating food grows the body and increases speed. Self-
     %   collision ends the game. Wrap-around at screen edges.
     %
     %   Standalone: games.Snake().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Snake"
@@ -318,7 +318,7 @@ classdef Snake < GameBase
             obj.Body = zeros(0, 2);
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_snake");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_snake");
         end
 
         function handled = onKeyPress(obj, key)

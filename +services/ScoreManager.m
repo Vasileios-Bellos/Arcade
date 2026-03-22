@@ -9,7 +9,7 @@ classdef (Sealed) ScoreManager
     %       rec = ScoreManager.get("FlickIt");
     %       ScoreManager.clearAll();
     %
-    %   See also ArcadeGameLauncher, GameBase
+    %   See also Arcade, engine.GameBase
 
     methods (Static)
 
@@ -161,9 +161,13 @@ classdef (Sealed) ScoreManager
         end
 
         function p = filePath()
-            %filePath  Return path to the scores .mat file.
-            p = fullfile(fileparts(which("ScoreManager")), ...
-                "ScoreManager_scores.mat");
+            %filePath  Return path to the scores .mat file in data/.
+            rootDir = fileparts(fileparts(which("services.ScoreManager")));
+            dataDir = fullfile(rootDir, "data");
+            if ~isfolder(dataDir)
+                mkdir(dataDir);
+            end
+            p = fullfile(dataDir, "scores.mat");
         end
 
         function rec = emptyRecord()

@@ -1,4 +1,4 @@
-classdef Tetris < GameBase
+classdef Tetris < engine.GameBase
     %Tetris  Classic falling-block puzzle game with SRS rotation and wall kicks.
     %   10-wide x 20-visible playfield (+ 2 hidden buffer rows at top).
     %   7-bag randomizer, ghost piece, 3-piece next preview, DAS/ARR
@@ -22,9 +22,9 @@ classdef Tetris < GameBase
     %                                  y = FieldY + (r-1)*CellH
     %
     %   Standalone: games.Tetris().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Tetris"
@@ -510,7 +510,7 @@ classdef Tetris < GameBase
             obj.Board = zeros(0, 0, "uint8");
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_tetris");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_tetris");
         end
 
         function handled = onKeyPress(obj, key)

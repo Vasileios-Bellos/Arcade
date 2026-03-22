@@ -12,7 +12,7 @@ classdef (Sealed) GameMenu < handle
     %       menu.show(); menu.hide();
     %       menu.cleanup();
     %
-    %   See also ArcadeGameLauncher
+    %   See also Arcade
 
     % =================================================================
     % CONFIGURATION (set in constructor)
@@ -781,8 +781,8 @@ classdef (Sealed) GameMenu < handle
                     % High score display
                     if ~isempty(obj.MenuItemScoreText{slot}) ...
                             && isvalid(obj.MenuItemScoreText{slot})
-                        gId = ScoreManager.classToId(func2str(entry.ctor));
-                        hsRec = ScoreManager.get(gId);
+                        gId = services.ScoreManager.classToId(func2str(entry.ctor));
+                        hsRec = services.ScoreManager.get(gId);
                         if hsRec.highScore > 0
                             obj.MenuItemScoreText{slot}.String = ...
                                 sprintf("★ %d", hsRec.highScore);

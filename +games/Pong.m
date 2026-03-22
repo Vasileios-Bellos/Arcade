@@ -1,4 +1,4 @@
-classdef Pong < GameBase
+classdef Pong < engine.GameBase
     %Pong  Classic pong game with AI opponent and rally escalation.
     %   Player controls the right paddle with cursor position.
     %   AI controls the left paddle with difficulty that scales as the
@@ -7,9 +7,9 @@ classdef Pong < GameBase
     %   First to WinScore (default 10) wins.
     %
     %   Standalone: games.Pong().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Pong"
@@ -390,7 +390,7 @@ classdef Pong < GameBase
             obj.ComboTextH = [];
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_pong");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_pong");
         end
 
         function handled = onKeyPress(~, ~)

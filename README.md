@@ -9,7 +9,7 @@ A full-featured launcher with animated menus, persistent high scores, frame-rate
 ## Quick Start
 
 ```matlab
-ArcadeGameLauncher()          % launch the arcade menu
+Arcade()          % launch the arcade menu
 ```
 
 Or jump straight into any game:
@@ -104,13 +104,13 @@ All other games use mouse movement only.
 
 ## High Scores
 
-Scores persist in `ScoreManager_scores.mat` (auto-created on first play).
+Scores persist in `data/scores.mat` (auto-created on first play).
 
 ```matlab
-ScoreManager.get("Pong")            % view a game's record
-ScoreManager.getAll()               % view all records
-ScoreManager.clearGame("Pong")      % reset one game
-ScoreManager.clearAll()             % reset everything
+services.ScoreManager.get("Pong")            % view a game's record
+services.ScoreManager.getAll()               % view all records
+services.ScoreManager.clearGame("Pong")      % reset one game
+services.ScoreManager.clearAll()             % reset everything
 ```
 
 Each record tracks: high score, best combo, times played, total play time, and last played date.
@@ -127,11 +127,15 @@ Each record tracks: high score, best combo, times played, total play time, and l
 ## File Structure
 
 ```
-ArcadeGameLauncher.m    main launcher with neon menu and HUD
-GameBase.m              abstract base class for all games
-GameMenu.m              scrollable neon menu with starfield
-ScoreManager.m          persistent high-score storage
+Arcade.m                main launcher
++engine/                framework
+    GameBase.m          abstract base class for all games
++ui/                    interface components
+    GameMenu.m          scrollable neon menu with starfield
++services/              utilities
+    ScoreManager.m      persistent high-score storage
 +games/                 15 game classes
+docs/                   developer documentation
 ```
 
-For architecture and developer documentation, see [DEVELOPER.md](DEVELOPER.md).
+For architecture and developer documentation, see [docs/DEVELOPER.md](docs/DEVELOPER.md).

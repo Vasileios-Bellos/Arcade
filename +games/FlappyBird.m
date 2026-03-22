@@ -1,4 +1,4 @@
-classdef FlappyBird < GameBase
+classdef FlappyBird < engine.GameBase
     %FlappyBird  Pipe-dodge game with two control modes.
     %   Navigate a bird through scrolling pipe gaps. Combo resets on
     %   collision (no lives). Gap narrows and speed increases as combo
@@ -11,9 +11,9 @@ classdef FlappyBird < GameBase
     %       Hitting top or bottom of screen triggers collision.
     %
     %   Standalone: games.FlappyBird().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Flappy Bird"
@@ -378,7 +378,7 @@ classdef FlappyBird < GameBase
             obj.PipeIdx = [];
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_flappy");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_flappy");
         end
 
         function handled = onKeyPress(obj, key)

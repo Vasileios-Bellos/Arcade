@@ -1,8 +1,8 @@
 # MATLAB
 *.asv
 
-# High scores (user-generated)
-ScoreManager_scores.mat
+# User data (auto-generated on first play)
+data/
 
 # Claude Code
 .claude/

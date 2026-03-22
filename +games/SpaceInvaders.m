@@ -1,4 +1,4 @@
-classdef SpaceInvaders < GameBase
+classdef SpaceInvaders < engine.GameBase
     %SpaceInvaders  Classic space invaders with alien waves, power-ups, and shields.
     %   3 alien shapes (crab/squid/UFO), 5 distinct wave formations with
     %   increasing difficulty. Shield intercepts at radius. Power-ups:
@@ -6,9 +6,9 @@ classdef SpaceInvaders < GameBase
     %   Victory after wave 5.
     %
     %   Standalone: games.SpaceInvaders().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Space Invaders"
@@ -616,7 +616,7 @@ classdef SpaceInvaders < GameBase
             obj.PUActive = false(1, 0);
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_spaceinvaders");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_spaceinvaders");
         end
 
         function handled = onKeyPress(~, ~)

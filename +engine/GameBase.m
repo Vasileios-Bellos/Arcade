@@ -8,12 +8,12 @@ classdef (Abstract) GameBase < handle
     %       game = games.Pong();
     %       game.play();
     %
-    %   Hosted (inside ArcadeGameLauncher):
+    %   Hosted (inside Arcade launcher):
     %       game.init(ax, displayRange);
     %       game.onUpdate(pos);   % called each frame by host
     %       game.onCleanup();
     %
-    %   See also ArcadeGameLauncher, GameMenu, ScoreManager
+    %   See also Arcade, ui.GameMenu, services.ScoreManager
 
     % =================================================================
     % PUBLIC READABLE PROPERTIES
@@ -119,7 +119,7 @@ classdef (Abstract) GameBase < handle
     methods
         function beginGame(obj)
             %beginGame  Mark game as running with a fresh timer.
-            %   Called by GameHost, ArcadeGameLauncher, or play() after onInit.
+            %   Called by Arcade launcher or play() after onInit.
             obj.StartTic = tic;
             obj.IsRunning = true;
         end
@@ -714,9 +714,9 @@ classdef (Abstract) GameBase < handle
                 obj.IsRunning = false;
                 % Submit score silently (no results screen in standalone)
                 if obj.Score > 0
-                    smGameId = ScoreManager.classToId(class(obj));
+                    smGameId = services.ScoreManager.classToId(class(obj));
                     smElapsed = toc(obj.StartTic);
-                    ScoreManager.submit(smGameId, obj.Score, obj.MaxCombo, smElapsed);
+                    services.ScoreManager.submit(smGameId, obj.Score, obj.MaxCombo, smElapsed);
                 end
                 if isvalid(tmr)
                     stop(tmr);

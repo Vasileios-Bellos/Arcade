@@ -1,13 +1,13 @@
-classdef ShieldGuardian < GameBase
+classdef ShieldGuardian < engine.GameBase
     %ShieldGuardian  Defend a core orb by rotating a shield arc to deflect projectiles.
     %   Shield arc faces the cursor direction. Projectiles spawn from edges
     %   and target the core. Deflected projectiles can chain-destroy others.
     %   Wave-based progression with increasing speed and spawn rate.
     %
     %   Standalone: games.ShieldGuardian().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Shield Guardian"
@@ -474,7 +474,7 @@ classdef ShieldGuardian < GameBase
             obj.ProjActive(:) = false;
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_shieldguardian");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_shieldguardian");
         end
 
         function handled = onKeyPress(~, ~)

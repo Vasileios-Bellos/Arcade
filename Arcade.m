@@ -1,16 +1,16 @@
-classdef ArcadeGameLauncher < handle
-    %ArcadeGameLauncher  Neon-styled arcade game launcher.
+classdef Arcade < handle
+    %Arcade  Neon-styled arcade game launcher.
     %   Animated game selector with scroll support, HUD with score roll-up
     %   and combo display, pause/restart/results screens. Subclassable —
     %   override buildRegistry and getMenuTitles for custom game sets.
     %
     %   Usage:
-    %       ArcadeGameLauncher()
+    %       Arcade()
     %
     %   Menu:  Up/Down or mouse hover, Enter/Space/click to play, Esc to quit
     %   Game:  P = pause, R = restart, Esc = results
     %
-    %   See also GameBase, GameMenu, ScoreManager
+    %   See also engine.GameBase, ui.GameMenu, services.ScoreManager
 
     % =================================================================
     % PUBLIC CONFIGURATION
@@ -127,9 +127,8 @@ classdef ArcadeGameLauncher < handle
     % =================================================================
     methods (Static)
         function launch()
-            %launch  Open the arcade game launcher (legacy entry point).
-            %   ArcadeGameLauncher.launch()
-            ArcadeGameLauncher();
+            %launch  Open the arcade (legacy entry point).
+            Arcade();
         end
     end
 
@@ -138,8 +137,8 @@ classdef ArcadeGameLauncher < handle
     % =================================================================
     methods (Access = public)
 
-        function obj = ArcadeGameLauncher()
-            %ArcadeGameLauncher  Create and run the arcade game launcher.
+        function obj = Arcade()
+            %Arcade  Create and run the arcade game launcher.
             obj.run();
         end
 
@@ -158,7 +157,7 @@ classdef ArcadeGameLauncher < handle
 
             % Create shared menu component
             [menuTitle, menuSubtitle] = obj.getMenuTitles();
-            obj.Menu = GameMenu(obj.Ax, obj.DisplayRange, ...
+            obj.Menu = ui.GameMenu(obj.Ax, obj.DisplayRange, ...
                 obj.Registry, obj.RegistryOrder, ...
                 "SelectionMode", "click", ...
                 "SelectionFcn", @(k) obj.onMenuSelect(k), ...
@@ -353,7 +352,7 @@ classdef ArcadeGameLauncher < handle
                 gameAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
                 pbaspect(obj.Ax, [gameAR 1 1]);
                 if relScale ~= 1.0
-                    GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
+                    engine.GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
                 end
                 if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
                     obj.ActiveGame.FontScale = newPs;
@@ -365,7 +364,7 @@ classdef ArcadeGameLauncher < handle
             menuAR = diff(obj.DisplayRange.X) / diff(obj.DisplayRange.Y);
             pbaspect(obj.Ax, [menuAR 1 1]);
             if relScale ~= 1.0
-                GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
+                engine.GameBase.scaleScreenSpaceObjects(obj.Ax, relScale);
             end
         end
     end
@@ -757,7 +756,7 @@ classdef ArcadeGameLauncher < handle
             results = struct("Title", "GAME OVER", "Lines", {{}});
             gameId = "";
             if ~isempty(obj.ActiveGame) && isvalid(obj.ActiveGame)
-                gameId = ScoreManager.classToId(class(obj.ActiveGame));
+                gameId = services.ScoreManager.classToId(class(obj.ActiveGame));
                 try
                     results = obj.ActiveGame.getResults();
                 catch
@@ -803,13 +802,13 @@ classdef ArcadeGameLauncher < handle
                     obj.Score, obj.MaxCombo, elapsed);
                 % Line 3: high score
                 if strlength(gameId) > 0
-                    [isNewHigh, ~] = ScoreManager.submit( ...
+                    [isNewHigh, ~] = services.ScoreManager.submit( ...
                         gameId, obj.Score, obj.MaxCombo, elapsed);
                     if isNewHigh
                         detailLines{end + 1} = sprintf( ...
                             "★  NEW HIGH SCORE: %d  ★", obj.Score);
                     else
-                        hsRec = ScoreManager.get(gameId);
+                        hsRec = services.ScoreManager.get(gameId);
                         detailLines{end + 1} = sprintf( ...
                             "High Score: %d", hsRec.highScore);
                     end

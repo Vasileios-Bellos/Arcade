@@ -1,4 +1,4 @@
-classdef FireflyChase < GameBase
+classdef FireflyChase < engine.GameBase
     %FireflyChase  Firefly hunt — catch color-coded fireflies on closed orbits.
     %   5 tiers (cyan/green/magenta/purple/gold), max 3 on screen.
     %   Path-based closed orbits (loop, figure8) with seamless looping.
@@ -6,9 +6,9 @@ classdef FireflyChase < GameBase
     %   Combo decays 2s after last catch.
     %
     %   Standalone: games.FireflyChase().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Firefly Chase"
@@ -292,7 +292,7 @@ classdef FireflyChase < GameBase
             obj.ComboTextH = [];
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_fireflies");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_fireflies");
         end
 
         function handled = onKeyPress(~, ~)

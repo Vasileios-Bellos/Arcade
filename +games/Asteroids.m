@@ -1,13 +1,13 @@
-classdef Asteroids < GameBase
+classdef Asteroids < engine.GameBase
     %Asteroids  Wireframe asteroid field with auto-fire and splitting.
     %   Ship follows cursor position. Auto-fires at nearest asteroid every
     %   10 frames. Large asteroids split into medium, medium into small.
     %   Lives system with invulnerability flash on hit.
     %
     %   Standalone: games.Asteroids().play()
-    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
+    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, ArcadeGameLauncher
+    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Asteroids"
@@ -214,7 +214,7 @@ classdef Asteroids < GameBase
                 "lineH", {}, "glowH", {});
 
             % Orphan guard
-            GameBase.deleteTaggedGraphics(obj.Ax, "^GT_asteroids");
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_asteroids");
         end
 
         function handled = onKeyPress(~, ~)
