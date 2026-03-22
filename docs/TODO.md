@@ -56,7 +56,8 @@ No pending scaling work for arcade games.
 - [x] Rename ARCADE_README.md to README.md (done)
 - [ ] GameHost interface cleanup -- accept generic struct/interface instead of GestureMouse instance directly
 - [ ] MATLAB File Exchange listing: "MATLAB Arcade" -- standalone mouse-driven arcade, no webcam needed
-- [ ] Optional: MATLAB Toolbox (.mltbx) packaging as GitHub release asset
+- [ ] MATLAB Toolbox (.mltbx) packaging -- create .prj, package with matlab.addons.toolbox.packageToolbox(), host as GitHub release asset
+- [ ] Standalone executable via MATLAB Compiler (mcc) -- requires Compiler toolbox license
 
 ---
 
@@ -68,6 +69,10 @@ No pending scaling work for arcade games.
 ## Game Bugs
 
 - [ ] Tetris: rapidly rotating a piece on low speed can stall it indefinitely on the landing row — instant lock doesn't prevent rotation-based stalling
+
+## Performance
+
+- [ ] Investigate jumpy/stuttery gameplay at 40+ FPS — the DtScale system handles physics correctly but abrupt dt variations cause visible hitches. Possible fixes: smooth dt with a short EMA filter, cap dt variance between frames, or use fixed timestep with interpolated rendering
 
 ## Code Quality
 
