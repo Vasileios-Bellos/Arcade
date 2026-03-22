@@ -7891,12 +7891,11 @@ class FlickItGame {
         const ds = dtScale;
         const now = performance.now() / 1000;
 
-        // --- 1. Update finger velocity buffer ---
+        // --- 1. Update finger velocity buffer (raw per-frame deltas) ---
         if (mousePos && this.prevFingerPos) {
-            // Scale velocity by dtScale to normalize across frame rates
             const fvel = [
-                (mousePos.x - this.prevFingerPos.x) * (ds > 0 ? ds : 1),
-                (mousePos.y - this.prevFingerPos.y) * (ds > 0 ? ds : 1)
+                mousePos.x - this.prevFingerPos.x,
+                mousePos.y - this.prevFingerPos.y
             ];
             const writeIdx = this.fingerVelIdx % 5;
             this.fingerVelBuf[writeIdx] = fvel;
@@ -7921,8 +7920,12 @@ class FlickItGame {
                         avgX /= nFilled;
                         avgY /= nFilled;
                         const flickSpd = hypot(avgX, avgY);
-                        if (flickSpd >= 3 / this.speedScale) {
-                            this.applyFlick(avgX, avgY);
+                        // Scale threshold by ds: at higher fps, per-frame deltas are smaller
+                        const flickThreshold = (3 / this.speedScale) * Math.min(1, ds);
+                        if (flickSpd >= flickThreshold) {
+                            // Scale velocity up to compensate for smaller per-frame deltas at high fps
+                            const velScale = ds > 0 ? 1 / ds : 1;
+                            this.applyFlick(avgX * velScale, avgY * velScale);
                             this.flickLocked = true;
                         }
                     }
@@ -8411,12 +8414,11 @@ class JugglerGame {
         const dy = this.displayRange.Y;
         const now = performance.now() / 1000;
 
-        // --- 1. Finger velocity buffer ---
+        // --- 1. Finger velocity buffer (raw per-frame deltas) ---
         if (mousePos && this.prevFingerPos) {
-            // Scale velocity by dtScale to normalize across frame rates
             const fvel = [
-                (mousePos.x - this.prevFingerPos.x) * (ds > 0 ? ds : 1),
-                (mousePos.y - this.prevFingerPos.y) * (ds > 0 ? ds : 1)
+                mousePos.x - this.prevFingerPos.x,
+                mousePos.y - this.prevFingerPos.y
             ];
             const bufIdx = this.fingerVelIdx % 5;
             this.fingerVelBuf[bufIdx] = fvel;
@@ -8441,7 +8443,9 @@ class JugglerGame {
             const distToBall = hypot(mousePos.x - this.ballPos[0], mousePos.y - this.ballPos[1]);
             const inside = distToBall <= this.hitRadius;
             if (inside && !this.flickLocked) {
-                this.flickBall(avgVelX, avgVelY);
+                // Scale velocity up to compensate for smaller per-frame deltas at high fps
+                const velScale = ds > 0 ? 1 / ds : 1;
+                this.flickBall(avgVelX * velScale, avgVelY * velScale);
                 this.flickLocked = true;
                 this.lastFlickTime = now;
             } else if (!inside && this.flickLocked && (now - this.lastFlickTime) > 0.15) {
@@ -8643,9 +8647,12 @@ class JugglerGame {
                 const distToExtra = hypot(fingerPos.x - eb.pos[0], fingerPos.y - eb.pos[1]);
                 if (distToExtra <= this.hitRadius) {
                     if (!eb.locked) {
-                        const fspeed = hypot(avgVelX, avgVelY);
+                        const velScale = ds > 0 ? 1 / ds : 1;
+                        const scaledVX = avgVelX * velScale;
+                        const scaledVY = avgVelY * velScale;
+                        const fspeed = hypot(scaledVX, scaledVY);
                         if (fspeed > 1.0 / this.speedScale) {
-                            eb.vel = [avgVelX * 1.3, avgVelY * 1.3];
+                            eb.vel = [scaledVX * 1.3, scaledVY * 1.3];
                         } else {
                             let bounceVy = -Math.abs(eb.vel[1]) * this.restitution;
                             const minBounce = -this.gravity * 20;
