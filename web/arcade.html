@@ -45,6 +45,8 @@ const Colors = {
     orange:  [255, 153, 38],
     blue:    [77, 128, 255],
     silver:  [180, 180, 195],
+    bg:      [4, 4, 10],
+    Bg:      [4, 4, 10],
     // Capitalized aliases (used by some game batches)
     get Cyan() { return this.cyan; },
     get Green() { return this.green; },
@@ -62,14 +64,20 @@ const Colors = {
 // Aliases for batch-file compatibility
 const GB_COLORS = Colors;
 const COLORS = Colors;
+let HitEffectsManager; // set after HitEffectSystem is defined
+let HitEffects;        // set after HitEffectSystem is defined
 
 function rgba(c, a) {
-    if (a !== undefined) return `rgba(${c[0]},${c[1]},${c[2]},${a})`;
-    return `rgb(${c[0]},${c[1]},${c[2]})`;
+    if (!c) return BG_COLOR; // fallback to game background
+    if (a !== undefined) return `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+    if (c.length >= 4) return `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${c[3]})`;
+    return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
 }
 
 function rgb(c, a) {
-    if (a !== undefined) return `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    if (!c) return BG_COLOR;
+    if (a !== undefined) return `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+    if (c.length >= 4) return `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${c[3]})`;
     return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
@@ -156,16 +164,52 @@ canvas.addEventListener('mousemove', (e) => {
     input.lastMouseY = newY;
 });
 
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
 canvas.addEventListener('mousedown', (e) => {
+    e.preventDefault();
     input.mouseDown = true;
     if (arcade.state === 'active' && arcade.activeGame) {
-        arcade.activeGame.onMouseDown();
+        if (e.button === 2) {
+            // Right-click: soft drop in Tetris, forward as key
+            arcade.activeGame.onKeyPress('ArrowDown');
+        } else {
+            arcade.activeGame.onMouseDown();
+        }
     } else if (arcade.state === 'menu') {
         arcade.onMenuClick();
     }
 });
 
 canvas.addEventListener('mouseup', () => { input.mouseDown = false; });
+
+// Touch support (mobile)
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    input.mouseX = (touch.clientX - rect.left) / rect.width * DISPLAY_W;
+    input.mouseY = (touch.clientY - rect.top) / rect.height * DISPLAY_H;
+    input.mouseDown = true;
+    if (arcade.state === 'active' && arcade.activeGame) {
+        arcade.activeGame.onMouseDown();
+    } else if (arcade.state === 'menu') {
+        arcade.onMenuClick();
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    input.mouseX = (touch.clientX - rect.left) / rect.width * DISPLAY_W;
+    input.mouseY = (touch.clientY - rect.top) / rect.height * DISPLAY_H;
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    input.mouseDown = false;
+}, { passive: false });
 
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
@@ -220,7 +264,30 @@ class HitEffectSystem {
         });
     }
 
+    // Aliases: batch games use different method names
+    draw(ctxOrDs, dtScaleOrUndef) { return this.update(ctxOrDs, dtScaleOrUndef); }
+    cleanup() { this.clear(); }
+    spawnBounceEffect(posOrX, normalOrY, pointsOrNormal, speedOrPoints, speedArg) {
+        if (Array.isArray(posOrX)) {
+            this.spawnBounce(posOrX[0], posOrX[1], normalOrY, pointsOrNormal, speedOrPoints);
+        } else {
+            this.spawnBounce(posOrX, normalOrY, pointsOrNormal, speedOrPoints, speedArg);
+        }
+    }
+    spawnHitEffect(posOrX, colorOrY, pointsOrColor, radiusOrPoints, radiusArg) {
+        if (Array.isArray(posOrX)) {
+            this.spawnHit(posOrX[0], posOrX[1], colorOrY, pointsOrColor, radiusOrPoints);
+        } else {
+            this.spawnHit(posOrX, colorOrY, pointsOrColor, radiusOrPoints, radiusArg);
+        }
+    }
+
     update(ctx, dtScale) {
+        // Handle both signatures: update(ctx, ds) and update(ds)
+        if (typeof ctx === 'number') {
+            dtScale = ctx;
+            ctx = document.getElementById('gameCanvas').getContext('2d');
+        }
         for (let i = this.effects.length - 1; i >= 0; i--) {
             const fx = this.effects[i];
             fx.frames -= dtScale;
@@ -270,6 +337,42 @@ class HitEffectSystem {
 
     clear() { this.effects = []; }
 }
+// Aliases: batch files used different class names
+HitEffectsManager = HitEffectSystem;
+HitEffects = HitEffectSystem;
+const HitEffectsPool = HitEffectSystem;
+
+// Aliases: batch files used bare color names
+const ColorCyan = Colors.cyan;
+const ColorGreen = Colors.green;
+const ColorGold = Colors.gold;
+const ColorRed = Colors.red;
+const ColorWhite = Colors.white;
+const ColorMagenta = Colors.magenta;
+const ColorPurple = Colors.purple;
+const ColorOrange = Colors.orange;
+const ColorBlue = Colors.blue;
+const ColorTeal = Colors.teal;
+const ColorSilver = Colors.silver;
+
+// Aliases: batch utility functions
+function hypot(a, b) { return Math.hypot(a, b); }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function segmentPointDist(ax, ay, bx, by, px, py) {
+    const dx = bx - ax, dy = by - ay;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+    let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+function randRange(a, b) { return a + Math.random() * (b - a); }
+function norm2(x, y) { return Math.sqrt(x * x + y * y); }
+function dist2(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function normalize(x, y) { const d = Math.hypot(x, y); return d > 0 ? [x/d, y/d] : [0, 0]; }
+function dot2(ax, ay, bx, by) { return ax * bx + ay * by; }
+function cross2(ax, ay, bx, by) { return ax * by - ay * bx; }
 
 // === SCORE PERSISTENCE (localStorage) ===
 class ScoreStore {
@@ -664,10 +767,15 @@ const arcade = {
         if (idx < 0 || idx >= this.games.length) return;
         const entry = this.games[idx];
         try {
+            console.log(`Launching ${entry.name}...`);
             this.activeGame = entry.ctor();
+            console.log(`  Constructor OK, isRunning=${this.activeGame.isRunning}`);
             this.activeGameName = entry.name;
-            this.activeGame.init(canvas, ctx, { X: [0, DISPLAY_W], Y: [0, DISPLAY_H], x: [0, DISPLAY_W], y: [0, DISPLAY_H] });
+            const dr = { X: [0, DISPLAY_W], Y: [0, DISPLAY_H], x: [0, DISPLAY_W], y: [0, DISPLAY_H] };
+            this.activeGame.init(canvas, ctx, dr);
+            console.log(`  init() OK`);
             this.activeGame.isRunning = true;
+            console.log(`  isRunning set to true`);
             this.score = 0;
             this.scoreDisplayed = 0;
             this.combo = 0;
@@ -686,15 +794,29 @@ const arcade = {
     updateActive(dt, dtScale) {
         if (!this.activeGame) return;
 
+        // Arrow key cursor movement (fallback for games that don't handle arrows)
+        const arrowSpd = Math.min(DISPLAY_W, DISPLAY_H) * 0.04 * dtScale;
+        if (input.keys['ArrowUp']) { input.mouseY -= arrowSpd; input.keyboardMode = true; }
+        if (input.keys['ArrowDown']) { input.mouseY += arrowSpd; input.keyboardMode = true; }
+        if (input.keys['ArrowLeft']) { input.mouseX -= arrowSpd; input.keyboardMode = true; }
+        if (input.keys['ArrowRight']) { input.mouseX += arrowSpd; input.keyboardMode = true; }
+        input.mouseX = Math.max(0, Math.min(DISPLAY_W, input.mouseX));
+        input.mouseY = Math.max(0, Math.min(DISPLAY_H, input.mouseY));
+
         // Clear
         ctx.fillStyle = BG_COLOR;
         ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
 
         // Update game
         try {
-            this.activeGame.update([input.mouseX, input.mouseY], dt, dtScale);
+            // Pass mousePos as array-like object with both [0]/[1] and .x/.y access
+            const mp = [input.mouseX, input.mouseY];
+            mp.x = input.mouseX;
+            mp.y = input.mouseY;
+            this.activeGame.update(mp, dt, dtScale);
         } catch (err) {
             console.error(`[${this.activeGameName}] update error:`, err);
+            console.error(err.stack);
             this.enterResults();
             return;
         }
@@ -718,8 +840,9 @@ const arcade = {
         ctx.textBaseline = 'top';
         ctx.fillText(`Score: ${Math.round(this.scoreDisplayed)}`, 4, 2);
 
-        // HUD - Combo
-        if (this.combo >= 2) {
+        // HUD - Combo (only if game doesn't show its own)
+        const showHostCombo = this.activeGame.showHostCombo !== false; // default true
+        if (showHostCombo && this.combo >= 2) {
             ctx.fillStyle = rgb(Colors.green, 0.9);
             ctx.font = 'bold 9px Arial';
             ctx.textAlign = 'center';
@@ -771,7 +894,17 @@ const arcade = {
     },
 
     drawPaused() {
-        // Keep game frame, draw overlay
+        // Render game frozen (no physics update, just redraw)
+        if (this.activeGame) {
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
+            try {
+                const mp = [input.mouseX, input.mouseY];
+                mp.x = input.mouseX; mp.y = input.mouseY;
+                this.activeGame.update(mp, 0, 0);
+            } catch(e) {}
+        }
+        // Semi-transparent overlay
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
         ctx.fillStyle = rgb(Colors.gold, 0.9);
@@ -834,6 +967,34 @@ const arcade = {
 
 
 // =========================================================================
+// GAME BASE CLASS — shared methods matching MATLAB GameBase
+// =========================================================================
+class GameBaseJS {
+    constructor() {
+        this.score = 0;
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.isRunning = false;
+        this.showHostCombo = true;
+        this.comboAutoFade = true;
+        this.hitEffects = new HitEffectSystem();
+    }
+    addScore(pts) { this.score += pts; }
+    incrementCombo() { this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); }
+    resetCombo() { this.combo = 0; }
+    comboMultiplier() { return Math.max(1, this.combo / 10); }
+    spawnHitEffect(x, y, clr, pts, r) { this.hitEffects.spawnHit(x, y, clr, pts, r); }
+    spawnBounceEffect(x, y, nx, ny, pts, spd) {
+        this.hitEffects.spawnBounce(x, y, [nx, ny], pts, spd);
+    }
+    onKeyPress(key) { return false; }
+    onMouseDown() {}
+    onScroll(delta) {}
+    cleanup() { this.hitEffects.clear(); }
+    getResults() { return { title: this.name || 'GAME OVER', lines: [] }; }
+}
+
+// =========================================================================
 // GAME IMPLEMENTATIONS (ported from MATLAB)
 // =========================================================================
 
@@ -844,6 +1005,7 @@ class PongGame {
         this.combo = 0;
         this.maxCombo = 0;
         this.isRunning = false;
+        this.showHostCombo = false; // Pong shows combo at paddle
         this.hitEffects = new HitEffectSystem();
     }
 
@@ -1460,6 +1622,7 @@ class BreakoutGame {
         this.combo = 0;
         this.maxCombo = 0;
         this.isRunning = false;
+        this.comboAutoFade = false; // combo persists until game resets it
         this.hitEffects = new HitEffectSystem();
     }
 
@@ -3417,6 +3580,15 @@ class TetrisGame {
     onMouseDown() {
         if (this.gameOver || this.clearRows.length > 0) return;
         this._hardDrop();
+    }
+
+    onScroll(delta) {
+        if (this.gameOver || this.clearRows.length > 0) return;
+        if (delta < 0) {
+            this._tryRotate(1);   // scroll up = clockwise
+        } else {
+            this._tryRotate(-1);  // scroll down = counter-clockwise
+        }
     }
 
     cleanup() {
@@ -6734,6 +6906,7 @@ class FireflyChaseGame {
         this.score = 0;
         this.combo = 0;
         this.maxCombo = 0;
+        this.showHostCombo = false; // game shows its own combo
         this.firefliesCaught = 0;
         this.firefliesMissed = 0;
 
@@ -7496,6 +7669,7 @@ class FlickItGame {
         this.score = 0;
         this.combo = 0;
         this.maxCombo = 0;
+        this.showHostCombo = false; // game shows its own combo
 
         // Ball physics
         this.ballPos = [NaN, NaN];
@@ -10248,6 +10422,33 @@ class RailShooterGame {
     addScore(pts) { this.score += pts; }
     incrementCombo() { this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); }
     resetCombo() { this.combo = 0; }
+}
+
+// === INJECT GameBase METHODS INTO ALL GAME CLASSES ===
+// Games may define their own versions; these are fallbacks only.
+const _allGameClasses = [
+    PongGame, BreakoutGame, SnakeGame, TetrisGame, AsteroidsGame,
+    SpaceInvadersGame, FlappyBirdGame, FruitNinjaGame, TargetPracticeGame,
+    FireflyChaseGame, FlickItGame, JugglerGame, OrbitalDefenseGame,
+    ShieldGuardianGame, RailShooterGame
+];
+const _baseMethods = {
+    addScore(pts) { this.score += pts; },
+    incrementCombo() { this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); },
+    resetCombo() { this.combo = 0; },
+    comboMultiplier() { return Math.max(1, this.combo / 10); },
+    cleanup() { if (this.hitEffects) this.hitEffects.clear(); },
+    onKeyPress(key) { return false; },
+    onMouseDown() {},
+    onScroll(delta) {},
+    getResults() { return { title: this.name || 'GAME OVER', lines: [] }; },
+};
+for (const cls of _allGameClasses) {
+    for (const [name, fn] of Object.entries(_baseMethods)) {
+        if (!cls.prototype[name]) {
+            cls.prototype[name] = fn;
+        }
+    }
 }
 
 // === START ===

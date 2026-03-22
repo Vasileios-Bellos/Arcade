@@ -74,6 +74,14 @@ No pending scaling work for arcade games.
 
 - [ ] Investigate jumpy/stuttery gameplay at 40+ FPS — the DtScale system handles physics correctly but abrupt dt variations cause visible hitches. Possible fixes: smooth dt with a short EMA filter, cap dt variance between frames, or use fixed timestep with interpolated rendering
 
+## HTML Port
+
+- [ ] Remove console.log debug messages from arcade.html before release
+- [ ] Fix remaining game launch errors (test all 15 games in browser)
+- [ ] Verify all game physics/scoring match MATLAB versions
+- [ ] Trail rendering quality — trails appear shorter than MATLAB (check buffer length + rendering)
+- [ ] Test on multiple browsers (Chrome, Firefox, Edge)
+
 ## Code Quality
 
 - [ ] Checkcode warnings cleanup across arcade files

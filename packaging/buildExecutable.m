@@ -57,12 +57,8 @@ for k = 1:numel(packageNames)
     end
 end
 
-%% Include data/ folder (scores.mat lives here at runtime)
-dataDir = fullfile(projectDir, "data");
-if isfolder(dataDir)
-    additionalFiles{end + 1} = dataDir;
-    fprintf("  Including folder : data/\n");
-end
+% Note: data/ folder NOT included — ScoreManager creates it on first play.
+% Including it would bundle dev scores into the exe.
 
 fprintf("\n");
 
