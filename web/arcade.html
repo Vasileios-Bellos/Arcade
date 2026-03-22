@@ -936,6 +936,17 @@ const arcade = {
 
         this.prevCombo = this.combo;
 
+        // HUD - FPS (top right, matches MATLAB ArcadeGameLauncher)
+        this.fpsBuffer = this.fpsBuffer || [];
+        this.fpsBuffer.push(dt);
+        if (this.fpsBuffer.length > 30) this.fpsBuffer.shift();
+        const avgDt = this.fpsBuffer.reduce((a,b) => a+b, 0) / this.fpsBuffer.length;
+        ctx.fillStyle = rgb(Colors.green, 0.9);
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`${Math.round(1/avgDt)} fps`, DISPLAY_W - 4, 2);
+
         // Check game over
         if (!this.activeGame.isRunning) {
             this.enterResults();
