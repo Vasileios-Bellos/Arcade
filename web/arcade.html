@@ -8171,8 +8171,8 @@ class FlickItGame {
         const auraSize = 54 * auraScale * 0.5;  // Half because we use radius
         const auraAlpha = 0.1 + Math.min(0.2, spd * 0.015);
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.3);
-        ctx.shadowBlur = auraSize;
+        ctx.shadowColor = rgba(clr, auraAlpha * 0.5);
+        ctx.shadowBlur = 8; // fixed subtle glow, not proportional to size
         ctx.fillStyle = rgba(clr, auraAlpha);
         ctx.beginPath();
         ctx.arc(bx, by, auraSize, 0, Math.PI * 2);
@@ -8768,8 +8768,8 @@ class JugglerGame {
         const auraScale = 1 + Math.min(1.5, ballSpeed * 0.08);
         const auraSize = 54 * auraScale * 0.5;
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.3);
-        ctx.shadowBlur = auraSize;
+        ctx.shadowColor = rgba(clr, auraAlpha * 0.5);
+        ctx.shadowBlur = 8; // fixed subtle glow, not proportional to size
         ctx.fillStyle = rgba(clr, 0.12);
         ctx.beginPath();
         ctx.arc(bx, by, auraSize, 0, Math.PI * 2);
