@@ -936,6 +936,18 @@ const arcade = {
 
         this.prevCombo = this.combo;
 
+        // HUD - Game-specific text (bottom center, from getHudText)
+        if (this.activeGame.getHudText) {
+            const hudStr = this.activeGame.getHudText();
+            if (hudStr && hudStr.length > 0) {
+                ctx.fillStyle = rgb(Colors.white, 0.7);
+                ctx.font = 'bold 8px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(hudStr, DISPLAY_W / 2, DISPLAY_H - 8);
+            }
+        }
+
         // HUD - FPS (top right, matches MATLAB ArcadeGameLauncher)
         this.fpsBuffer = this.fpsBuffer || [];
         this.fpsBuffer.push(dt);
