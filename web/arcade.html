@@ -8115,13 +8115,12 @@ class FlickItGame {
         const clr = flickSpeedColor(spd * this.speedScale);
 
         // Idle breathing / motion scaling
-        let breath, auraScale;
+        // Only the middle glow breathes/grows. Outer and core are fixed.
+        let glowScale;
         if (!this.ballMoving) {
-            breath = 1 + 0.12 * Math.sin(this.ballPhase);
-            auraScale = 1.2 + 0.15 * Math.sin(this.ballPhase * 0.7);
+            glowScale = 1 + 0.12 * Math.sin(this.ballPhase);
         } else {
-            breath = 1;
-            auraScale = 1 + Math.min(1.5, spd * 0.08);
+            glowScale = 1 + Math.min(1.5, spd * 0.08);
         }
 
         // --- Trail ---
@@ -8179,8 +8178,8 @@ class FlickItGame {
         ctx.fill();
         ctx.restore();
 
-        // --- Glow ring (GROWS with speed via auraScale) ---
-        const glowRadius = rr * 2.5 * 0.5 * auraScale;
+        // --- Glow ring (GROWS/breathes via glowScale) ---
+        const glowRadius = rr * 2.5 * 0.5 * glowScale;
         const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
@@ -8192,7 +8191,8 @@ class FlickItGame {
         ctx.restore();
 
         // --- Core dot ---
-        const coreSize = 20 * breath * 0.5;  // MarkerSize is diameter; use half as radius
+        const coreBreath = this.ballMoving ? 1 : (1 + 0.12 * Math.sin(this.ballPhase));
+        const coreSize = 20 * coreBreath * 0.5;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
