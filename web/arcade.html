@@ -8212,12 +8212,12 @@ class FlickItGame {
             ctx.fillStyle = rgba(clr, 0.7);
             ctx.fillText(
                 `${Math.round(spd * 10)}  |  ${this.bounces} Bounces`,
-                bx, by - rr * breath - 14
+                bx, by - rr * coreBreath - 14
             );
         } else {
             const flicker = 0.4 + 0.3 * Math.sin(this.ballPhase * 1.5);
             ctx.fillStyle = rgba(Colors.Cyan, flicker);
-            ctx.fillText('Flick Me!', bx, by - rr * breath - 14);
+            ctx.fillText('Flick Me!', bx, by - rr * coreBreath - 14);
         }
         ctx.restore();
     }
@@ -8777,8 +8777,9 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Glow ring (middle, GROWS with speed)
-        const glowRadius = r * 2.5 * 0.5 * auraScale;
+        // Glow ring (middle, breathes gently)
+        const glowBreath = 1 + 0.12 * Math.sin(this.ballPhase || 0);
+        const glowRadius = r * 2.5 * 0.5 * glowBreath;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
         ctx.shadowBlur = 10; // fixed glow, not proportional
@@ -8788,8 +8789,9 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Core dot
-        const coreSize = 20 * 0.5;
+        // Core dot (breathes gently)
+        const coreBreath2 = 1 + 0.12 * Math.sin(this.ballPhase || 0);
+        const coreSize = 20 * coreBreath2 * 0.5;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
         ctx.shadowBlur = 6; // subtle core glow
