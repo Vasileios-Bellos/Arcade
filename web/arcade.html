@@ -1323,9 +1323,14 @@ class PongGame {
             this.playerScore++;
             const pointBonus = 100 + this.rallyHits * 10;       // line 488
             this.addScore(pointBonus);
+            this.scoreFlashText = "PLAYER SCORES!";
+            this.scoreFlashColor = Colors.green;
         } else {
             this.opponentScore++;
+            this.scoreFlashText = "CPU SCORES!";
+            this.scoreFlashColor = Colors.red;
         }
+        this.scoreFlashFrames = 60; // show for ~1 second
 
         this.totalRallies++;
         this.rallyHits = 0;
@@ -1614,6 +1619,17 @@ class PongGame {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(`CPU  ${this.opponentScore} - ${this.playerScore}  YOU`, cx, dy[0] + 5);
+
+        // --- Score flash text ("PLAYER SCORES!" / "CPU SCORES!") ---
+        if (this.scoreFlashFrames > 0) {
+            this.scoreFlashFrames -= ds;
+            const flashAlpha = Math.min(1, this.scoreFlashFrames / 30);
+            ctx.fillStyle = rgb(this.scoreFlashColor, flashAlpha * 0.9);
+            ctx.font = `bold ${12}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.scoreFlashText, cx, dy[0] + areaH * 0.25);
+        }
 
         // --- Serve text (lines 254-263) ---
         if (this.serving) {
@@ -7866,7 +7882,12 @@ class FlickItGame {
 
         // --- 1. Update finger velocity buffer ---
         if (mousePos && this.prevFingerPos) {
-            const fvel = [mousePos.x - this.prevFingerPos.x, mousePos.y - this.prevFingerPos.y];
+            // Scale velocity to reference frame rate (MATLAB runs at ~30fps effective)
+            // At 60fps, raw delta is half the size; scaling by ds normalizes it
+            const fvel = [
+                (mousePos.x - this.prevFingerPos.x) * (ds > 0 ? ds : 1),
+                (mousePos.y - this.prevFingerPos.y) * (ds > 0 ? ds : 1)
+            ];
             const writeIdx = this.fingerVelIdx % 5;
             this.fingerVelBuf[writeIdx] = fvel;
             this.fingerVelIdx++;
@@ -8381,7 +8402,11 @@ class JugglerGame {
 
         // --- 1. Finger velocity buffer ---
         if (mousePos && this.prevFingerPos) {
-            const fvel = [mousePos.x - this.prevFingerPos.x, mousePos.y - this.prevFingerPos.y];
+            // Scale velocity to reference frame rate (match MATLAB ~30fps)
+            const fvel = [
+                (mousePos.x - this.prevFingerPos.x) * (ds > 0 ? ds : 1),
+                (mousePos.y - this.prevFingerPos.y) * (ds > 0 ? ds : 1)
+            ];
             const bufIdx = this.fingerVelIdx % 5;
             this.fingerVelBuf[bufIdx] = fvel;
             this.fingerVelIdx++;
