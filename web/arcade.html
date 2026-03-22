@@ -162,6 +162,11 @@ canvas.addEventListener('mousemove', (e) => {
     input.mouseY = newY;
     input.lastMouseX = newX;
     input.lastMouseY = newY;
+
+    // Update scroll drag if active
+    if (arcade.state === 'menu' && arcade.menu && arcade.menu.scrollDragging) {
+        arcade.menu.updateScrollDrag(newY);
+    }
 });
 
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -171,17 +176,26 @@ canvas.addEventListener('mousedown', (e) => {
     input.mouseDown = true;
     if (arcade.state === 'active' && arcade.activeGame) {
         if (e.button === 2) {
-            // Right-click: soft drop in Tetris, forward as key
             arcade.activeGame.onKeyPress('ArrowDown');
         } else {
             arcade.activeGame.onMouseDown();
         }
-    } else if (arcade.state === 'menu') {
-        arcade.onMenuClick();
+    } else if (arcade.state === 'menu' && arcade.menu) {
+        // Check scroll thumb first
+        if (arcade.menu.hitTestScrollThumb(input.mouseX, input.mouseY)) {
+            arcade.menu.beginScrollDrag(input.mouseY);
+        } else {
+            arcade.onMenuClick();
+        }
     }
 });
 
-canvas.addEventListener('mouseup', () => { input.mouseDown = false; });
+canvas.addEventListener('mouseup', () => {
+    input.mouseDown = false;
+    if (arcade.menu && arcade.menu.scrollDragging) {
+        arcade.menu.endScrollDrag();
+    }
+});
 
 // Touch support (mobile)
 canvas.addEventListener('touchstart', (e) => {
@@ -402,6 +416,18 @@ class GameMenu {
         this.scrollOffset = 0;
         this.maxVisible = 5;
         this.animTime = 0;
+
+        // Scroll drag state (matches MATLAB GameMenu)
+        this.scrollDragging = false;
+        this.scrollDragStartY = 0;
+        this.scrollDragStartOffset = 0;
+
+        // Layout constants for scroll track
+        this.itemW = 267;
+        this.itemH = 51;
+        this.itemGap = 13;
+        this.listTop = DISPLAY_H * 0.22;
+        this.trackX = DISPLAY_W / 2 + this.itemW / 2 + 15;
 
         // Starfield
         this.stars = Array.from({length: 80}, () => ({
@@ -652,6 +678,52 @@ class GameMenu {
             }
         }
         return -1;
+    }
+
+    // --- Scroll thumb dragging (matches MATLAB GameMenu) ---
+    hitTestScrollThumb(mx, my) {
+        const nGames = this.games.length;
+        const maxVis = this.maxVisible;
+        if (nGames <= maxVis) return false;
+        const trackH = maxVis * (this.itemH + this.itemGap) - this.itemGap;
+        const thumbH = Math.max(20, trackH * maxVis / nGames);
+        const maxOff = nGames - maxVis;
+        const thumbY = this.listTop + (trackH - thumbH) * this.scrollOffset / Math.max(1, maxOff);
+        return mx >= this.trackX - 8 && mx <= this.trackX + 8 &&
+               my >= thumbY && my <= thumbY + thumbH;
+    }
+
+    beginScrollDrag(mouseY) {
+        this.scrollDragging = true;
+        this.scrollDragStartY = mouseY;
+        this.scrollDragStartOffset = this.scrollOffset;
+    }
+
+    updateScrollDrag(mouseY) {
+        if (!this.scrollDragging) return;
+        const nGames = this.games.length;
+        const maxVis = this.maxVisible;
+        const maxOff = nGames - maxVis;
+        if (maxOff <= 0) return;
+        const trackH = maxVis * (this.itemH + this.itemGap) - this.itemGap;
+        const thumbH = Math.max(20, trackH * maxVis / nGames);
+        const scrollableH = trackH - thumbH;
+        if (scrollableH <= 0) return;
+        const deltaY = mouseY - this.scrollDragStartY;
+        const deltaFrac = deltaY / scrollableH;
+        const newOffset = Math.max(0, Math.min(maxOff,
+            Math.round(this.scrollDragStartOffset + deltaFrac * maxOff)));
+        if (newOffset !== this.scrollOffset) {
+            this.scrollOffset = newOffset;
+            if (this.selectedIdx < this.scrollOffset)
+                this.selectedIdx = this.scrollOffset;
+            if (this.selectedIdx >= this.scrollOffset + maxVis)
+                this.selectedIdx = this.scrollOffset + maxVis - 1;
+        }
+    }
+
+    endScrollDrag() {
+        this.scrollDragging = false;
     }
 }
 
