@@ -79,8 +79,15 @@ No pending scaling work for arcade games.
 - [ ] Remove console.log debug messages from arcade.html before release
 - [ ] Fix remaining game launch errors (test all 15 games in browser)
 - [ ] Verify all game physics/scoring match MATLAB versions
-- [ ] Trail rendering quality — trails appear shorter than MATLAB (check buffer length + rendering)
+- [x] Trail rendering — fixed via frame-rate accumulator (record at ~30fps rate)
+- [ ] FlickIt detection sensitivity — threshold may need tuning for 60fps (velocity per frame is halved)
+- [ ] Menu title shadow/glow — add glow text layer behind title to match MATLAB
+- [ ] RailShooter — verify defeat effect sizes and score text formatting
+- [ ] Pong AI jitter — add TODO to smooth AI paddle when stationary
+- [ ] Juggler results text — rename "Best Flick Streak" (in both MATLAB and HTML)
+- [ ] Menu scrollbar — mouse drag now working, test on mobile
 - [ ] Test on multiple browsers (Chrome, Firefox, Edge)
+- [ ] Test on mobile (touch events added)
 
 ## Code Quality
 
