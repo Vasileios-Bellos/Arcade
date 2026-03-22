@@ -279,7 +279,7 @@ class HitEffectSystem {
             speed = speedArg2 || 5;
         }
         const clr = speedColor(speed);
-        const sparkLen = 6 + speed * 1.5;
+        const sparkLen = Math.min(30, 6 + speed * 1.5);
         const nRays = 5;
         const baseAngle = Math.atan2(normal[1], normal[0]);
         const angles = Array.from({length: nRays}, (_, i) =>
@@ -357,7 +357,7 @@ class HitEffectSystem {
                 ctx.font = `bold ${7 * (1 + eased * 0.3)}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
-                ctx.fillText(`+${fx.points}`, fx.x, textY);
+                ctx.fillText(`+${Math.round(fx.points)}`, fx.x, textY);
             }
         }
     }
@@ -5680,7 +5680,7 @@ class FlappyBirdGame {
     spawnBounceEffect(x, y, nx, ny, points, speed) {
         if (speed === undefined) speed = 5;
         const clr = this.flickSpeedColor(speed);
-        const sparkLen = 6 + speed * 1.5;
+        const sparkLen = Math.min(30, 6 + speed * 1.5);
         const nRays = 5;
         const maxFrames = 22;
         const baseAngle = Math.atan2(ny, nx);
@@ -5755,7 +5755,7 @@ class FlappyBirdGame {
                 ctx.textBaseline = 'bottom';
                 ctx.shadowBlur = 6;
                 ctx.shadowColor = rgb(fx.color, alpha * 0.5);
-                ctx.fillText(`+${fx.points}`, fx.x, textY);
+                ctx.fillText(`+${Math.round(fx.points)}`, fx.x, textY);
                 ctx.restore();
             } else if (fx.points === 0 && fx.type === 'hit') {
                 ctx.save();
@@ -6552,7 +6552,7 @@ class FruitNinjaGame {
                 ctx.textBaseline = 'bottom';
                 ctx.shadowBlur = 6;
                 ctx.shadowColor = rgb(fx.color, alpha * 0.5);
-                ctx.fillText(`+${fx.points}`, fx.x, textY);
+                ctx.fillText(`+${Math.round(fx.points)}`, fx.x, textY);
                 ctx.restore();
             }
         }
@@ -7001,7 +7001,7 @@ class TargetPracticeGame {
                 ctx.textBaseline = 'bottom';
                 ctx.shadowBlur = 6;
                 ctx.shadowColor = rgb(fx.color, alpha * 0.5);
-                ctx.fillText(`+${fx.points}`, fx.x, textY);
+                ctx.fillText(`+${Math.round(fx.points)}`, fx.x, textY);
                 ctx.restore();
             } else if (fx.points === 0) {
                 ctx.save();
