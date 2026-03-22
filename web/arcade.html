@@ -10123,8 +10123,8 @@ class RailShooterGame {
         ctx.fillStyle = `rgba(255,38,26,0.95)`;
         ctx.fill();
 
-        // Outer ring
-        const ringR = Math.sqrt(6000 / Math.PI) * 0.15;
+        // Outer ring (MATLAB: scatter SizeData 6000 = area in pt², diameter ≈ 87pt)
+        const ringR = Math.sqrt(6000 / Math.PI); // ≈ 43.7 radius
         ctx.beginPath();
         ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
         ctx.strokeStyle = 'red';
