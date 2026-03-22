@@ -593,8 +593,8 @@ classdef OrbitalDefense < GameBase
             vertRadii = rockRadius * (0.7 + 0.3 * rand(1, nVerts));
             shpX = vertRadii .* cos(vertAngles);
             shpY = vertRadii .* sin(vertAngles);
-            shpX(end+1) = shpX(1); %#ok<AGROW>
-            shpY(end+1) = shpY(1); %#ok<AGROW>
+            shpX(end+1) = shpX(1);
+            shpY(end+1) = shpY(1);
 
             obj.AstShapeX{slot} = shpX;
             obj.AstShapeY{slot} = shpY;

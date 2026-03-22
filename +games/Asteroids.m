@@ -269,8 +269,8 @@ classdef Asteroids < GameBase
             vertRadii = rockRadius * (0.7 + 0.3 * rand(1, nVerts));
             px = x + vertRadii .* cos(vertAngles);
             py = y + vertRadii .* sin(vertAngles);
-            px(end + 1) = px(1); %#ok<AGROW>
-            py(end + 1) = py(1); %#ok<AGROW>
+            px(end + 1) = px(1); 
+            py(end + 1) = py(1); 
 
             tierColors = {obj.ColorSilver, obj.ColorGold, obj.ColorRed};
             clr = tierColors{min(tier, 3)};
@@ -382,7 +382,7 @@ classdef Asteroids < GameBase
                         % Split into next tier
                         nextTier = rock.tier + 1;
                         if nextTier <= numel(obj.TierRadii)
-                            for s = 1:2 %#ok<ALOC>
+                            for s = 1:2
                                 sAngle = rand * 2 * pi;
                                 sSpeed = norm([rock.vx, rock.vy]) * (1.2 + rand * 0.5);
                                 svx = sSpeed * cos(sAngle);

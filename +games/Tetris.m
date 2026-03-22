@@ -458,9 +458,6 @@ classdef Tetris < GameBase
                 end
             end
 
-            if false  %#ok — lock delay disabled (instant lock on landing)
-            end
-
             % =============================================================
             % UPDATE VISUALS
             % =============================================================

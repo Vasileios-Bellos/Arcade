@@ -95,14 +95,8 @@ classdef Pong < GameBase
     % ABSTRACT METHOD IMPLEMENTATIONS
     % =================================================================
     methods
-        function onInit(obj, ax, displayRange, caps)
+        function onInit(obj, ax, displayRange, ~)
             %onInit  Create pong graphics and initialize state.
-            arguments
-                obj
-                ax
-                displayRange struct
-                caps struct = struct()
-            end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
             obj.Score = 0;
@@ -690,7 +684,6 @@ classdef Pong < GameBase
             bx = obj.BallPos(1);
             by = obj.BallPos(2);
             ballSpeed = norm(obj.BallVel);
-            r = obj.BallRadius;
             visSpeed = ballSpeed * obj.SpeedScale;
             clr = obj.flickSpeedColor(visSpeed);
 

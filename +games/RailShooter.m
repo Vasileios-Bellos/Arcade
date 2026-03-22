@@ -700,13 +700,9 @@ classdef RailShooter < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_railshooter");
         end
 
-        function handled = onKeyPress(obj, key)
+        function handled = onKeyPress(~, ~)
             %onKeyPress  Handle key events for FPS rail shooter.
             %   No mode-specific keys currently.
-            arguments
-                obj     %#ok<INUSA>
-                key     string %#ok<INUSD>
-            end
             handled = false;
         end
 

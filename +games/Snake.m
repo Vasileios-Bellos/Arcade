@@ -30,10 +30,6 @@ classdef Snake < GameBase
                 error("games:Snake:BadColormap", ...
                     "Colormap must be a colormap name or Nx3 matrix.");
             end
-            % Live-update if snake is active
-            if ~isempty(obj.ColormapRGB)
-                obj.ColormapRGB = obj.buildColormap();
-            end
         end
     end
 
@@ -414,7 +410,7 @@ classdef Snake < GameBase
 
             % Try random positions up to 200 times
             foodCell = [NaN, NaN];
-            for attempt = 1:200 %#ok<BDSCI>
+            for attempt = 1:200
                 candidate = [randi(nC), randi(nR)];
                 if isempty(obj.Body) || ~any(obj.Body(:,1) == candidate(1) & obj.Body(:,2) == candidate(2))
                     foodCell = candidate;

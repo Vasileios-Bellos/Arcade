@@ -1,12 +1,5 @@
 # MATLAB
 *.asv
-*.autosave
-*.m~
-*.mex*
-
-# OS
-Thumbs.db
-.DS_Store
 
 # High scores (user-generated)
 ScoreManager_scores.mat
