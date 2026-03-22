@@ -32,6 +32,11 @@ const REF_FPS = 60;
 const BG_COLOR = '#04040a';
 const BG_RGB = [4, 4, 10];
 
+// MATLAB MarkerSize is in points (1/72 inch). At 96 DPI, 1pt = 1.333px.
+// In 854x480 display at 854px wide, 1 data unit = 1px.
+// So 1 MarkerSize point = 1.333 data units.
+const PTS_TO_DATA = 96 / 72; // ≈ 1.3333
+
 // Neon color palette (MATLAB [0,1] → [0,255])
 const Colors = {
     cyan:    [0, 235, 255],
@@ -1566,27 +1571,27 @@ class PongGame {
             const by = this.ballPos[1];
             const r = this.ballRadius;
 
-            // Aura (line 694-697)
+            // Aura: MATLAB MarkerSize = r*5, diameter in pts → radius in data = r*5/2*PTS_TO_DATA
             ctx.beginPath();
-            ctx.arc(bx, by, r * 2.5, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * 5 / 2 * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(clr, 0.12);
-            ctx.shadowColor = rgb(clr, 0.3);
-            ctx.shadowBlur = r * 3;
+            ctx.shadowColor = rgb(clr, 0.15);
+            ctx.shadowBlur = 6;
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // Glow ring (line 688-691)
+            // Glow: MATLAB glowSize = r*2.5, diameter in pts → radius = r*2.5/2*PTS_TO_DATA
             ctx.beginPath();
-            ctx.arc(bx, by, r * 1.25, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * 2.5 / 2 * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(clr, 0.4);
-            ctx.shadowColor = rgb(clr, 0.6);
-            ctx.shadowBlur = r * 2;
+            ctx.shadowColor = rgb(clr, 0.3);
+            ctx.shadowBlur = 8;
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // Core (line 683-685)
+            // Core: MATLAB MarkerSize = r*2, diameter → radius = r*2/2*PTS_TO_DATA = r*PTS_TO_DATA
             ctx.beginPath();
-            ctx.arc(bx, by, r, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(Colors.White, 1);
             ctx.fill();
         }
@@ -2623,14 +2628,15 @@ class BreakoutGame {
 
             const auraColor = isFireball ? Colors.Red : ballColor;
             const auraAlpha = isFireball ? 0.25 : 0.15;
-            const auraR = isFireball ? r * 3.5 : r * 2.5;
+            // MATLAB: aura=r*5, glow=r*2.5, core=r*2 (all MarkerSize diameter in pts)
+            const auraR = (isFireball ? r * 7 : r * 5) / 2 * PTS_TO_DATA;
 
             // Aura
             ctx.beginPath();
             ctx.arc(bx, by, auraR, 0, Math.PI * 2);
             ctx.fillStyle = rgb(auraColor, auraAlpha);
-            ctx.shadowColor = rgb(auraColor, 0.3);
-            ctx.shadowBlur = r * 3;
+            ctx.shadowColor = rgb(auraColor, 0.15);
+            ctx.shadowBlur = 6;
             ctx.fill();
             ctx.shadowBlur = 0;
 
@@ -2638,16 +2644,16 @@ class BreakoutGame {
             const glowColor = isFireball ? Colors.Red : ballColor;
             const glA = isFireball ? 0.7 : 0.5;
             ctx.beginPath();
-            ctx.arc(bx, by, r * 1.25, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * 2.5 / 2 * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(glowColor, glA);
-            ctx.shadowColor = rgb(glowColor, 0.6);
-            ctx.shadowBlur = r * 2;
+            ctx.shadowColor = rgb(glowColor, 0.3);
+            ctx.shadowBlur = 8;
             ctx.fill();
             ctx.shadowBlur = 0;
 
             // Core
             ctx.beginPath();
-            ctx.arc(bx, by, r, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(Colors.White, 1);
             ctx.fill();
         }
@@ -2663,17 +2669,17 @@ class BreakoutGame {
             const ebColor = isFireball ? Colors.Red : flickSpeedColor(ebMapped);
 
             ctx.beginPath();
-            ctx.arc(bx, by, r * 2, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * 5/2 * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(ebColor, 0.15);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(bx, by, r * 1.1, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * 2.5/2 * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(ebColor, 0.4);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(bx, by, r * 0.8, 0, Math.PI * 2);
+            ctx.arc(bx, by, r * PTS_TO_DATA, 0, Math.PI * 2);
             ctx.fillStyle = rgb(Colors.White, 1);
             ctx.fill();
         }
@@ -8167,7 +8173,8 @@ class FlickItGame {
         }
 
         // --- Outer aura (FIXED size, only color/alpha change) ---
-        const auraRadius = 27; // fixed radius, does not grow
+        // MATLAB: MarkerSize 54 pts diameter → radius = 54/2 * PTS_TO_DATA = 36
+        const auraRadius = 54 / 2 * PTS_TO_DATA;
         const auraAlpha = 0.08 + Math.min(0.12, spd * 0.01);
         ctx.save();
         ctx.shadowColor = rgba(clr, auraAlpha * 0.5);
@@ -8179,7 +8186,8 @@ class FlickItGame {
         ctx.restore();
 
         // --- Glow ring (GROWS/breathes via glowScale) ---
-        const glowRadius = rr * 2.5 * 0.5 * glowScale;
+        // MATLAB: glowSize = rr*2.5, diameter → radius = rr*2.5/2*PTS_TO_DATA
+        const glowRadius = rr * 2.5 / 2 * PTS_TO_DATA * glowScale;
         const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
@@ -8191,8 +8199,9 @@ class FlickItGame {
         ctx.restore();
 
         // --- Core dot ---
+        // MATLAB: MarkerSize 20 pts diameter → radius = 20/2*PTS_TO_DATA
         const coreBreath = this.ballMoving ? 1 : (1 + 0.12 * Math.sin(this.ballPhase));
-        const coreSize = 20 * coreBreath * 0.5;
+        const coreSize = 20 / 2 * PTS_TO_DATA * coreBreath;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
@@ -8766,7 +8775,7 @@ class JugglerGame {
 
         // Aura (outer, FIXED size, only color changes)
         const auraScale = 1 + Math.min(1.5, ballSpeed * 0.08);
-        const auraRadius2 = 27; // fixed
+        const auraRadius2 = 54 / 2 * PTS_TO_DATA; // MATLAB MarkerSize 54 pts
         const auraAlpha2 = 0.08 + Math.min(0.12, ballSpeed * 0.01);
         ctx.save();
         ctx.shadowColor = rgba(clr, auraAlpha2 * 0.5);
@@ -8778,8 +8787,9 @@ class JugglerGame {
         ctx.restore();
 
         // Glow ring (middle, breathes gently)
+        // MATLAB: glowSize = r*2.5, diameter → radius = r*2.5/2*PTS_TO_DATA
         const glowBreath = 1 + 0.12 * Math.sin(this.ballPhase || 0);
-        const glowRadius = r * 2.5 * 0.5 * glowBreath;
+        const glowRadius = r * 2.5 / 2 * PTS_TO_DATA * glowBreath;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
         ctx.shadowBlur = 10; // fixed glow, not proportional
@@ -8790,8 +8800,9 @@ class JugglerGame {
         ctx.restore();
 
         // Core dot (breathes gently)
+        // MATLAB: MarkerSize 20 pts → radius = 20/2*PTS_TO_DATA
         const coreBreath2 = 1 + 0.12 * Math.sin(this.ballPhase || 0);
-        const coreSize = 20 * coreBreath2 * 0.5;
+        const coreSize = 20 / 2 * PTS_TO_DATA * coreBreath2;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
         ctx.shadowBlur = 6; // subtle core glow
