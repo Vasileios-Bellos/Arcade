@@ -241,7 +241,7 @@ MATLAB graphics object creation involves handle registration, renderer sync, and
 | ShieldGuardian | 20 projectiles (scatter pairs) |
 | OrbitalDefense | 10 interceptors + 12 explosions + 50 asteroids |
 | FruitNinja | 8 fruits + 16 halves + 6 slash effects |
-| Fireflies | 4 fireflies (dot + aura + trail + trailGlow each) |
+| Firefly Chase | 4 fireflies (dot + aura + trail + trailGlow each) |
 | Snake | 60 body segments + 2 food handles |
 | FlappyBird | 10 pipe pairs |
 
@@ -252,7 +252,7 @@ MATLAB graphics object creation involves handle registration, renderer sync, and
 ```
 +games/
     Pong, Breakout, Snake, Tetris, Asteroids, SpaceInvaders,
-    FlappyBird, FruitNinja, TargetPractice, Fireflies, FlickIt,
+    FlappyBird, FruitNinja, TargetPractice, FireflyChase, FlickIt,
     Juggling, OrbitalDefense, ShieldGuardian, RailShooter
 ```
 

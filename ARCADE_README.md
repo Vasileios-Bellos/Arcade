@@ -29,8 +29,8 @@ games.Tetris().play()
 | 7 | Flappy Bird | Pipe dodge with aggressive gap/speed scaling |
 | 8 | Fruit Ninja | Slash fruit arcs, multi-cut bonus, centrality scoring |
 | 9 | Target Practice | Hit random targets, combo scoring, difficulty ramp |
-| 10 | Fireflies | Chase 5-tier color-coded fireflies with evasive golden snitch |
-| 11 | Flick It | Physics orb -- flick it off walls, speed-to-color gradient |
+| 10 | Firefly Chase | Chase 5-tier color-coded fireflies with evasive golden snitch |
+| 11 | Flick It! | Physics orb -- flick it off walls, speed-to-color gradient |
 | 12 | Juggling | Keep balls airborne with flicks, gravity pulls them down |
 | 13 | Orbital Defense | Hex base, asteroid waves, chain-reaction explosions |
 | 14 | Shield Guardian | Rotate a shield arc to deflect projectiles, protect core HP |

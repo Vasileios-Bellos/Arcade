@@ -1,17 +1,17 @@
-classdef Fireflies < GameBase
-    %Fireflies  Firefly hunt — catch color-coded fireflies on closed orbits.
+classdef FireflyChase < GameBase
+    %FireflyChase  Firefly hunt — catch color-coded fireflies on closed orbits.
     %   5 tiers (cyan/green/magenta/purple/gold), max 3 on screen.
     %   Path-based closed orbits (loop, figure8) with seamless looping.
     %   Gold snitch uses Lissajous curves with finger evasion AI.
     %   Combo decays 2s after last catch.
     %
-    %   Standalone: games.Fireflies().play()
+    %   Standalone: games.FireflyChase().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Fireflies"
+        Name = "Firefly Chase"
     end
 
     % =================================================================
@@ -303,7 +303,7 @@ classdef Fireflies < GameBase
 
         function r = getResults(obj)
             %getResults  Return catching-specific results.
-            r.Title = "FIREFLIES";
+            r.Title = "FIREFLY CHASE";
             r.Lines = {
                 sprintf("Caught: %d", obj.FirefliesCaught)
             };
@@ -389,7 +389,7 @@ classdef Fireflies < GameBase
                 % Path-based firefly — closed orbits only (loop, figure8)
                 corridorW = round(10 * obj.Sc);
                 for attempt = 1:50 %#ok<FXUP>
-                    p = games.Fireflies.generatePath(3, drx, dry, corridorW, true);
+                    p = games.FireflyChase.generatePath(3, drx, dry, corridorW, true);
                     if ismember(p.Type, ["loop", "figure8"])
                         break
                     end
@@ -713,7 +713,7 @@ classdef Fireflies < GameBase
             end
 
             % Resample to uniform ~1px spacing
-            [X, Y, cumDist] = games.Fireflies.resampleUniform(rawX, rawY);
+            [X, Y, cumDist] = games.FireflyChase.resampleUniform(rawX, rawY);
 
             pathStruct.X = X;
             pathStruct.Y = Y;

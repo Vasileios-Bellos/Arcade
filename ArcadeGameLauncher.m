@@ -1078,8 +1078,8 @@ classdef ArcadeGameLauncher < handle
             obj.registerGame("8", @games.FruitNinja, "Fruit Ninja");
             % === Originals ===
             obj.registerGame("9", @games.TargetPractice, "Target Practice");
-            obj.registerGame("10", @games.Fireflies, "Fireflies");
-            obj.registerGame("11", @games.FlickIt, "Flick It");
+            obj.registerGame("10", @games.FireflyChase, "Firefly Chase");
+            obj.registerGame("11", @games.FlickIt, "Flick It!");
             obj.registerGame("12", @games.Juggling, "Juggling");
             obj.registerGame("13", @games.OrbitalDefense, "Orbital Defense");
             obj.registerGame("14", @games.ShieldGuardian, "Shield Guardian");

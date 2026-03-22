@@ -73,7 +73,7 @@ classdef (Abstract) GameBase < handle
     % GAME IDENTITY (override in subclasses)
     % =================================================================
     properties (Constant, Abstract)
-        Name            string          % display name (e.g., "Flick It")
+        Name            string          % display name (e.g., "Flick It!")
     end
 
     % =================================================================

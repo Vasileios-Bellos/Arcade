@@ -6,7 +6,7 @@ Working checklist extracted from CLAUDE.md. The master reference remains CLAUDE.
 
 ## Testing
 
-- [ ] Test all 15 arcade games: Pong, Breakout, Snake, Tetris, Asteroids, SpaceInvaders, FlappyBird, FruitNinja, TargetPractice, Fireflies, FlickIt, Juggling, OrbitalDefense, ShieldGuardian, RailShooter
+- [ ] Test all 15 arcade games: Pong, Breakout, Snake, Tetris, Asteroids, SpaceInvaders, FlappyBird, FruitNinja, TargetPractice, FireflyChase, FlickIt, Juggling, OrbitalDefense, ShieldGuardian, RailShooter
 
 ---
 
@@ -15,7 +15,7 @@ Working checklist extracted from CLAUDE.md. The master reference remains CLAUDE.
 All 15 arcade games plus infrastructure are already scaled (18 files total):
 ArcadeGameLauncher.m, GameBase.m, GameMenu.m, +games/Pong.m, +games/Breakout.m,
 +games/Snake.m, +games/Tetris.m, +games/Asteroids.m, +games/SpaceInvaders.m,
-+games/FlappyBird.m, +games/FruitNinja.m, +games/TargetPractice.m, +games/Fireflies.m,
++games/FlappyBird.m, +games/FruitNinja.m, +games/TargetPractice.m, +games/FireflyChase.m,
 +games/FlickIt.m, +games/Juggling.m, +games/OrbitalDefense.m, +games/ShieldGuardian.m,
 +games/RailShooter.m.
 

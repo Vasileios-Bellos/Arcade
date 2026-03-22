@@ -1,5 +1,5 @@
 classdef FlickIt < GameBase
-    %FlickIt  Physics-based flick ball game with wall bounces.
+    %FlickIt  Flick It! — physics-based flick ball game with wall bounces.
     %   A ball sits at the center of the screen. Move your finger through
     %   it with velocity to flick it. The ball bounces off walls with
     %   parametric collision detection. Re-flicking a moving ball builds
@@ -12,7 +12,7 @@ classdef FlickIt < GameBase
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Flick It"
+        Name = "Flick It!"
     end
 
     % =================================================================
@@ -144,7 +144,7 @@ classdef FlickIt < GameBase
             % Outer aura (large soft glow)
             obj.AuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
-                "MarkerSize", 27 * obj.FontScale, "LineStyle", "none", ...
+                "MarkerSize", 54 * obj.FontScale, "LineStyle", "none", ...
                 "Visible", "on", "Tag", "GT_flick");
 
             % Glow ring (scatter for proper transparency)
@@ -157,12 +157,12 @@ classdef FlickIt < GameBase
             % Bright core dot
             obj.CoreH = line(ax, cx, cy, ...
                 "Color", [1, 1, 1, 1], "Marker", ".", ...
-                "MarkerSize", 10 * obj.FontScale, "LineStyle", "none", ...
+                "MarkerSize", 20 * obj.FontScale, "LineStyle", "none", ...
                 "Visible", "on", "Tag", "GT_flick");
 
             % Speed/bounces text (near ball)
-            obj.SpeedTextH = text(ax, cx, cy - rr - 8, "", ...
-                "Color", [obj.ColorCyan, 0.8], "FontSize", 5.4 * obj.FontScale, ...
+            obj.SpeedTextH = text(ax, cx, cy - rr - 14, "", ...
+                "Color", [obj.ColorCyan, 0.8], "FontSize", 6.5 * obj.FontScale, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Visible", "off", ...
                 "Tag", "GT_flick");
@@ -271,7 +271,7 @@ classdef FlickIt < GameBase
 
         function r = getResults(obj)
             %getResults  Return flick ball session results.
-            r.Title = "FLICK IT";
+            r.Title = "FLICK IT!";
             r.Lines = {
                 sprintf("Flicks: %d  |  Bounces: %d  |  Max Speed: %.0f", ...
                     obj.TotalFlicks, obj.TotalBounces, obj.MaxSpeed * 10)
@@ -479,7 +479,7 @@ classdef FlickIt < GameBase
             if ~isempty(obj.CoreH) && isvalid(obj.CoreH)
                 obj.CoreH.XData = bx;
                 obj.CoreH.YData = by;
-                coreSize = 10 * breath * obj.FontScale;
+                coreSize = 20 * breath * obj.FontScale;
                 obj.CoreH.MarkerSize = coreSize;
                 coreAlpha = min(1, 0.8 + spd * 0.02);
                 obj.CoreH.Color = [1, 1, 1, coreAlpha];
@@ -498,7 +498,7 @@ classdef FlickIt < GameBase
             if ~isempty(obj.AuraH) && isvalid(obj.AuraH)
                 obj.AuraH.XData = bx;
                 obj.AuraH.YData = by;
-                auraSize = 27 * auraScale * obj.FontScale;
+                auraSize = 54 * auraScale * obj.FontScale;
                 auraAlpha = 0.1 + min(0.2, spd * 0.015);
                 obj.AuraH.MarkerSize = auraSize;
                 obj.AuraH.Color = [clr, auraAlpha];
@@ -553,12 +553,12 @@ classdef FlickIt < GameBase
                 if obj.BallMoving
                     obj.SpeedTextH.String = sprintf("%.0f  |  %d bounces", ...
                         spd * 10, obj.Bounces);
-                    obj.SpeedTextH.Position = [bx, by - rr * breath - 6, 0];
+                    obj.SpeedTextH.Position = [bx, by - rr * breath - 14, 0];
                     obj.SpeedTextH.Color = [clr, 0.7];
                     obj.SpeedTextH.Visible = "on";
                 else
                     obj.SpeedTextH.String = "FLICK ME";
-                    obj.SpeedTextH.Position = [bx, by - rr * breath - 6, 0];
+                    obj.SpeedTextH.Position = [bx, by - rr * breath - 14, 0];
                     flicker = 0.4 + 0.3 * sin(obj.BallPhase * 1.5);
                     obj.SpeedTextH.Color = [obj.ColorCyan, flicker];
                     obj.SpeedTextH.Visible = "on";
