@@ -852,15 +852,11 @@ const arcade = {
         if (idx < 0 || idx >= this.games.length) return;
         const entry = this.games[idx];
         try {
-            console.log(`Launching ${entry.name}...`);
             this.activeGame = entry.ctor();
-            console.log(`  Constructor OK, isRunning=${this.activeGame.isRunning}`);
             this.activeGameName = entry.name;
             const dr = { X: [0, DISPLAY_W], Y: [0, DISPLAY_H], x: [0, DISPLAY_W], y: [0, DISPLAY_H] };
             this.activeGame.init(canvas, ctx, dr);
-            console.log(`  init() OK`);
             this.activeGame.isRunning = true;
-            console.log(`  isRunning set to true`);
             this.score = 0;
             this.scoreDisplayed = 0;
             this.combo = 0;
@@ -1038,12 +1034,12 @@ const arcade = {
         ctx.font = 'bold 20px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(results.title, cx, cy - 60);
+        ctx.fillText(results.title, cx, cy - DISPLAY_H * 0.15);
 
         // Game-specific lines
         ctx.fillStyle = rgb(Colors.white, 0.85);
         ctx.font = 'bold 9px Arial';
-        let lineY = cy - 20;
+        let lineY = cy - DISPLAY_H * 0.05;
         for (const line of (results.lines || [])) {
             ctx.fillText(line, cx, lineY);
             lineY += 18;
