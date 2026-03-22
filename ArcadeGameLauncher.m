@@ -848,11 +848,18 @@ classdef ArcadeGameLauncher < handle
             entry = obj.Registry(key);
             obj.ActiveGameName = entry.name;
 
+            % Pause timer during init to prevent drawnow race with scatter creation
+            if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer)
+                stop(obj.RenderTimer);
+            end
             game = entry.ctor();
             game.FontScale = obj.FontScale;
             game.init(obj.Ax, obj.DisplayRange);
             game.beginGame();
             obj.ActiveGame = game;
+            if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer)
+                start(obj.RenderTimer);
+            end
             obj.SessionStartTic = tic;
 
             % Bring HUD text to front (above game graphics)
@@ -1080,7 +1087,7 @@ classdef ArcadeGameLauncher < handle
             obj.registerGame("9", @games.TargetPractice, "Target Practice");
             obj.registerGame("10", @games.FireflyChase, "Firefly Chase");
             obj.registerGame("11", @games.FlickIt, "Flick It!");
-            obj.registerGame("12", @games.Juggling, "Juggling");
+            obj.registerGame("12", @games.Juggler, "Juggler");
             obj.registerGame("13", @games.OrbitalDefense, "Orbital Defense");
             obj.registerGame("14", @games.ShieldGuardian, "Shield Guardian");
             obj.registerGame("15", @games.RailShooter, "Rail Shooter");

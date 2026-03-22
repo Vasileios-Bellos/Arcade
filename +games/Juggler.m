@@ -1,16 +1,16 @@
-classdef Juggling < GameBase
-    %Juggling  Gravity-based ball juggling game with flick physics.
+classdef Juggler < GameBase
+    %Juggler  Gravity-based ball juggling game with flick physics.
     %   Keep the ball in the air by flicking it with your finger. Gravity
     %   pulls the ball down; dropping it past the bottom edge resets combo.
     %   Extra balls spawn at combo milestones (every 10).
     %
-    %   Standalone: games.Juggling().play()
+    %   Standalone: games.Juggler().play()
     %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
     %
     %   See also GameBase, GameHost
 
     properties (Constant)
-        Name = "Juggling"
+        Name = "Juggler"
     end
 
     % =================================================================
@@ -149,15 +149,15 @@ classdef Juggling < GameBase
                 "Tag", "GT_juggle");
             obj.BallAuraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
-                "MarkerSize", 27 * obj.FontScale, "LineStyle", "none", "Tag", "GT_juggle");
+                "MarkerSize", 54 * obj.FontScale, "LineStyle", "none", "Tag", "GT_juggle");
             glowSize = r * 2.5 * obj.FontScale;
             obj.BallGlowH = scatter(ax, cx, cy*0.7, pi * (glowSize/2)^2, ...
                 obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, "Tag", "GT_juggle");
             obj.BallCoreH = line(ax, cx, cy*0.7, ...
-                "Color", [1, 1, 1, 1], "Marker", ".", "MarkerSize", 10 * obj.FontScale, ...
+                "Color", [1, 1, 1, 1], "Marker", ".", "MarkerSize", 20 * obj.FontScale, ...
                 "LineStyle", "none", "Tag", "GT_juggle");
-            obj.BallInfoTextH = text(ax, cx, cy*0.7 - r - 8, "HIT ME UP!", ...
-                "Color", [obj.ColorCyan, 0.8], "FontSize", 5.4 * obj.FontScale, "FontWeight", "bold", ...
+            obj.BallInfoTextH = text(ax, cx, cy*0.7 - r - 14, "HIT ME UP!", ...
+                "Color", [obj.ColorCyan, 0.8], "FontSize", 6.5 * obj.FontScale, "FontWeight", "bold", ...
                 "HorizontalAlignment", "center", "VerticalAlignment", "bottom", ...
                 "Tag", "GT_juggle");
 
@@ -341,7 +341,7 @@ classdef Juggling < GameBase
 
         function r = getResults(obj)
             %getResults  Return juggling-specific results.
-            r.Title = "JUGGLING";
+            r.Title = "JUGGLER";
             % Capture current ball's streak before results
             bestStreak = max(obj.BestStreak, obj.BallFlicks);
             r.Lines = {
@@ -401,7 +401,7 @@ classdef Juggling < GameBase
             obj.addScore(flickPoints);
 
             clr = obj.flickSpeedColor(hitSpeed * obj.SpeedScale);
-            obj.spawnHitEffect(hitPos, clr, flickPoints, obj.BallRadius + 5);
+            obj.spawnHitEffect(hitPos + [0, 4], clr, flickPoints, obj.BallRadius + 5);
         end
 
         function renderBall(obj)
@@ -429,7 +429,7 @@ classdef Juggling < GameBase
                 obj.BallAuraH.XData = bx;
                 obj.BallAuraH.YData = by;
                 auraScale = 1 + min(1.5, ballSpeed * 0.08);
-                obj.BallAuraH.MarkerSize = 27 * auraScale * obj.FontScale;
+                obj.BallAuraH.MarkerSize = 54 * auraScale * obj.FontScale;
                 obj.BallAuraH.Color = [clr, 0.12];
             end
             % Trail
@@ -471,7 +471,7 @@ classdef Juggling < GameBase
                     elapsed = toc(obj.StartTic);
                 end
                 obj.BallInfoTextH.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.BallFlicks);
-                obj.BallInfoTextH.Position = [bx, by - r - 6, 0];
+                obj.BallInfoTextH.Position = [bx, by - r - 14, 0];
                 obj.BallInfoTextH.Color = [clr, 0.7];
             end
         end
@@ -530,16 +530,16 @@ classdef Juggling < GameBase
                 "Tag", "GT_juggle");
             auraH = line(ax, NaN, NaN, ...
                 "Color", [obj.ColorCyan, 0.15], "Marker", ".", ...
-                "MarkerSize", 27 * eps_, "LineStyle", "none", ...
+                "MarkerSize", 54 * eps_, "LineStyle", "none", ...
                 "Tag", "GT_juggle");
             glowH = scatter(ax, xPos, yPos, pi * (glowSize/2)^2, ...
                 obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.4, ...
                 "Tag", "GT_juggle");
             coreH = line(ax, xPos, yPos, ...
-                "Color", [1, 1, 1, 1], "Marker", ".", "MarkerSize", 10 * eps_, ...
+                "Color", [1, 1, 1, 1], "Marker", ".", "MarkerSize", 20 * eps_, ...
                 "LineStyle", "none", "Tag", "GT_juggle");
-            infoH = text(ax, xPos, yPos - r - 6, "", ...
-                "Color", [obj.ColorCyan, 0.8], "FontSize", 5.4 * eps_, ...
+            infoH = text(ax, xPos, yPos - r - 14, "", ...
+                "Color", [obj.ColorCyan, 0.8], "FontSize", 6.5 * eps_, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "bottom", "Tag", "GT_juggle");
 
@@ -660,7 +660,7 @@ classdef Juggling < GameBase
                     h.XData = bx;
                     h.YData = by;
                     auraScale = 1 + min(1.5, extraSpeed * 0.08);
-                    h.MarkerSize = 27 * auraScale * obj.FontScale;
+                    h.MarkerSize = 54 * auraScale * obj.FontScale;
                     h.Color = [clr, 0.12];
                 end
                 % Trail
@@ -692,7 +692,7 @@ classdef Juggling < GameBase
                 h = obj.ExtraBallInfoTextH{bi};
                 if ~isempty(h) && isvalid(h)
                     h.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.ExtraBallFlicks(bi));
-                    h.Position = [bx, by - r - 6, 0];
+                    h.Position = [bx, by - r - 14, 0];
                     h.Color = [clr, 0.7];
                 end
             end

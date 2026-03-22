@@ -6,7 +6,7 @@ Working checklist extracted from CLAUDE.md. The master reference remains CLAUDE.
 
 ## Testing
 
-- [ ] Test all 15 arcade games: Pong, Breakout, Snake, Tetris, Asteroids, SpaceInvaders, FlappyBird, FruitNinja, TargetPractice, FireflyChase, FlickIt, Juggling, OrbitalDefense, ShieldGuardian, RailShooter
+- [ ] Test all 15 arcade games: Pong, Breakout, Snake, Tetris, Asteroids, SpaceInvaders, FlappyBird, FruitNinja, TargetPractice, FireflyChase, FlickIt, Juggler, OrbitalDefense, ShieldGuardian, RailShooter
 
 ---
 
@@ -16,7 +16,7 @@ All 15 arcade games plus infrastructure are already scaled (18 files total):
 ArcadeGameLauncher.m, GameBase.m, GameMenu.m, +games/Pong.m, +games/Breakout.m,
 +games/Snake.m, +games/Tetris.m, +games/Asteroids.m, +games/SpaceInvaders.m,
 +games/FlappyBird.m, +games/FruitNinja.m, +games/TargetPractice.m, +games/FireflyChase.m,
-+games/FlickIt.m, +games/Juggling.m, +games/OrbitalDefense.m, +games/ShieldGuardian.m,
++games/FlickIt.m, +games/Juggler.m, +games/OrbitalDefense.m, +games/ShieldGuardian.m,
 +games/RailShooter.m.
 
 No pending scaling work for arcade games.
@@ -32,7 +32,7 @@ No pending scaling work for arcade games.
 ## Per-Game TODOs (from code comments)
 
 - [ ] **TargetPractice**: Target timeout uses wall-clock time (toc), not DtScale. If RefFPS is changed, timeout duration stays the same. Consider scaling timeout by RefFPS ratio
-- [ ] **RailShooter**: Rename "death" terminology (deathFrame, deathMaxFrames, deathAlpha, dying) to "defeat" or "elimination". Also affects Juggling.m
+- [ ] **RailShooter**: Rename "death" terminology (deathFrame, deathMaxFrames, deathAlpha, dying) to "defeat" or "elimination". Also affects Juggler.m
 
 ---
 

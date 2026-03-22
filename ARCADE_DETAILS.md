@@ -132,6 +132,14 @@ Controls whether the host auto-fades the combo display after inactivity.
 
 `GameBase.resetCombo()` is public so the host can call it when the auto-fade completes. Games can also call it directly (e.g., on life lost).
 
+### Timing constants
+
+| Event | Duration |
+|-------|----------|
+| Combo text displayed | Until 1.0s of inactivity |
+| Fade-out animation | 0.6 seconds |
+| Score roll-up speed | `max(3, gap * 0.3)` per frame (accelerates for large gains) |
+
 ### Sync flow (updateActive)
 
 Each frame, the host reads `ActiveGame.Score` and `ActiveGame.Combo`:
@@ -191,6 +199,35 @@ Games are input-agnostic. They receive `[x, y]` and draw on the axes they are gi
 
 **Standalone execution**: `games.FlickIt().play()` creates a maximized figure with its own timer, mouse tracking, HUD (score, combo, FPS), and arrow key cursor fallback.
 
+### getResults() Format
+
+Games return a struct from `getResults()` for the results screen:
+
+```matlab
+function r = getResults(obj)
+    r.Title = "GAME NAME";       % shown large at the top
+    r.Lines = {                   % game-specific detail lines
+        sprintf("Wave: %d", obj.Wave)
+    };
+end
+```
+
+The host appends a summary line (`Score: N | Max Combo: N | Time: Ns`), a high score line, and play-again instructions below the game's lines. Games should not duplicate score/combo/time — the host handles those.
+
+---
+
+## Hit Effects
+
+`GameBase` provides a shared hit-effect pool with two spawn methods:
+
+**`spawnHitEffect(pos, color, points, radius)`** — expanding ring + 8 radial burst rays + floating score text. Used for catches, hits, and scoring events.
+
+**`spawnBounceEffect(pos, normal, points, speed)`** — directional spark with 5 rays spread around the impact normal + ring + score text. Color derived from speed via `flickSpeedColor`. Used for wall bounces.
+
+Both methods pre-allocate `gobjects` handles tagged `"GT_fx"`. The host calls `updateHitEffects()` each frame to animate expansion, fade, and cleanup. Effects last 18-22 frames with ease-out alpha and expanding radius.
+
+Games call `spawnHitEffect` / `spawnBounceEffect` from within `onUpdate` — the host handles animation and deletion.
+
 ---
 
 ## Glow Rings (scatter-based)
@@ -200,7 +237,7 @@ Several games use `scatter` with `MarkerFaceAlpha` for glow rings instead of dat
 - **Pong**: `BallGlowH` -- ball glow ring
 - **Breakout**: `BallGlowH` -- ball glow ring
 - **FlickIt**: `GlowH` -- orb glow ring with dynamic `MarkerFaceAlpha`
-- **Juggling**: `BallGlowH` -- ball glow rings (one per ball)
+- **Juggler**: `BallGlowH` -- ball glow rings (one per ball)
 - **FlappyBird**: `BirdGlowH` -- bird glow
 - **Asteroids**: `ShipGlowH` -- ship glow
 - **ShieldGuardian**: `ProjPoolGlow` -- projectile glow pool (20 scatter handles)
@@ -253,7 +290,7 @@ MATLAB graphics object creation involves handle registration, renderer sync, and
 +games/
     Pong, Breakout, Snake, Tetris, Asteroids, SpaceInvaders,
     FlappyBird, FruitNinja, TargetPractice, FireflyChase, FlickIt,
-    Juggling, OrbitalDefense, ShieldGuardian, RailShooter
+    Juggler, OrbitalDefense, ShieldGuardian, RailShooter
 ```
 
 ---

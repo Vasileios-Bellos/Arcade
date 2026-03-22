@@ -14,7 +14,7 @@ classdef RailShooter < GameBase
     %   TODO: Rename "death" terminology (deathFrame, deathMaxFrames,
     %   deathAlpha, dying) to "defeat" or "elimination" in a future
     %   cleanup pass across all game files. Affected files: RailShooter.m,
-    %   Juggling.m.
+    %   Juggler.m.
 
     properties (Constant)
         Name = "Rail Shooter"
@@ -170,13 +170,13 @@ classdef RailShooter < GameBase
                 endX = vpX + gridAngles(g) * areaW;
                 endY = groundY;
                 obj.GridLinesH(g) = line(ax, [vpX, endX], [vpY, endY], ...
-                    "Color", [0.15, 0.25, 0.35, 0.12], "LineWidth", 0.54 * obj.FontScale, ...
+                    "Color", [0.25, 0.4, 0.5, 0.18], "LineWidth", 0.54 * obj.FontScale, ...
                     "LineStyle", "-", "Tag", "GT_railshooter");
             end
 
             % --- Ground plane indicator ---
             obj.GroundLineH = line(ax, [dx(1), dx(2)], [groundY, groundY], ...
-                "Color", [0.35, 0.65, 0.75, 0.4], "LineWidth", 1.1 * obj.FontScale, ...
+                "Color", [0.45, 0.75, 0.85, 0.5], "LineWidth", 1.1 * obj.FontScale, ...
                 "Tag", "GT_railshooter");
 
             % --- Crosshair: glow + inner cross + red center dot + ring ---
@@ -713,14 +713,8 @@ classdef RailShooter < GameBase
         function r = getResults(obj)
             %getResults  Return rail shooter results.
             r.Title = "RAIL SHOOTER";
-            if obj.Lives <= 0
-                statusStr = "GAME OVER";
-            else
-                statusStr = sprintf("WAVE %d CLEARED", obj.Wave);
-            end
             r.Lines = {
-                statusStr
-                sprintf("Wave: %d  |  Eliminated: %d", obj.Wave, obj.KillCount)
+                sprintf("Wave: %d  |  Enemies Eliminated: %d", obj.Wave, obj.KillCount)
             };
         end
     end

@@ -1,5 +1,6 @@
 classdef FlickIt < GameBase
     %FlickIt  Flick It! — physics-based flick ball game with wall bounces.
+    %   TODO: Consider renaming to "Ricochet!" (class + display name)
     %   A ball sits at the center of the screen. Move your finger through
     %   it with velocity to flick it. The ball bounces off walls with
     %   parametric collision detection. Re-flicking a moving ball builds
@@ -173,11 +174,7 @@ classdef FlickIt < GameBase
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", "Tag", "GT_flick");
 
-            % Bottom-left HUD text (static)
-            obj.ModeTextH = text(ax, dx(1) + 5, dy(2) - 5, ...
-                "FLICK [move through ball]  |  RESET [0]", ...
-                "Color", [obj.ColorCyan, 0.6], "FontSize", 4.3 * obj.FontScale, ...
-                "VerticalAlignment", "bottom", "Tag", "GT_flick");
+            obj.ModeTextH = [];
         end
 
         function onUpdate(obj, pos)
@@ -259,14 +256,9 @@ classdef FlickIt < GameBase
             GameBase.deleteTaggedGraphics(obj.Ax, "^GT_flick");
         end
 
-        function handled = onKeyPress(obj, key)
-            %onKeyPress  Handle mode-specific keys.
-            %   0 key resets the ball to center.
+        function handled = onKeyPress(~, ~)
+            %onKeyPress  No mode-specific keys.
             handled = false;
-            if key == "0"
-                obj.resetBall();
-                handled = true;
-            end
         end
 
         function r = getResults(obj)
@@ -551,13 +543,13 @@ classdef FlickIt < GameBase
             % --- Speed/bounce info text ---
             if ~isempty(obj.SpeedTextH) && isvalid(obj.SpeedTextH)
                 if obj.BallMoving
-                    obj.SpeedTextH.String = sprintf("%.0f  |  %d bounces", ...
+                    obj.SpeedTextH.String = sprintf("%.0f  |  %d Bounces", ...
                         spd * 10, obj.Bounces);
                     obj.SpeedTextH.Position = [bx, by - rr * breath - 14, 0];
                     obj.SpeedTextH.Color = [clr, 0.7];
                     obj.SpeedTextH.Visible = "on";
                 else
-                    obj.SpeedTextH.String = "FLICK ME";
+                    obj.SpeedTextH.String = "Flick Me!";
                     obj.SpeedTextH.Position = [bx, by - rr * breath - 14, 0];
                     flicker = 0.4 + 0.3 * sin(obj.BallPhase * 1.5);
                     obj.SpeedTextH.Color = [obj.ColorCyan, flicker];
