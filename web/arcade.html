@@ -264,7 +264,20 @@ class HitEffectSystem {
         });
     }
 
-    spawnBounce(x, y, normal, points, speed = 5) {
+    spawnBounce(x, y, normalOrNx, pointsOrNy, speedOrPts, speedArg2, scaleArg) {
+        // Handle both signatures:
+        // (x, y, [nx,ny], pts, speed)        — array normal
+        // (x, y, nx, ny, pts, speed, scale)  — separate normal components
+        let normal, points, speed;
+        if (Array.isArray(normalOrNx)) {
+            normal = normalOrNx;
+            points = pointsOrNy || 0;
+            speed = speedOrPts || 5;
+        } else {
+            normal = [normalOrNx || 0, pointsOrNy || 0];
+            points = speedOrPts || 0;
+            speed = speedArg2 || 5;
+        }
         const clr = speedColor(speed);
         const sparkLen = 6 + speed * 1.5;
         const nRays = 5;
@@ -1454,10 +1467,15 @@ class PongGame {
         this.updateAIPaddle(ds);
 
         // --- Trail buffer (lines 345-348) ---
-        const tidx = this.trailIdx % this.trailLen;
-        this.trailBufX[tidx] = this.ballPos[0];
-        this.trailBufY[tidx] = this.ballPos[1];
-        this.trailIdx = tidx + 1;
+        // MATLAB records at ~30fps effective; accumulate ds to match
+        this.trailAccum = (this.trailAccum || 0) + ds;
+        if (this.trailAccum >= 2.0) { // record every ~2 DtScale units (~30fps at 60fps)
+            this.trailAccum -= 2.0;
+            const tidx = this.trailIdx % this.trailLen;
+            this.trailBufX[tidx] = this.ballPos[0];
+            this.trailBufY[tidx] = this.ballPos[1];
+            this.trailIdx = tidx + 1;
+        }
 
         // --- Animation (line 351) ---
         this.ballPhase += 0.0333 * ds;
@@ -2351,9 +2369,11 @@ class BreakoutGame {
         // --- Update power-ups (line 501) ---
         this.updatePowerUps(ds);
 
-        // Trail buffer
+        // Trail buffer (record at ~30fps to match MATLAB trail visual length)
         const spd = Math.hypot(this.ballVel[0], this.ballVel[1]);
-        if (spd > 0.3) {
+        this.trailAccum = (this.trailAccum || 0) + ds;
+        if (spd > 0.3 && this.trailAccum >= 2.0) {
+            this.trailAccum -= 2.0;
             const tidx = this.trailIdx % this.trailLen;
             this.trailBufX[tidx] = this.ballPos[0];
             this.trailBufY[tidx] = this.ballPos[1];
@@ -7085,11 +7105,15 @@ class FireflyChaseGame {
                 ffPosX = ff.posX;
                 ffPosY = ff.posY;
 
-                // Trail (circular buffer)
-                ff.trailIdx++;
-                const bi = ((ff.trailIdx - 1) % ff.trailLen);
-                ff.trailBufX[bi] = ff.posX;
-                ff.trailBufY[bi] = ff.posY;
+                // Trail (circular buffer, record at ~30fps rate)
+                ff.trailAccum = (ff.trailAccum || 0) + dtScale;
+                if (ff.trailAccum >= 2.0) {
+                    ff.trailAccum -= 2.0;
+                    ff.trailIdx++;
+                    const bi = ((ff.trailIdx - 1) % ff.trailLen);
+                    ff.trailBufX[bi] = ff.posX;
+                    ff.trailBufY[bi] = ff.posY;
+                }
                 const nFilled = Math.min(ff.trailIdx, ff.trailLen);
                 tx = [];
                 ty = [];
@@ -7386,7 +7410,7 @@ class FireflyChaseGame {
             const ampY = (dy[1] - dy[0]) * 0.4;
             ff.posX = cx + ampX * Math.sin(ff.theta * ff.freqX + ff.phaseX);
             ff.posY = cy + ampY * Math.sin(ff.theta * ff.freqY + ff.phaseY);
-            ff.trailLen = 12;
+            ff.trailLen = 12; // matches MATLAB, trail accumulator handles frame rate
             ff.trailBufX = new Array(12).fill(NaN);
             ff.trailBufY = new Array(12).fill(NaN);
             ff.trailIdx = 0;
@@ -8025,11 +8049,15 @@ class FlickItGame {
         const spd = hypot(this.ballVel[0], this.ballVel[1]);
         this.maxSpeed = Math.max(this.maxSpeed, spd);
 
-        // Update trail buffer
-        const tidx = this.trailIdx % this.trailLen;
-        this.trailBufX[tidx] = this.ballPos[0];
-        this.trailBufY[tidx] = this.ballPos[1];
-        this.trailIdx++;
+        // Update trail buffer (record at ~30fps to match MATLAB visual length)
+        this.trailAccum = (this.trailAccum || 0) + ds;
+        if (this.trailAccum >= 2.0) {
+            this.trailAccum -= 2.0;
+            const tidx = this.trailIdx % this.trailLen;
+            this.trailBufX[tidx] = this.ballPos[0];
+            this.trailBufY[tidx] = this.ballPos[1];
+            this.trailIdx++;
+        }
 
         // Check if ball stopped
         if (spd < 0.3 / this.speedScale) {
@@ -8478,11 +8506,15 @@ class JugglerGame {
         const ballSpeed = hypot(this.ballVel[0], this.ballVel[1]);
         this.maxSpeed = Math.max(this.maxSpeed, ballSpeed);
 
-        // --- 10. Trail buffer ---
-        const tidx = this.trailIdx % this.trailLen;
-        this.trailBufX[tidx] = this.ballPos[0];
-        this.trailBufY[tidx] = this.ballPos[1];
-        this.trailIdx++;
+        // --- 10. Trail buffer (record at ~30fps to match MATLAB) ---
+        this.trailAccum = (this.trailAccum || 0) + ds;
+        if (this.trailAccum >= 2.0) {
+            this.trailAccum -= 2.0;
+            const tidx = this.trailIdx % this.trailLen;
+            this.trailBufX[tidx] = this.ballPos[0];
+            this.trailBufY[tidx] = this.ballPos[1];
+            this.trailIdx++;
+        }
 
         // --- 11. Animation + render ---
         this.ballPhase += 0.0333 * ds;
