@@ -8183,8 +8183,8 @@ class FlickItGame {
         const glowRadius = rr * 2.5 * 0.5;
         const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.5);
-        ctx.shadowBlur = glowRadius * 2;
+        ctx.shadowColor = rgba(clr, 0.3);
+        ctx.shadowBlur = 10; // fixed glow, not proportional
         ctx.fillStyle = rgba(clr, glowAlpha);
         ctx.beginPath();
         ctx.arc(bx, by, glowRadius, 0, Math.PI * 2);
@@ -8196,7 +8196,7 @@ class FlickItGame {
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = coreSize * 2;
+        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, coreAlpha);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
@@ -8779,8 +8779,8 @@ class JugglerGame {
         // Glow ring
         const glowRadius = r * 2.5 * 0.5;
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.5);
-        ctx.shadowBlur = glowRadius * 2;
+        ctx.shadowColor = rgba(clr, 0.3);
+        ctx.shadowBlur = 10; // fixed glow, not proportional
         ctx.fillStyle = rgba(clr, 0.4);
         ctx.beginPath();
         ctx.arc(bx, by, glowRadius, 0, Math.PI * 2);
@@ -8791,7 +8791,7 @@ class JugglerGame {
         const coreSize = 20 * 0.5;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = coreSize * 2;
+        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, 1);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
