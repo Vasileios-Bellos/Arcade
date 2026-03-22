@@ -8184,9 +8184,11 @@ class FlickItGame {
         ctx.fill();
         ctx.restore();
 
-        // --- Glow ring (GROWS/breathes via glowScale) ---
-        // MATLAB: glowSize = rr*2.5, diameter → radius = rr*2.5/2*PTS_TO_DATA
-        const glowRadius = rr * 2.5 / 2 * PTS_TO_DATA * glowScale;
+        // --- Glow ring (breathes gently, never exceeds aura) ---
+        // Base radius from MATLAB: rr*2.5/2 = rr*1.25
+        // glowScale breathing is subtle (1 ± 0.12), NOT the full auraScale
+        const glowBreathFI = this.ballMoving ? 1.0 : (1 + 0.12 * Math.sin(this.ballPhase));
+        const glowRadius = rr * 1.25 * PTS_TO_DATA * glowBreathFI;
         const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
@@ -8785,10 +8787,9 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Glow ring (middle, breathes gently)
-        // MATLAB: glowSize = r*2.5, diameter → radius = r*2.5/2*PTS_TO_DATA
+        // Glow ring (middle, breathes gently, never exceeds aura)
         const glowBreath = 1 + 0.12 * Math.sin(this.ballPhase || 0);
-        const glowRadius = r * 2.5 / 2 * PTS_TO_DATA * glowBreath;
+        const glowRadius = r * 1.25 * PTS_TO_DATA * glowBreath;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
         ctx.shadowBlur = 10; // fixed glow, not proportional
