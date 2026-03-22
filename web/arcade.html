@@ -7888,12 +7888,12 @@ class FlickItGame {
 
     update(mousePos, dt, dtScale) {
         const ctx = this.ctx;
+        const ds = dtScale;
         const now = performance.now() / 1000;
 
         // --- 1. Update finger velocity buffer ---
         if (mousePos && this.prevFingerPos) {
-            // Scale velocity to reference frame rate (MATLAB runs at ~30fps effective)
-            // At 60fps, raw delta is half the size; scaling by ds normalizes it
+            // Scale velocity by dtScale to normalize across frame rates
             const fvel = [
                 (mousePos.x - this.prevFingerPos.x) * (ds > 0 ? ds : 1),
                 (mousePos.y - this.prevFingerPos.y) * (ds > 0 ? ds : 1)
@@ -8406,13 +8406,14 @@ class JugglerGame {
 
     update(mousePos, dt, dtScale) {
         const ctx = this.ctx;
+        const ds = dtScale;
         const dx = this.displayRange.X;
         const dy = this.displayRange.Y;
         const now = performance.now() / 1000;
 
         // --- 1. Finger velocity buffer ---
         if (mousePos && this.prevFingerPos) {
-            // Scale velocity to reference frame rate (match MATLAB ~30fps)
+            // Scale velocity by dtScale to normalize across frame rates
             const fvel = [
                 (mousePos.x - this.prevFingerPos.x) * (ds > 0 ? ds : 1),
                 (mousePos.y - this.prevFingerPos.y) * (ds > 0 ? ds : 1)
