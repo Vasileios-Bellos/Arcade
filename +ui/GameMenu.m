@@ -1,16 +1,8 @@
 classdef (Sealed) GameMenu < handle
-    %GameMenu  Neon-styled game selection menu.
-    %   Renders a scrollable game list with animated title, starfield, and slot-based
-    %   item highlighting. Supports two selection modes:
-    %     "click" — external confirmSelection() call triggers selection (mouse)
-    %     "dwell" — hovering over an item for DwellDuration auto-triggers (cursor)
-    %
-    %   Usage:
-    %       menu = GameMenu(ax, displayRange, registry, registryOrder, ...
-    %           "SelectionMode", "dwell", "SelectionFcn", @(k) disp(k));
-    %       menu.update(pos);       % call every frame with [x, y]
-    %       menu.show(); menu.hide();
-    %       menu.cleanup();
+    %GameMenu  Scrollable game selection menu with click or dwell selection.
+    %   Renders a game list with animated title and starfield background.
+    %   Click mode selects on confirmSelection(); dwell mode auto-selects
+    %   after hovering for DwellDuration seconds.
     %
     %   See also Arcade
 
@@ -358,19 +350,19 @@ classdef (Sealed) GameMenu < handle
             scoreSz = 10 * ps;
             footSz  = 9 * ps;
 
-            GameMenu.setFs(obj.TitleGlowH, titleSz);
-            GameMenu.setFs(obj.TitleMainH, titleSz);
-            GameMenu.setFs(obj.SubtitleTextH, subSz);
-            GameMenu.setFs(obj.FooterTextH, footSz);
+            ui.GameMenu.setFs(obj.TitleGlowH, titleSz);
+            ui.GameMenu.setFs(obj.TitleMainH, titleSz);
+            ui.GameMenu.setFs(obj.SubtitleTextH, subSz);
+            ui.GameMenu.setFs(obj.FooterTextH, footSz);
             for k = 1:obj.NumSlots
                 if k <= numel(obj.MenuItemKeyText)
-                    GameMenu.setFs(obj.MenuItemKeyText{k}, keySz);
+                    ui.GameMenu.setFs(obj.MenuItemKeyText{k}, keySz);
                 end
                 if k <= numel(obj.MenuItemNameText)
-                    GameMenu.setFs(obj.MenuItemNameText{k}, nameSz);
+                    ui.GameMenu.setFs(obj.MenuItemNameText{k}, nameSz);
                 end
                 if k <= numel(obj.MenuItemScoreText)
-                    GameMenu.setFs(obj.MenuItemScoreText{k}, scoreSz);
+                    ui.GameMenu.setFs(obj.MenuItemScoreText{k}, scoreSz);
                 end
             end
         end
@@ -579,13 +571,13 @@ classdef (Sealed) GameMenu < handle
                 yMid = listTop + (slot - 1) * (iH + iGap) + iH / 2;
 
                 % Glow (outer, behind bg)
-                [gx, gy] = GameMenu.roundedRectVerts(cx, yMid, iW + 8, iH + 6, iR + 3);
+                [gx, gy] = ui.GameMenu.roundedRectVerts(cx, yMid, iW + 8, iH + 6, iR + 3);
                 obj.MenuItemGlow{slot} = patch(ax, "XData", gx, "YData", gy, ...
                     "FaceColor", obj.ColorCyan * 0.35, "FaceAlpha", 0, ...
                     "EdgeColor", "none", "Tag", tag + "Glow");
 
                 % Background pill
-                [bx, by] = GameMenu.roundedRectVerts(cx, yMid, iW, iH, iR);
+                [bx, by] = ui.GameMenu.roundedRectVerts(cx, yMid, iW, iH, iR);
                 obj.MenuItemBg{slot} = patch(ax, "XData", bx, "YData", by, ...
                     "FaceColor", [0.045 0.048 0.065], ...
                     "EdgeColor", [0.09 0.10 0.13], "LineWidth", 1.2, ...
@@ -593,7 +585,7 @@ classdef (Sealed) GameMenu < handle
 
                 % Key badge pill
                 badgeX = cx - iW / 2 + round(22 * s);
-                [kx, ky] = GameMenu.roundedRectVerts(badgeX, yMid, badgeSz, badgeSz, badgeSz / 2);
+                [kx, ky] = ui.GameMenu.roundedRectVerts(badgeX, yMid, badgeSz, badgeSz, badgeSz / 2);
                 obj.MenuItemKeyBg{slot} = patch(ax, "XData", kx, "YData", ky, ...
                     "FaceColor", obj.ColorTeal * 0.25, ...
                     "EdgeColor", "none", "Tag", tag + "KBg");
@@ -633,7 +625,7 @@ classdef (Sealed) GameMenu < handle
                 "Color", [0.10 0.10 0.14], "LineWidth", 2.5, ...
                 "Visible", "off", "Tag", tag + "STrack");
 
-            [tx, ty] = GameMenu.roundedRectVerts( ...
+            [tx, ty] = ui.GameMenu.roundedRectVerts( ...
                 trackX, (trackTop + trackBot) / 2, 5, 30, 2.5);
             obj.ScrollThumbH = patch(ax, "XData", tx, "YData", ty, ...
                 "FaceColor", obj.ColorCyan * 0.4, "FaceAlpha", 1.0, ...
@@ -886,7 +878,7 @@ classdef (Sealed) GameMenu < handle
                         + frac * (trackH - thumbH);
 
                     trackX = mean(obj.DisplayRange.X) + obj.ItemWidth / 2 + round(14 * obj.LayoutScale);
-                    [tx, ty] = GameMenu.roundedRectVerts( ...
+                    [tx, ty] = ui.GameMenu.roundedRectVerts( ...
                         trackX, thumbCY, 5, thumbH, 2.5);
                     obj.ScrollThumbH.XData = tx;
                     obj.ScrollThumbH.YData = ty;

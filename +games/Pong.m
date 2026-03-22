@@ -1,15 +1,7 @@
 classdef Pong < engine.GameBase
-    %Pong  Classic pong game with AI opponent and rally escalation.
-    %   Player controls the right paddle with cursor position.
-    %   AI controls the left paddle with difficulty that scales as the
-    %   match progresses. Ball speed increases on each paddle hit and
-    %   the hit angle depends on where the ball strikes the paddle.
-    %   First to WinScore (default 10) wins.
-    %
-    %   Standalone: games.Pong().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
+    %Pong  Classic pong with AI opponent and rally escalation.
+    %   Cursor controls the right paddle. AI difficulty scales as the match
+    %   progresses. Ball speed increases on each hit. First to 10 wins.
 
     properties (Constant)
         Name = "Pong"

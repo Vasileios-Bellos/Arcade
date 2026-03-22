@@ -1,8 +1,8 @@
 classdef Arcade < handle
     %Arcade  Neon-styled arcade game launcher.
-    %   Animated game selector with scroll support, HUD with score roll-up
-    %   and combo display, pause/restart/results screens. Subclassable —
-    %   override buildRegistry and getMenuTitles for custom game sets.
+    %   Animated game launcher with game selection scroll support, HUD with score
+    %   roll-up and combo display.
+    %   Subclassable - override buildRegistry and getMenuTitles for custom game sets.
     %
     %   Usage:
     %       Arcade()

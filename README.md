@@ -1,18 +1,21 @@
 # MATLAB Arcade
 
-15 neon-styled arcade games running entirely in MATLAB. No toolboxes, no external dependencies — just pure MATLAB graphics.
+15 arcade games built entirely in MATLAB. Includes both timeless classic and originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
-A full-featured launcher with animated menus, persistent high scores, frame-rate-independent physics, and automatic display scaling. Every game works with mouse, keyboard, or both.
+Developed using [MATLAB MCP Server](https://github.com/matlab/matlab-mcp-core-server).
 
-<!-- TODO: Add hero GIF/screenshot here -->
+A neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling ties everything together. Pick up and play with mouse, keyboard, or both.
+
+<!-- TODO: Replace with actual GIF/screenshot -->
+<!-- <p align="center"><img src="assets/arcade_demo.gif" alt="MATLAB Arcade" width="70%"></p> -->
 
 ## Quick Start
 
 ```matlab
-Arcade()          % launch the arcade menu
+Arcade()
 ```
 
-Or jump straight into any game:
+Or launch any game directly:
 
 ```matlab
 games.Pong().play()
@@ -20,122 +23,97 @@ games.Tetris().play()
 games.Asteroids().play()
 ```
 
----
+## The Classics
 
-## The Games
+Eight legendary arcade games, recreated from scratch in pure MATLAB.
 
-### Classics
+| # | Game | Controls | |
+|:-:|------|:--------:|---|
+| 1 | **Pong** | Mouse / Keyboard | AI opponent that adapts as you score. Paddle-angle physics, rally escalation. First to 10 wins. |
+| 2 | **Breakout** | Mouse / Keyboard | 5 levels of bricks with power-ups and multi-ball. Paddle angle controls the ricochet. |
+| 3 | **Snake** | Mouse / Keyboard | Grid-based with wrap-around walls. Arrow keys or mouse-guided movement. |
+| 4 | **Tetris** | Mouse / Keyboard | Full SRS rotation with wall kicks, ghost piece, 3-piece preview, and instant hard drop. |
+| 5 | **Asteroids** | Mouse / Keyboard | Wireframe polygons that split on impact. Auto-fire crosshair tracks your cursor. |
+| 6 | **Space Invaders** | Mouse / Keyboard | 3 alien types, 5 wave formations, destructible shields, and power-up drops. |
+| 7 | **Flappy Bird** | Mouse / Keyboard | Pipe gaps tighten and scroll speed ramps up. Space, Up, or click to flap. |
+| 8 | **Fruit Ninja** | Mouse / Keyboard | Slash arcing fruit with your cursor. Multi-cut combos and centrality scoring. |
 
-| # | Game | Description |
-|---|------|-------------|
-| 1 | **Pong** | Classic paddle game against an AI that gets smarter as the score climbs. Rally escalation, paddle-angle physics, first to 10 wins. |
-| 2 | **Breakout** | 5 levels of neon bricks. Multi-ball power-ups, paddle-angle ball control, level progression with increasing difficulty. |
-| 3 | **Snake** | Grid-based snake with wrap-around walls. Steer with arrow keys or let the mouse guide direction. |
-| 4 | **Tetris** | Full SRS rotation system with wall kicks, ghost piece, 3-piece preview, and hard drop. |
-| 5 | **Asteroids** | Wireframe asteroid field. Asteroids split on destroy, waves escalate. Auto-fire crosshair tracks your cursor. |
-| 6 | **Space Invaders** | 3 alien types across 5 wave formations. Shields, power-ups, and increasingly aggressive attack patterns. |
-| 7 | **Flappy Bird** | Navigate through pipes with tightening gaps and increasing scroll speed. In standalone mode, Space or click to flap. |
-| 8 | **Fruit Ninja** | Slash arcing fruit with your cursor. Multi-cut bonus, centrality scoring, and combo chains. |
+## The Originals
 
-### Originals
+Seven original games — physics toys, challenges and shooters that will test your reflexes.
 
-| # | Game | Description |
-|---|------|-------------|
-| 9 | **Target Practice** | Touch glowing targets before they vanish. Targets shrink and timeouts shorten as your combo grows. |
-| 10 | **Firefly Chase** | Hunt 5 tiers of color-coded fireflies on orbital paths. The rare golden snitch flies Lissajous curves and actively evades you. |
-| 11 | **Flick It!** | Flick a physics orb off walls. Speed-to-color gradient from cyan to red, comet trail, re-flick for combo. |
-| 12 | **Juggler** | Keep balls airborne with flick physics. Gravity pulls them down — drop one and combo resets. Extra balls spawn at combo milestones. |
-| 13 | **Orbital Defense** | Defend a hex base from asteroid waves. Launch interceptors with chain-reaction explosions. |
-| 14 | **Shield Guardian** | Rotate a shield arc to deflect incoming projectiles and protect your core HP through escalating waves. |
-| 15 | **Rail Shooter** | Pseudo-3D on-rails shooter with 4 monster types, depth scaling, and screen shake. Survive the waves. |
-
----
+| # | Game | Controls | |
+|:-:|------|:--------:|---|
+| 9 | **Target Practice** | Mouse / Keyboard | Glowing targets appear and shrink. Hit them before they vanish. Combo tightens the timer. |
+| 10 | **Firefly Chase** | Mouse / Keyboard | 5 tiers of fireflies on orbital paths. The golden snitch flies Lissajous curves and evades your cursor. |
+| 11 | **Flick It!** | Mouse / Keyboard | Flick a physics orb off walls. It shifts from cyan to red with speed. Re-flick for combo. |
+| 12 | **Juggler** | Mouse / Keyboard | Keep balls airborne with flick physics and gravity. Drop one and combo resets. Extra balls spawn at milestones. |
+| 13 | **Orbital Defense** | Mouse / Keyboard | Defend a hex base from asteroid waves. Launch interceptors for chain-reaction explosions. |
+| 14 | **Shield Guardian** | Mouse / Keyboard | Rotate a shield arc to deflect projectiles and protect your core through escalating waves. |
+| 15 | **Rail Shooter** | Mouse / Keyboard | Pseudo-3D on-rails shooter. 4 enemy types approach from a vanishing point with depth scaling. |
 
 ## Controls
 
-### Menu
-
-| Input | Action |
-|-------|--------|
-| Mouse hover / Up-Down arrows | Navigate game list |
-| Click / Enter / Space | Start selected game |
-| Scroll wheel | Scroll the game list |
-| Esc | Quit |
-
-### In-Game
-
-| Input | Action |
-|-------|--------|
-| Mouse | Move cursor / control game |
-| Arrow keys | Alternative cursor movement (fallback) |
-| P | Pause / resume |
+| Key | Action |
+|-----|--------|
+| Mouse / Arrow keys | Navigate menu or control cursor in-game |
+| Click / Enter / Space | Select game (menu) or game-specific action |
+| Scroll wheel | Scroll menu list |
+| P | Pause / Resume |
 | R | Restart current game |
-| Esc | End game and show results |
+| Esc | End round (in-game) or quit (menu) |
 
-### Game-Specific
+<details>
+<summary>Game-specific controls</summary>
 
 | Game | Controls |
 |------|----------|
-| **Snake** | Arrow keys change direction (or mouse-guided) |
+| **Snake** | Arrow keys for direction (or mouse-guided) |
 | **Tetris** | Left/Right = move, Up/Z = rotate CW, X = rotate CCW, Down = soft drop, Space/Click = hard drop, Scroll = rotate |
-| **Flappy Bird** | Space / Click = flap (standalone mode only; in launcher, cursor Y controls bird height) |
+| **Flappy Bird** | Space / Click = flap (standalone mode; cursor Y controls bird in launcher) |
 
-All other games use mouse movement only.
-
-### Results Screen
-
-| Input | Action |
-|-------|--------|
-| R / Enter / Space | Play again |
-| Esc | Return to menu |
-
----
+</details>
 
 ## Features
 
-- **Persistent high scores** — scores, best combos, play counts, and session times saved across sessions
-- **Frame-rate independence** — physics scales to real elapsed time, consistent feel on any hardware
-- **Auto-scaling display** — text and markers resize smoothly when you resize the window
-- **Neon visual style** — consistent color palette, glow effects, and particle bursts across all games
-- **Combo system** — shared scoring infrastructure with combo multipliers and animated fade-outs
-- **Standalone mode** — every game can run independently with `games.GameName().play()`
-
----
+| | |
+|---|---|
+| **Persistent High Scores** | Scores, combos, play counts, and session times saved across sessions |
+| **Frame-Rate Independence** | Physics scales to real elapsed time — consistent speed on any hardware |
+| **Auto-Scaling Display** | All text and markers resize smoothly on window resize |
+| **Combo System** | Shared scoring with multipliers and animated fade-outs |
+| **Standalone Mode** | Every game runs independently: `games.Pong().play()` |
+| **Subclassable** | Override `buildRegistry` and `getMenuTitles` for custom game sets |
+| **Extensible** | Add your own games by subclassing `engine.GameBase` and registering them in the game launcher |
 
 ## High Scores
 
-Scores persist in `data/scores.mat` (auto-created on first play).
+Scores persist in `data/scores.mat`, auto-created on first play.
 
 ```matlab
-services.ScoreManager.get("Pong")            % view a game's record
-services.ScoreManager.getAll()               % view all records
-services.ScoreManager.clearGame("Pong")      % reset one game
-services.ScoreManager.clearAll()             % reset everything
+services.ScoreManager.get("Pong")          % view a game's record
+services.ScoreManager.getAll()             % view all records
+services.ScoreManager.clearGame("Pong")    % reset one game
+services.ScoreManager.clearAll()           % reset everything
 ```
-
-Each record tracks: high score, best combo, times played, total play time, and last played date.
-
----
 
 ## Requirements
 
-- MATLAB R2020b or later
+- **MATLAB R2022b** or later
 - No additional toolboxes
 
----
-
-## File Structure
+## Project Structure
 
 ```
-Arcade.m                main launcher
-+engine/                framework
-    GameBase.m          abstract base class for all games
-+ui/                    interface components
-    GameMenu.m          scrollable neon menu with starfield
-+services/              utilities
-    ScoreManager.m      persistent high-score storage
-+games/                 15 game classes
-docs/                   developer documentation
+Arcade.m                 entry point
++engine/
+    GameBase.m           abstract base class for all games
++ui/
+    GameMenu.m           animated menu with starfield
++services/
+    ScoreManager.m       persistent high-score storage
++games/                  15 game classes
+docs/                    developer documentation
 ```
 
-For architecture and developer documentation, see [docs/DEVELOPER.md](docs/DEVELOPER.md).
+For architecture details, see [docs/DEVELOPER.md](docs/DEVELOPER.md).

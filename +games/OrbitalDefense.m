@@ -1,13 +1,7 @@
 classdef OrbitalDefense < engine.GameBase
     %OrbitalDefense  Defend a hex base from approaching asteroids.
-    %   Stationary hexagonal base at center. Asteroids approach from edges.
     %   Auto-fire interceptors toward cursor position. Explosions chain-react
     %   to destroy nearby asteroids. Wave-based progression with splitting.
-    %
-    %   Standalone: games.OrbitalDefense().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Orbital Defense"

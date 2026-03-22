@@ -1,13 +1,7 @@
 classdef FruitNinja < engine.GameBase
     %FruitNinja  Slash fruits launched upward before they fall off screen.
-    %   Fruits spawn from below with upward velocity and arc under gravity.
-    %   Move cursor through a fruit (entry then exit) to slice it. Closer
-    %   cuts to center score higher. Dropped fruits reset combo.
-    %
-    %   Standalone: games.FruitNinja().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
+    %   Fruits arc under gravity. Move cursor through a fruit to slice it.
+    %   Closer cuts to center score higher. Dropped fruits reset combo.
 
     properties (Constant)
         Name = "Fruit Ninja"

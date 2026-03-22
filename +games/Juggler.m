@@ -1,13 +1,7 @@
 classdef Juggler < engine.GameBase
-    %Juggler  Gravity-based ball juggling game with flick physics.
-    %   Keep the ball in the air by flicking it with your cursor. Gravity
-    %   pulls the ball down; dropping it past the bottom edge resets combo.
+    %Juggler  Keep balls in the air by flicking them with the cursor.
+    %   Gravity pulls balls down; dropping one past the bottom resets combo.
     %   Extra balls spawn at combo milestones (every 10).
-    %
-    %   Standalone: games.Juggler().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Juggler"
@@ -73,7 +67,7 @@ classdef Juggler < engine.GameBase
         BallTrailH
         BallTrailGlowH
         BallInfoTextH
-        DeathLineH
+        DangerLineH
 
         % Extra ball graphics (cell arrays)
         ExtraBallCoreH      cell = {}
@@ -163,7 +157,7 @@ classdef Juggler < engine.GameBase
 
             % Danger line at bottom
             dangerY = dy(2) - 5;
-            obj.DeathLineH = line(ax, [dx(1), dx(2)], [dangerY, dangerY], ...
+            obj.DangerLineH = line(ax, [dx(1), dx(2)], [dangerY, dangerY], ...
                 "Color", [obj.ColorRed, 0.25], "LineWidth", 1.1 * obj.FontScale, ...
                 "LineStyle", "--", "Tag", "GT_juggle");
         end
@@ -305,7 +299,7 @@ classdef Juggler < engine.GameBase
             obj.renderBall();
 
             % --- 12. Danger line pulse ---
-            obj.renderDeathLine();
+            obj.renderDangerLine();
 
         end
 
@@ -313,7 +307,7 @@ classdef Juggler < engine.GameBase
             %onCleanup  Delete all juggle graphics.
             handles = {obj.BallCoreH, obj.BallGlowH, obj.BallAuraH, ...
                        obj.BallTrailH, obj.BallTrailGlowH, ...
-                       obj.BallInfoTextH, obj.DeathLineH};
+                       obj.BallInfoTextH, obj.DangerLineH};
             for k = 1:numel(handles)
                 h = handles{k};
                 if ~isempty(h) && isvalid(h)
@@ -326,7 +320,7 @@ classdef Juggler < engine.GameBase
             obj.BallTrailH = [];
             obj.BallTrailGlowH = [];
             obj.BallInfoTextH = [];
-            obj.DeathLineH = [];
+            obj.DangerLineH = [];
 
             obj.removeAllExtraBalls();
 
@@ -476,15 +470,15 @@ classdef Juggler < engine.GameBase
             end
         end
 
-        function renderDeathLine(obj)
-            %renderDeathLine  Pulse the bottom danger line based on ball proximity.
-            if isempty(obj.DeathLineH) || ~isvalid(obj.DeathLineH); return; end
+        function renderDangerLine(obj)
+            %renderDangerLine  Pulse the bottom danger line based on ball proximity.
+            if isempty(obj.DangerLineH) || ~isvalid(obj.DangerLineH); return; end
             dy = obj.DisplayRange.Y;
             if ~any(isnan(obj.BallPos))
                 proximity = (obj.BallPos(2) - dy(1)) / diff(dy);
                 pulseAlpha = 0.1 + 0.5 * max(0, min(1, (proximity - 0.5) / 0.5));
                 pulseAlpha = pulseAlpha + 0.08 * sin(obj.BallPhase * 3);
-                obj.DeathLineH.Color = [obj.ColorRed, max(0, min(1, pulseAlpha))];
+                obj.DangerLineH.Color = [obj.ColorRed, max(0, min(1, pulseAlpha))];
             end
         end
     end
@@ -619,7 +613,7 @@ classdef Juggler < engine.GameBase
                     obj.ExtraBallVel(bi, 1) = -obj.ExtraBallVel(bi, 1) * obj.Restitution;
                 end
 
-                % Bottom death — remove this extra, reset combo
+                % Bottom drop — remove this extra, reset combo
                 if obj.ExtraBallPos(bi, 2) > dy(2) + r
                     obj.BestStreak = max(obj.BestStreak, obj.ExtraBallFlicks(bi));
                     obj.spawnHitEffect(obj.ExtraBallPos(bi, :), obj.ColorRed, 0);

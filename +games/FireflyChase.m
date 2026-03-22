@@ -1,14 +1,7 @@
 classdef FireflyChase < engine.GameBase
-    %FireflyChase  Firefly hunt — catch color-coded fireflies on closed orbits.
-    %   5 tiers (cyan/green/magenta/purple/gold), max 3 on screen.
-    %   Path-based closed orbits (loop, figure8) with seamless looping.
-    %   Gold snitch uses Lissajous curves with cursor evasion AI.
-    %   Combo decays 2s after last catch.
-    %
-    %   Standalone: games.FireflyChase().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
+    %FireflyChase  Catch color-coded fireflies on closed orbits.
+    %   5 tiers from cyan to gold, each faster than the last. Gold snitch
+    %   evades the cursor. Combo decays after 2 seconds of inactivity.
 
     properties (Constant)
         Name = "Firefly Chase"
@@ -70,13 +63,8 @@ classdef FireflyChase < engine.GameBase
     % ABSTRACT METHOD IMPLEMENTATIONS
     % =================================================================
     methods
-        function onInit(obj, ax, displayRange)
+        function onInit(obj, ax, displayRange, ~)
             %onInit  Create initial state and spawn first firefly.
-            arguments
-                obj
-                ax
-                displayRange struct
-            end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
             obj.Score = 0;

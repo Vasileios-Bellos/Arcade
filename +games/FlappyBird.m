@@ -1,19 +1,11 @@
 classdef FlappyBird < engine.GameBase
     %FlappyBird  Pipe-dodge game with two control modes.
-    %   Navigate a bird through scrolling pipe gaps. Combo resets on
-    %   collision (no lives). Gap narrows and speed increases as combo
-    %   grows. Collision triggers invulnerability blink.
+    %   Navigate a bird through scrolling pipe gaps. Gap narrows and speed
+    %   increases as combo grows. Collision resets combo (no lives).
     %
-    %   Control modes (auto-detected from host capabilities):
-    %     Direct position (hosted) — bird follows cursor position
-    %     Gravity+flap (arcade/standalone) — bird X fixed at 25% width,
-    %       gravity pulls bird down, Space/Click to flap upward.
-    %       Hitting top or bottom of screen triggers collision.
-    %
-    %   Standalone: games.FlappyBird().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
+    %   Controls (auto-detected):
+    %     Hosted  — bird follows cursor position directly
+    %     Arcade  — gravity pulls bird down, Space/Click to flap upward
 
     properties (Constant)
         Name = "Flappy Bird"
@@ -382,8 +374,8 @@ classdef FlappyBird < engine.GameBase
         end
 
         function handled = onKeyPress(obj, key)
-            %onKeyPress  Space to flap in gravity mode.
-            if obj.FlapMode && key == "space"
+            %onKeyPress  Space or Up arrow to flap in gravity mode.
+            if obj.FlapMode && (key == "space" || key == "uparrow")
                 obj.FlpFlapPending = true;
                 handled = true;
                 return;
@@ -409,7 +401,7 @@ classdef FlappyBird < engine.GameBase
         function s = getHudText(obj)
             %getHudText  Show control hint in flap mode.
             if obj.FlapMode
-                s = "SPACE / CLICK to flap";
+                s = "SPACE / UP / CLICK to flap";
             else
                 s = "";
             end

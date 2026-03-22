@@ -2,16 +2,11 @@ classdef (Abstract) GameBase < handle
     %GameBase  Abstract base class for all arcade games.
     %   Provides shared infrastructure: scoring, combo, hit effects, color
     %   constants, and speed-to-color mapping. Each game subclass implements
-    %   4 abstract methods: onInit, onUpdate, onCleanup, onKeyPress.
+    %   onInit, onUpdate, onCleanup, and onKeyPress.
     %
-    %   Standalone:
+    %   Usage:
     %       game = games.Pong();
     %       game.play();
-    %
-    %   Hosted (inside Arcade launcher):
-    %       game.init(ax, displayRange);
-    %       game.onUpdate(pos);   % called each frame by host
-    %       game.onCleanup();
     %
     %   See also Arcade, ui.GameMenu, services.ScoreManager
 
@@ -618,13 +613,13 @@ classdef (Abstract) GameBase < handle
 
             function onFigResize()
                 if ~isvalid(fig) || ~isvalid(ax); return; end
-                GameBase.letterboxAxes(fig, ax, gameAR);
+                engine.GameBase.letterboxAxes(fig, ax, gameAR);
                 axPx = getpixelposition(ax);
                 newPs = min(axPx(3) / 854, axPx(4) / 480);
                 oldPs = min(prevAxPxPlay(1) / 854, prevAxPxPlay(2) / 480);
                 if oldPs > 0
                     relScale = newPs / oldPs;
-                    GameBase.scaleScreenSpaceObjects(ax, relScale);
+                    engine.GameBase.scaleScreenSpaceObjects(ax, relScale);
                 end
                 prevAxPxPlay = axPx(3:4);
                 obj.FontScale = newPs;
@@ -676,7 +671,7 @@ classdef (Abstract) GameBase < handle
                     end
                     drawnow;
                 catch me
-                    fprintf(2, "[GameBase.play] %s\n", me.message);
+                    fprintf(2, "[engine.GameBase.play] %s\n", me.message);
                 end
             end
 

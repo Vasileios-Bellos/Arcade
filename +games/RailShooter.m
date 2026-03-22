@@ -1,20 +1,7 @@
 classdef RailShooter < engine.GameBase
-    %RailShooter  House of the Dead style pseudo-3D rail shooter.
-    %   Waves of enemy spaceships approach from a vanishing point. The
-    %   crosshair auto-fires DPS damage at the monster under the cursor.
-    %   Four monster types: Fighter, Cruiser, Interceptor, Dreadnought.
-    %   Wave-based progression, HP bars, death animations, muzzle flash,
-    %   screen shake, glowing eyes, and perspective grid.
-    %
-    %   Standalone: games.RailShooter().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
-    %
-    %   TODO: Rename "death" terminology (deathFrame, deathMaxFrames,
-    %   deathAlpha, dying) to "defeat" or "elimination" in a future
-    %   cleanup pass across all game files. Affected files: RailShooter.m,
-    %   Juggler.m.
+    %RailShooter  Pseudo-3D rail shooter with wave-based progression.
+    %   Enemies approach from a vanishing point. Crosshair auto-fires at the
+    %   monster under the cursor. Four monster types with increasing HP.
 
     properties (Constant)
         Name = "Rail Shooter"
@@ -40,8 +27,8 @@ classdef RailShooter < engine.GameBase
             "phase", {}, ...
             "shapeX", {}, "shapeY", {}, ...
             "hitFlash", {}, ...
-            "dying", {}, "deathFrame", {}, ...
-            "deathMaxFrames", {}, ...
+            "defeated", {}, "defeatFrame", {}, ...
+            "defeatMaxFrames", {}, ...
             "bodyPatchH", {}, "glowPatchH", {}, ...
             "detailH", {}, "eyesH", {}, ...
             "ribsH", {}, ...
@@ -56,7 +43,7 @@ classdef RailShooter < engine.GameBase
         SpawnTimer          (1,1) double = 0
         SpawnInterval       (1,1) double = 60
         WavePause           (1,1) double = 0
-        KillCount           (1,1) double = 0
+        EliminatedCount           (1,1) double = 0
 
         % Damage system
         DamageCD            (1,1) double = 0
@@ -122,7 +109,7 @@ classdef RailShooter < engine.GameBase
             % State reset
             obj.Wave = 1;
             obj.Lives = 3;
-            obj.KillCount = 0;
+            obj.EliminatedCount = 0;
             obj.DamageCD = 0;
             obj.DamageFlashFrames = 0;
             obj.SpawnTimer = 0;
@@ -149,8 +136,8 @@ classdef RailShooter < engine.GameBase
                 "phase", {}, ...
                 "shapeX", {}, "shapeY", {}, ...
                 "hitFlash", {}, ...
-                "dying", {}, "deathFrame", {}, ...
-                "deathMaxFrames", {}, ...
+                "defeated", {}, "defeatFrame", {}, ...
+                "defeatMaxFrames", {}, ...
                 "bodyPatchH", {}, "glowPatchH", {}, ...
                 "detailH", {}, "eyesH", {}, ...
                 "ribsH", {}, ...
@@ -352,10 +339,10 @@ classdef RailShooter < engine.GameBase
             while k <= numel(obj.Monsters)
                 m = obj.Monsters(k);
 
-                % Death animation
-                if m.dying
-                    m.deathFrame = m.deathFrame + ds;
-                    progress = m.deathFrame / m.deathMaxFrames;
+                % Defeat animation
+                if m.defeated
+                    m.defeatFrame = m.defeatFrame + ds;
+                    progress = m.defeatFrame / m.defeatMaxFrames;
                     if progress >= 1
                         obj.deleteMonsterGraphics(k);
                         obj.Monsters(k) = [];
@@ -365,7 +352,7 @@ classdef RailShooter < engine.GameBase
                     expandFactor = 1 + progress^0.7 * 2.5;
                     baseScale = obj.depthScale(m.depth);
                     scaleVal = expandFactor * baseScale;
-                    deathAlpha = max(0, min(1, (1 - min(progress, 1))^0.6));
+                    defeatAlpha = max(0, min(1, (1 - min(progress, 1))^0.6));
 
                     jitterAmp = progress * baseScale * obj.BaseSize * 0.15;
                     jX = jitterAmp * (rand - 0.5);
@@ -388,19 +375,19 @@ classdef RailShooter < engine.GameBase
                         else
                             m.bodyPatchH.FaceColor = [0.7, 0.2, 0];
                         end
-                        m.bodyPatchH.FaceAlpha = max(0, 0.6 * deathAlpha);
-                        m.bodyPatchH.EdgeAlpha = min(1, deathAlpha);
+                        m.bodyPatchH.FaceAlpha = max(0, 0.6 * defeatAlpha);
+                        m.bodyPatchH.EdgeAlpha = min(1, defeatAlpha);
                     end
                     if ~isempty(m.glowPatchH) && isvalid(m.glowPatchH)
                         m.glowPatchH.XData = sx;
                         m.glowPatchH.YData = sy;
                         glowBoost = 1 + sin(progress * pi) * 0.5;
-                        m.glowPatchH.FaceAlpha = max(0, 0.2 * deathAlpha * glowBoost);
-                        m.glowPatchH.EdgeAlpha = max(0, 0.6 * deathAlpha);
+                        m.glowPatchH.FaceAlpha = max(0, 0.2 * defeatAlpha * glowBoost);
+                        m.glowPatchH.EdgeAlpha = max(0, 0.6 * defeatAlpha);
                         m.glowPatchH.EdgeColor = [1, 0.7*(1 - progress), 0];
                     end
 
-                    % Secondary explosions at random positions during death
+                    % Secondary explosions at random positions during defeat
                     if progress > 0.1 && progress < 0.7 && rand < 0.2
                         bOff = baseScale * obj.BaseSize * 0.5;
                         burstX = m.screenX + (rand - 0.5) * bOff * 2;
@@ -622,7 +609,7 @@ classdef RailShooter < engine.GameBase
             if obj.WavePause <= 0 && ~anyAlive && isempty(obj.SpawnQueue)
                 aliveCount = 0;
                 for j = 1:numel(obj.Monsters)
-                    if ~obj.Monsters(j).dying
+                    if ~obj.Monsters(j).defeated
                         aliveCount = aliveCount + 1;
                     end
                 end
@@ -654,8 +641,8 @@ classdef RailShooter < engine.GameBase
                 "phase", {}, ...
                 "shapeX", {}, "shapeY", {}, ...
                 "hitFlash", {}, ...
-                "dying", {}, "deathFrame", {}, ...
-                "deathMaxFrames", {}, ...
+                "defeated", {}, "defeatFrame", {}, ...
+                "defeatMaxFrames", {}, ...
                 "bodyPatchH", {}, "glowPatchH", {}, ...
                 "detailH", {}, "eyesH", {}, ...
                 "ribsH", {}, ...
@@ -710,7 +697,7 @@ classdef RailShooter < engine.GameBase
             %getResults  Return rail shooter results.
             r.Title = "RAIL SHOOTER";
             r.Lines = {
-                sprintf("Wave: %d  |  Enemies Eliminated: %d", obj.Wave, obj.KillCount)
+                sprintf("Wave: %d  |  Enemies Eliminated: %d", obj.Wave, obj.EliminatedCount)
             };
         end
     end
@@ -844,9 +831,9 @@ classdef RailShooter < engine.GameBase
                     "VerticalAlignment", "bottom", "Tag", "GT_railshooter");
             end
 
-            % Type-specific death animation length
-            deathFrames = [36, 48, 24, 67];
-            dmf = deathFrames(min(mType, 4));
+            % Type-specific defeat animation length
+            defeatFrames = [36, 48, 24, 67];
+            dmf = defeatFrames(min(mType, 4));
 
             m = struct("type", mType, "hp", hp, "maxHp", hp, ...
                 "depth", depthVal, "speed", spd, ...
@@ -855,8 +842,8 @@ classdef RailShooter < engine.GameBase
                 "phase", rand * 2 * pi, ...
                 "shapeX", shapeX, "shapeY", shapeY, ...
                 "hitFlash", 0, ...
-                "dying", false, "deathFrame", 0, ...
-                "deathMaxFrames", dmf, ...
+                "defeated", false, "defeatFrame", 0, ...
+                "defeatMaxFrames", dmf, ...
                 "bodyPatchH", bodyPatchH, "glowPatchH", glowPatchH, ...
                 "detailH", detailH, "eyesH", eyesH, ...
                 "ribsH", ribsH, ...
@@ -880,7 +867,7 @@ classdef RailShooter < engine.GameBase
             %applyDamage  Apply DPS damage to monster under crosshair.
             for k = 1:numel(obj.Monsters)
                 m = obj.Monsters(k);
-                if m.dying; continue; end
+                if m.defeated; continue; end
 
                 scaleVal = obj.depthScale(m.depth);
                 hitR = scaleVal * obj.BaseSize * 1.2;
@@ -918,7 +905,7 @@ classdef RailShooter < engine.GameBase
                     obj.spawnBounceEffect([m.screenX, m.screenY], hitDir, pts, 5);
 
                     if m.hp <= 0
-                        obj.killMonster(k, m);
+                        obj.defeatMonster(k, m);
                         return;
                     end
 
@@ -932,16 +919,16 @@ classdef RailShooter < engine.GameBase
             end
         end
 
-        function killMonster(obj, idx, m)
-            %killMonster  Start death animation with dramatic explosion.
-            obj.KillCount = obj.KillCount + 1;
+        function defeatMonster(obj, idx, m)
+            %defeatMonster  Start defeat animation with explosion.
+            obj.EliminatedCount = obj.EliminatedCount + 1;
 
-            baseKill = [100, 200, 150, 500];
-            killPts = baseKill(min(m.type, 4)) * max(1, floor(obj.Combo / 5));
-            obj.addScore(killPts);
+            basePoints = [100, 200, 150, 500];
+            defeatPts = basePoints(min(m.type, 4)) * max(1, floor(obj.Combo / 5));
+            obj.addScore(defeatPts);
 
-            % Large kill explosion
-            obj.spawnBounceEffect([m.screenX, m.screenY], [0, -1], killPts, 15);
+            % Defeat explosion
+            obj.spawnBounceEffect([m.screenX, m.screenY], [0, -1], defeatPts, 15);
             if m.type >= 2
                 scaleVal = obj.depthScale(m.depth);
                 offsetVal = scaleVal * obj.BaseSize * 0.4;
@@ -955,9 +942,9 @@ classdef RailShooter < engine.GameBase
                 obj.spawnBounceEffect([m.screenX, m.screenY + offsetVal], [0, 1], 0, 12);
             end
 
-            % Start death animation
-            obj.Monsters(idx).dying = true;
-            obj.Monsters(idx).deathFrame = 0;
+            % Start defeat animation
+            obj.Monsters(idx).defeated = true;
+            obj.Monsters(idx).defeatFrame = 0;
             obj.Monsters(idx).hp = 0;
 
             obj.hideMonsterDetails(m);

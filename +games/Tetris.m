@@ -1,30 +1,16 @@
 classdef Tetris < engine.GameBase
-    %Tetris  Classic falling-block puzzle game with SRS rotation and wall kicks.
-    %   10-wide x 20-visible playfield (+ 2 hidden buffer rows at top).
-    %   7-bag randomizer, ghost piece, 3-piece next preview, DAS/ARR
-    %   auto-repeat, lock delay with move resets, combo and back-to-back
-    %   scoring. Single-layer neon patch rendering with bright edge outlines.
+    %Tetris  Classic falling-block puzzle with SRS rotation and wall kicks.
+    %   10-wide playfield, 7-bag randomizer, ghost piece, 3-piece next
+    %   preview, lock delay with move resets, combo and back-to-back scoring.
     %
     %   Controls:
-    %     Mouse X -> horizontal piece targeting (disabled during arrow key use)
+    %     Mouse X        -> horizontal piece targeting (disabled during arrow key use)
     %     Left click / Space -> hard drop
     %     Right click / Down -> soft drop (20x gravity)
     %     Scroll wheel   -> rotate (up=CW, down=CCW)
     %     Left/Right     -> shift piece (DAS auto-repeat, disables mouse targeting)
     %     Up / Z         -> rotate clockwise
     %     X              -> rotate counter-clockwise
-    %
-    %   Coordinate convention (YDir = "reverse"):
-    %     Row 1  = TOP of the board (low Y on screen, where pieces spawn)
-    %     Row 22 = BOTTOM of the board (high Y on screen)
-    %     Gravity INCREASES the row number.
-    %     Cell (r,c) top-left corner: x = FieldX + (c-1)*CellW,
-    %                                  y = FieldY + (r-1)*CellH
-    %
-    %   Standalone: games.Tetris().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Tetris"

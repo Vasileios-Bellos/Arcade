@@ -1,13 +1,7 @@
 classdef ShieldGuardian < engine.GameBase
-    %ShieldGuardian  Defend a core orb by rotating a shield arc to deflect projectiles.
-    %   Shield arc faces the cursor direction. Projectiles spawn from edges
-    %   and target the core. Deflected projectiles can chain-destroy others.
+    %ShieldGuardian  Rotate a shield arc to deflect projectiles from a core orb.
+    %   Shield faces the cursor. Deflected projectiles chain-destroy others.
     %   Wave-based progression with increasing speed and spawn rate.
-    %
-    %   Standalone: games.ShieldGuardian().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Shield Guardian"

@@ -1,16 +1,10 @@
 classdef TargetPractice < engine.GameBase
-    %TargetPractice  Target practice — accuracy and speed game.
-    %   Random targets appear on screen. Hit them before they time out.
+    %TargetPractice  Hit random targets before they time out.
     %   Targets shrink and timeout decreases as combo grows.
-    %
-    %   Standalone: games.TargetPractice().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
     %
     %   TODO: Target timeout uses wall-clock time (toc), not DtScale. If RefFPS
     %         is changed to slow/speed the game, timeout duration stays the same.
     %         Consider scaling timeout by RefFPS ratio for full consistency.
-    %
-    %   See also engine.GameBase, Arcade
 
     properties (Constant)
         Name = "Target Practice"

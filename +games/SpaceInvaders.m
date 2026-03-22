@@ -1,14 +1,7 @@
 classdef SpaceInvaders < engine.GameBase
-    %SpaceInvaders  Classic space invaders with alien waves, power-ups, and shields.
-    %   3 alien shapes (crab/squid/UFO), 5 distinct wave formations with
-    %   increasing difficulty. Shield intercepts at radius. Power-ups:
-    %   laser (double fire rate), shield (projectile barrier), extra life.
-    %   Victory after wave 5.
-    %
-    %   Standalone: games.SpaceInvaders().play()
-    %   Hosted:     Arcade hosts via init/onUpdate/onCleanup
-    %
-    %   See also engine.GameBase, Arcade
+    %SpaceInvaders  Classic space invaders with alien waves and power-ups.
+    %   5 wave formations with increasing difficulty. Power-ups: laser,
+    %   shield, extra life. Victory after wave 5.
 
     properties (Constant)
         Name = "Space Invaders"
@@ -59,7 +52,7 @@ classdef SpaceInvaders < engine.GameBase
         FireRate             (1,1) double = 29           % frames between shots
 
         % Combo timeout
-        LastKillTic                         % tic of last alien kill
+        LastHitTic                         % tic of last alien hit
         ComboTimeout    (1,1) double = 2.4  % seconds before combo resets
 
         % Wave / Lives
@@ -328,7 +321,7 @@ classdef SpaceInvaders < engine.GameBase
                             obj.Aliens(a) = [];
                             obj.addScore(50 * al.type);
                             obj.incrementCombo();
-                            obj.LastKillTic = tic;
+                            obj.LastHitTic = tic;
                             % Chance to drop power-up
                             if rand < 0.08
                                 obj.spawnPowerUp(al.x, al.y);

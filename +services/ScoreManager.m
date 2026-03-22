@@ -1,13 +1,7 @@
 classdef (Sealed) ScoreManager
-    %ScoreManager  Persistent high-score tracking for all arcade games.
-    %   Static-only utility class. Stores per-game high scores, combo records,
-    %   play counts, and session times in a .mat file. Auto-creates records
-    %   for new games on first play — no registration needed.
-    %
-    %   Usage:
-    %       [isNew, prev] = ScoreManager.submit("FlickIt", 5000, 45, 120);
-    %       rec = ScoreManager.get("FlickIt");
-    %       ScoreManager.clearAll();
+    %ScoreManager  Persistent high-score storage for all arcade games.
+    %   Stores per-game high scores, combo records, play counts, and session
+    %   times in a .mat file. Auto-creates records for new games on first play.
     %
     %   See also Arcade, engine.GameBase
 
@@ -24,9 +18,9 @@ classdef (Sealed) ScoreManager
                 elapsed     (1,1) double
             end
 
-            data = ScoreManager.loadData();
+            data = services.ScoreManager.loadData();
             if ~isfield(data.Games, gameId)
-                data.Games.(gameId) = ScoreManager.emptyRecord();
+                data.Games.(gameId) = services.ScoreManager.emptyRecord();
             end
             rec = data.Games.(gameId);
 
@@ -47,7 +41,7 @@ classdef (Sealed) ScoreManager
             rec.lastPlayed = datetime("now");
 
             data.Games.(gameId) = rec;
-            ScoreManager.saveData(data);
+            services.ScoreManager.saveData(data);
         end
 
         function rec = get(gameId)
@@ -57,18 +51,18 @@ classdef (Sealed) ScoreManager
             arguments
                 gameId (1,1) string
             end
-            data = ScoreManager.loadData();
+            data = services.ScoreManager.loadData();
             if isfield(data.Games, gameId)
                 rec = data.Games.(gameId);
             else
-                rec = ScoreManager.emptyRecord();
+                rec = services.ScoreManager.emptyRecord();
             end
         end
 
         function allGames = getAll()
             %getAll  Get the full Games struct (one field per game ID).
             %   Returns struct() if no scores exist.
-            data = ScoreManager.loadData();
+            data = services.ScoreManager.loadData();
             allGames = data.Games;
         end
 
@@ -78,7 +72,7 @@ classdef (Sealed) ScoreManager
                 gameId (1,1) string
                 score  (1,1) double
             end
-            rec = ScoreManager.get(gameId);
+            rec = services.ScoreManager.get(gameId);
             tf = score > rec.highScore;
         end
 
@@ -87,16 +81,16 @@ classdef (Sealed) ScoreManager
             arguments
                 gameId (1,1) string
             end
-            data = ScoreManager.loadData();
+            data = services.ScoreManager.loadData();
             if isfield(data.Games, gameId)
                 data.Games = rmfield(data.Games, gameId);
-                ScoreManager.saveData(data);
+                services.ScoreManager.saveData(data);
             end
         end
 
         function clearAll()
             %clearAll  Reset all scores. Deletes the scores file.
-            p = ScoreManager.filePath();
+            p = services.ScoreManager.filePath();
             if isfile(p)
                 delete(p);
             end
@@ -125,7 +119,7 @@ classdef (Sealed) ScoreManager
             %loadData  Load scores from .mat file.
             %   Returns struct with Version and Games fields.
             %   Missing or corrupt file returns fresh empty data.
-            p = ScoreManager.filePath();
+            p = services.ScoreManager.filePath();
             if isfile(p)
                 try
                     raw = load(p);
@@ -153,7 +147,7 @@ classdef (Sealed) ScoreManager
             Version = data.Version;
             Games = data.Games;
             try
-                save(ScoreManager.filePath(), "Version", "Games");
+                save(services.ScoreManager.filePath(), "Version", "Games");
             catch ME
                 warning("ScoreManager:SaveError", ...
                     "Failed to save scores: %s", ME.message);
