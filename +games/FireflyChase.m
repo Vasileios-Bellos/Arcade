@@ -70,13 +70,12 @@ classdef FireflyChase < GameBase
     % ABSTRACT METHOD IMPLEMENTATIONS
     % =================================================================
     methods
-        function onInit(obj, ax, displayRange, caps)
+        function onInit(obj, ax, displayRange)
             %onInit  Create initial state and spawn first firefly.
             arguments
                 obj
                 ax
                 displayRange struct
-                caps struct = struct()
             end
             obj.Ax = ax;
             obj.DisplayRange = displayRange;
@@ -388,7 +387,7 @@ classdef FireflyChase < GameBase
             else
                 % Path-based firefly — closed orbits only (loop, figure8)
                 corridorW = round(10 * obj.Sc);
-                for attempt = 1:50 %#ok<FXUP>
+                for attempt = 1:50 
                     p = games.FireflyChase.generatePath(3, drx, dry, corridorW, true);
                     if ismember(p.Type, ["loop", "figure8"])
                         break
@@ -568,7 +567,7 @@ classdef FireflyChase < GameBase
                 case 1;  types = ["curve", "sCurve"];
                 case 2;  types = ["wave", "oscillate", "arc"];
                 case 3;  types = ["loop", "figure8", "spiral"];
-                otherwise; types = ["longSpiral"];
+                otherwise; types = "longSpiral";
             end
             pathType = types(randi(numel(types)));
 

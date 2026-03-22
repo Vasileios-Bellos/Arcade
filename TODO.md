@@ -53,7 +53,7 @@ No pending scaling work for arcade games.
 
 - [ ] Split `+games/` -- arcade games stay in `+games/` with `GameBase`; simulations extracted as individual standalones
 - [ ] Update `ArcadeGameLauncher.buildRegistry()` to only include arcade games
-- [ ] Rename ARCADE_README.md to README.md in the arcade portion
+- [x] Rename ARCADE_README.md to README.md (done)
 - [ ] GameHost interface cleanup -- accept generic struct/interface instead of GestureMouse instance directly
 - [ ] MATLAB File Exchange listing: "MATLAB Arcade" -- standalone mouse-driven arcade, no webcam needed
 - [ ] Optional: MATLAB Toolbox (.mltbx) packaging as GitHub release asset
@@ -62,7 +62,7 @@ No pending scaling work for arcade games.
 
 ## Documentation
 
-- [ ] Move screen-space scaling documentation from CLAUDE.md to ARCADE_DETAILS.md — the FontScale system, creation/resize rules, onFigResize flow, standalone vs hosted, scaleScreenSpaceObjects
+- [ ] Move screen-space scaling documentation from CLAUDE.md to DEVELOPER.md — the FontScale system, creation/resize rules, onFigResize flow, standalone vs hosted, scaleScreenSpaceObjects
 
 ## Game Bugs
 

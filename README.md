@@ -134,4 +134,4 @@ ScoreManager.m          persistent high-score storage
 +games/                 15 game classes
 ```
 
-For architecture and developer documentation, see [ARCADE_DETAILS.md](ARCADE_DETAILS.md).
+For architecture and developer documentation, see [DEVELOPER.md](DEVELOPER.md).
