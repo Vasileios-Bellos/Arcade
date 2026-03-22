@@ -5,9 +5,9 @@ classdef Snake < GameBase
     %   collision ends the game. Wrap-around at screen edges.
     %
     %   Standalone: games.Snake().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Snake"

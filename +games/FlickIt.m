@@ -1,16 +1,16 @@
 classdef FlickIt < GameBase
     %FlickIt  Flick It! — physics-based flick ball game with wall bounces.
     %   TODO: Consider renaming to "Ricochet!" (class + display name)
-    %   A ball sits at the center of the screen. Move your finger through
+    %   A ball sits at the center of the screen. Move your cursor through
     %   it with velocity to flick it. The ball bounces off walls with
     %   parametric collision detection. Re-flicking a moving ball builds
     %   combo. Speed-to-color gradient, 3-layer rendering (core + glow +
     %   aura), and a 30-frame comet trail provide visual feedback.
     %
     %   Standalone: games.FlickIt().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Flick It!"

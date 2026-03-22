@@ -7,9 +7,9 @@ classdef RailShooter < GameBase
     %   screen shake, glowing eyes, and perspective grid.
     %
     %   Standalone: games.RailShooter().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
     %
     %   TODO: Rename "death" terminology (deathFrame, deathMaxFrames,
     %   deathAlpha, dying) to "defeat" or "elimination" in a future

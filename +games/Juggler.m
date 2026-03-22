@@ -1,13 +1,13 @@
 classdef Juggler < GameBase
     %Juggler  Gravity-based ball juggling game with flick physics.
-    %   Keep the ball in the air by flicking it with your finger. Gravity
+    %   Keep the ball in the air by flicking it with your cursor. Gravity
     %   pulls the ball down; dropping it past the bottom edge resets combo.
     %   Extra balls spawn at combo milestones (every 10).
     %
     %   Standalone: games.Juggler().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Juggler"

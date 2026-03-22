@@ -1,9 +1,9 @@
 classdef (Sealed) GameMenu < handle
-    %GameMenu  Shared neon-styled game selection menu for arcade and finger hosts.
+    %GameMenu  Neon-styled game selection menu.
     %   Renders a scrollable game list with animated title, starfield, and slot-based
     %   item highlighting. Supports two selection modes:
     %     "click" — external confirmSelection() call triggers selection (mouse)
-    %     "dwell" — hovering over an item for DwellDuration auto-triggers (finger)
+    %     "dwell" — hovering over an item for DwellDuration auto-triggers (cursor)
     %
     %   Usage:
     %       menu = GameMenu(ax, displayRange, registry, registryOrder, ...
@@ -12,7 +12,7 @@ classdef (Sealed) GameMenu < handle
     %       menu.show(); menu.hide();
     %       menu.cleanup();
     %
-    %   See also ArcadeGameLauncher, GameHost
+    %   See also ArcadeGameLauncher
 
     % =================================================================
     % CONFIGURATION (set in constructor)

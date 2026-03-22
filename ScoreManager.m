@@ -9,7 +9,7 @@ classdef (Sealed) ScoreManager
     %       rec = ScoreManager.get("FlickIt");
     %       ScoreManager.clearAll();
     %
-    %   See also GameHost, ArcadeGameLauncher, GameBase
+    %   See also ArcadeGameLauncher, GameBase
 
     methods (Static)
 

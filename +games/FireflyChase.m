@@ -2,13 +2,13 @@ classdef FireflyChase < GameBase
     %FireflyChase  Firefly hunt — catch color-coded fireflies on closed orbits.
     %   5 tiers (cyan/green/magenta/purple/gold), max 3 on screen.
     %   Path-based closed orbits (loop, figure8) with seamless looping.
-    %   Gold snitch uses Lissajous curves with finger evasion AI.
+    %   Gold snitch uses Lissajous curves with cursor evasion AI.
     %   Combo decays 2s after last catch.
     %
     %   Standalone: games.FireflyChase().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Firefly Chase"

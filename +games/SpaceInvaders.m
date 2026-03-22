@@ -6,9 +6,9 @@ classdef SpaceInvaders < GameBase
     %   Victory after wave 5.
     %
     %   Standalone: games.SpaceInvaders().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Space Invaders"

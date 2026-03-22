@@ -5,15 +5,15 @@ classdef FlappyBird < GameBase
     %   grows. Collision triggers invulnerability blink.
     %
     %   Control modes (auto-detected from host capabilities):
-    %     Direct position (webcam) — bird follows finger position
+    %     Direct position (hosted) — bird follows cursor position
     %     Gravity+flap (arcade/standalone) — bird X fixed at 25% width,
     %       gravity pulls bird down, Space/Click to flap upward.
     %       Hitting top or bottom of screen triggers collision.
     %
     %   Standalone: games.FlappyBird().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Flappy Bird"

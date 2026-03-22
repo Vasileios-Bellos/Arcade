@@ -1,20 +1,19 @@
 classdef (Abstract) GameBase < handle
-    %GameBase  Abstract base class for all standalone/hosted games.
+    %GameBase  Abstract base class for all arcade games.
     %   Provides shared infrastructure: scoring, combo, hit effects, color
     %   constants, and speed-to-color mapping. Each game subclass implements
     %   4 abstract methods: onInit, onUpdate, onCleanup, onKeyPress.
     %
-    %   Standalone usage:
-    %       game = games.FlickIt();
-    %       game.play();   % opens figure, uses mouse input
+    %   Standalone:
+    %       game = games.Pong();
+    %       game.play();
     %
-    %   Hosted usage (inside GestureMouse via GameHost):
-    %       game = games.FlickIt();
-    %       game.onInit(ax, displayRange);
-    %       game.onUpdate(fingerPos);  % called each frame by host
+    %   Hosted (inside ArcadeGameLauncher):
+    %       game.init(ax, displayRange);
+    %       game.onUpdate(pos);   % called each frame by host
     %       game.onCleanup();
     %
-    %   See also GameHost, GestureMouse
+    %   See also ArcadeGameLauncher, GameMenu, ScoreManager
 
     % =================================================================
     % PUBLIC READABLE PROPERTIES

@@ -6,7 +6,7 @@ classdef Tetris < GameBase
     %   scoring. Single-layer neon patch rendering with bright edge outlines.
     %
     %   Controls:
-    %     Mouse/finger X -> horizontal piece targeting (disabled during arrow key use)
+    %     Mouse X -> horizontal piece targeting (disabled during arrow key use)
     %     Left click / Space -> hard drop
     %     Right click / Down -> soft drop (20x gravity)
     %     Scroll wheel   -> rotate (up=CW, down=CCW)
@@ -22,9 +22,9 @@ classdef Tetris < GameBase
     %                                  y = FieldY + (r-1)*CellH
     %
     %   Standalone: games.Tetris().play()
-    %   Hosted:     Called via ArcadeGameLauncher / GameHost
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Tetris"

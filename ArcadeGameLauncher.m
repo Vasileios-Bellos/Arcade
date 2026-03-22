@@ -1,22 +1,16 @@
 classdef ArcadeGameLauncher < handle
-    %ArcadeGameLauncher  Standalone arcade-style game launcher with mouse input.
-    %   Neon-styled arcade experience: animated game selector with scroll support,
-    %   3-2-1 countdown, HUD with score roll-up and combo display, pause/reset/
-    %   results screens.  Hosts the same GameBase games used by GestureMouse's
-    %   GameHost, but driven by mouse input — no webcam required.
+    %ArcadeGameLauncher  Neon-styled arcade game launcher.
+    %   Animated game selector with scroll support, HUD with score roll-up
+    %   and combo display, pause/restart/results screens. Subclassable —
+    %   override buildRegistry and getMenuTitles for custom game sets.
     %
     %   Usage:
     %       ArcadeGameLauncher()
     %
-    %   Menu Controls:
-    %       Up/Down arrows or mouse hover to navigate
-    %       Enter or Space to play, number keys for quick select
-    %       ESC to quit
+    %   Menu:  Up/Down or mouse hover, Enter/Space/click to play, Esc to quit
+    %   Game:  P = pause, R = restart, Esc = results
     %
-    %   In-Game Controls:
-    %       P = pause/resume, R or 0 = restart, ESC = end (results)
-    %
-    %   See also GameBase, GameHost, GameMenu, GestureMouse
+    %   See also GameBase, GameMenu, ScoreManager
 
     % =================================================================
     % PUBLIC CONFIGURATION

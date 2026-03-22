@@ -1,13 +1,13 @@
 classdef Breakout < GameBase
     %Breakout  Classic Arkanoid-style brick-breaking game.
-    %   Paddle controlled by finger X position. 5 levels with escalating
+    %   Paddle controlled by cursor X position. 5 levels with escalating
     %   difficulty, power-ups (Fireball, Multi-ball, Slow, Wide, Life),
     %   neon brick destruction effects, and multi-ball support.
     %
     %   Standalone: games.Breakout().play()
-    %   Hosted:     GameHost registers this and calls onInit/onUpdate/onCleanup
+    %   Hosted:     ArcadeGameLauncher hosts via init/onUpdate/onCleanup
     %
-    %   See also GameBase, GameHost
+    %   See also GameBase, ArcadeGameLauncher
 
     properties (Constant)
         Name = "Breakout"
