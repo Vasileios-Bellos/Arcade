@@ -32,10 +32,9 @@ const REF_FPS = 60;
 const BG_COLOR = '#04040a';
 const BG_RGB = [4, 4, 10];
 
-// MATLAB MarkerSize is in points (1/72 inch). At 96 DPI, 1pt = 1.333px.
-// In 854x480 display at 854px wide, 1 data unit = 1px.
-// So 1 MarkerSize point = 1.333 data units.
-const PTS_TO_DATA = 96 / 72; // ≈ 1.3333
+// MarkerSize to data-unit radius: MarkerSize is diameter, divide by 2 for radius.
+// At 854x480 display, MarkerSize points map approximately 1:1 to data units.
+const PTS_TO_DATA = 1.0;
 
 // Neon color palette (MATLAB [0,1] → [0,255])
 const Colors = {
