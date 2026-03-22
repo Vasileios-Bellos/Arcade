@@ -8167,20 +8167,20 @@ class FlickItGame {
             }
         }
 
-        // --- Outer aura ---
-        const auraSize = 54 * auraScale * 0.5;  // Half because we use radius
-        const auraAlpha = 0.1 + Math.min(0.2, spd * 0.015);
+        // --- Outer aura (FIXED size, only color/alpha change) ---
+        const auraRadius = 27; // fixed radius, does not grow
+        const auraAlpha = 0.08 + Math.min(0.12, spd * 0.01);
         ctx.save();
         ctx.shadowColor = rgba(clr, auraAlpha * 0.5);
-        ctx.shadowBlur = 8; // fixed subtle glow, not proportional to size
+        ctx.shadowBlur = 8;
         ctx.fillStyle = rgba(clr, auraAlpha);
         ctx.beginPath();
-        ctx.arc(bx, by, auraSize, 0, Math.PI * 2);
+        ctx.arc(bx, by, auraRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // --- Glow ring ---
-        const glowRadius = rr * 2.5 * 0.5;
+        // --- Glow ring (GROWS with speed via auraScale) ---
+        const glowRadius = rr * 2.5 * 0.5 * auraScale;
         const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
@@ -8764,20 +8764,21 @@ class JugglerGame {
             }
         }
 
-        // Aura
+        // Aura (outer, FIXED size, only color changes)
         const auraScale = 1 + Math.min(1.5, ballSpeed * 0.08);
-        const auraSize = 54 * auraScale * 0.5;
+        const auraRadius2 = 27; // fixed
+        const auraAlpha2 = 0.08 + Math.min(0.12, ballSpeed * 0.01);
         ctx.save();
-        ctx.shadowColor = rgba(clr, auraAlpha * 0.5);
-        ctx.shadowBlur = 8; // fixed subtle glow, not proportional to size
-        ctx.fillStyle = rgba(clr, 0.12);
+        ctx.shadowColor = rgba(clr, auraAlpha2 * 0.5);
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = rgba(clr, auraAlpha2);
         ctx.beginPath();
-        ctx.arc(bx, by, auraSize, 0, Math.PI * 2);
+        ctx.arc(bx, by, auraRadius2, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Glow ring
-        const glowRadius = r * 2.5 * 0.5;
+        // Glow ring (middle, GROWS with speed)
+        const glowRadius = r * 2.5 * 0.5 * auraScale;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.3);
         ctx.shadowBlur = 10; // fixed glow, not proportional
