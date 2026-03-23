@@ -10122,8 +10122,7 @@ class RailShooterGame {
         }
 
         // --- Update + draw hit effects ---
-        this.hitFx.update(ds);
-        this.hitFx.draw(ctx);
+        this.hitFx.update(ctx, ds);
 
         ctx.restore();
     }
