@@ -6385,7 +6385,6 @@ class FruitNinjaGame {
             this.multiCutX = fx;
             this.multiCutY = fy - fRadius * 2;
             this.multiCutFade = 48;
-            this.swipeSlashSlot = -1;  // seal the slash
         }
 
         // Store slice diagnostics
@@ -6480,6 +6479,11 @@ class FruitNinjaGame {
                     this.slashActive[slashSlot] = 1;
                     this.swipeSlashSlot = slashSlot;
                 }
+            }
+
+            // Seal slash after multi-cut (prevents further expansion)
+            if (this.swipeGenSliced >= 2) {
+                this.swipeSlashSlot = -1;
             }
         }
 

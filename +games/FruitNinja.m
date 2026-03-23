@@ -809,7 +809,6 @@ classdef FruitNinja < engine.GameBase
                 obj.MultiCutTextH.Color = [obj.ColorGold, 1];
                 obj.MultiCutTextH.Visible = "on";
                 obj.MultiCutFade = 48;  % frames to display
-                obj.SwipeSlashSlot = 0;  % seal — no more expansion
             end
 
             % Store slice diagnostics
@@ -936,6 +935,11 @@ classdef FruitNinja < engine.GameBase
                         coreH.Visible = "on";
                     end
                 end
+            end
+
+            % Seal slash after multi-cut (prevents further expansion)
+            if obj.SwipeGenSliced >= 2
+                obj.SwipeSlashSlot = 0;
             end
 
             % Spawn burst effect at fruit center
