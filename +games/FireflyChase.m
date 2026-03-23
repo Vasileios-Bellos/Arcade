@@ -197,20 +197,28 @@ classdef FireflyChase < engine.GameBase
                     ffPos = [ff.pathX(pidx), ff.pathY(pidx)];
 
                     % Comet tail from path history (scales with speed)
+                    % Subsample to max ~40 points for rendering performance
                     trailSpan = round(45 * ff.speed / obj.BaseSpeed);
                     if pidx > trailSpan
                         tStart = pidx - trailSpan;
-                        tx = ff.pathX(tStart:pidx);
-                        ty = ff.pathY(tStart:pidx);
+                        step = max(1, floor(trailSpan / 40));
+                        idx = tStart:step:pidx;
+                        if idx(end) ~= pidx; idx(end+1) = pidx; end
+                        tx = ff.pathX(idx);
+                        ty = ff.pathY(idx);
                     else
                         % Near start of path — append carry-over from previous loop
-                        tx = [ff.trailCarryX, ff.pathX(1:pidx)];
-                        ty = [ff.trailCarryY, ff.pathY(1:pidx)];
-                        % Trim to trailSpan length
-                        if numel(tx) > trailSpan
-                            tx = tx(end - trailSpan + 1:end);
-                            ty = ty(end - trailSpan + 1:end);
+                        txFull = [ff.trailCarryX, ff.pathX(1:pidx)];
+                        tyFull = [ff.trailCarryY, ff.pathY(1:pidx)];
+                        if numel(txFull) > trailSpan
+                            txFull = txFull(end - trailSpan + 1:end);
+                            tyFull = tyFull(end - trailSpan + 1:end);
                         end
+                        step = max(1, floor(numel(txFull) / 40));
+                        idx = 1:step:numel(txFull);
+                        if idx(end) ~= numel(txFull); idx(end+1) = numel(txFull); end
+                        tx = txFull(idx);
+                        ty = tyFull(idx);
                     end
                 end
 

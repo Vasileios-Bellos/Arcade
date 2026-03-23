@@ -7185,11 +7185,14 @@ class FireflyChaseGame {
                 const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
                 const tStart = Math.max(0, pidx - trailSpan);
                 if (tStart > 0) {
-                    // Far from start — direct path slice (reuse views, no alloc)
+                    // Far from start — use path array with subsampled index range
                     tx = ff.pathX;
                     ty = ff.pathY;
+                    const span = pidx - tStart;
+                    const step = Math.max(1, Math.floor(span / 40));
                     ff._tStart = tStart;
                     ff._tEnd = pidx + 1;
+                    ff._tStep = step;
                 } else {
                     // Near start — need carry-over
                     const cx = ff.trailCarryX || [];
@@ -7271,6 +7274,7 @@ class FireflyChaseGame {
         // Trail glow
         const tS = ff._tStart || 0;
         const tE = ff._tEnd || tx.length;
+        const tStep = ff._tStep || 1;
         if (tE - tS > 1) {
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.2);
@@ -7279,9 +7283,10 @@ class FireflyChaseGame {
             ctx.shadowBlur = 8;
             ctx.beginPath();
             ctx.moveTo(tx[tS], ty[tS]);
-            for (let j = tS + 1; j < tE; j++) {
+            for (let j = tS + tStep; j < tE; j += tStep) {
                 ctx.lineTo(tx[j], ty[j]);
             }
+            if ((tE - 1 - tS) % tStep !== 0) ctx.lineTo(tx[tE-1], ty[tE-1]);
             ctx.stroke();
             ctx.restore();
 
@@ -7291,9 +7296,10 @@ class FireflyChaseGame {
             ctx.lineWidth = 1.1;
             ctx.beginPath();
             ctx.moveTo(tx[tS], ty[tS]);
-            for (let j = tS + 1; j < tE; j++) {
+            for (let j = tS + tStep; j < tE; j += tStep) {
                 ctx.lineTo(tx[j], ty[j]);
             }
+            if ((tE - 1 - tS) % tStep !== 0) ctx.lineTo(tx[tE-1], ty[tE-1]);
             ctx.stroke();
             ctx.restore();
         }
