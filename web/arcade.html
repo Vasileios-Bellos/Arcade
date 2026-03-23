@@ -6461,7 +6461,7 @@ class FruitNinjaGame {
             // Multi-cut: expand existing swipe slash if still young (<10 frames).
             const ss = this.swipeSlashSlot;
             if (ss >= 0 && ss < 6 && this.slashActive[ss]
-                && this.slashAge[ss] < 10) {
+                && this.slashFrames[ss] < 6) {
                 // Expand: convert old indices to current-frame coords, merge
                 this.slashIdxStart[ss] = Math.min(idxStart,
                     this.slashIdxStart[ss] - this.slashAge[ss]);

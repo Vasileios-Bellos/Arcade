@@ -893,7 +893,7 @@ classdef FruitNinja < engine.GameBase
             % ages past 10 frames, it's sealed and further fruits get new slash.
             ss = obj.SwipeSlashSlot;
             if ss > 0 && ss <= 6 && obj.SlashActive(ss) ...
-                    && obj.SlashAge(ss) < 10
+                    && obj.SlashFrames(ss) < 6
                 % Expand: use current-frame coords, reset age so readback
                 % stays aligned with current trace buffer
                 obj.SlashIdxStart(ss) = min(idxStart, ...
