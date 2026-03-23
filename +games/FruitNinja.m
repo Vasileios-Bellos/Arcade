@@ -920,11 +920,12 @@ classdef FruitNinja < engine.GameBase
                 % Get first slash's original idxStart in current coordinates
                 firstIdxStart = obj.SwipeFirstEntry(1);
                 firstSlot = obj.SwipeFirstEntry(2);
-                if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot)
+                if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot) ...
+                        && obj.TraceBufferIdx >= obj.TraceBufferMax
                     firstAge = obj.SlashAge(firstSlot);
                     adjustedFirstStart = firstIdxStart - firstAge;
                 else
-                    adjustedFirstStart = idxStart;
+                    adjustedFirstStart = firstIdxStart;
                 end
 
                 goldenStart = max(1, adjustedFirstStart);
