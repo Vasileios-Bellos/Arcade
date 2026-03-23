@@ -1667,7 +1667,7 @@ class PongGame {
                 }
             }
             if (this.comboVisible) {
-                ctx.font = 'bold 9px sans-serif';
+                ctx.font = 'bold 8px sans-serif';
                 ctx.fillStyle = rgb(this.comboFadeColor, alpha);
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
@@ -7384,7 +7384,7 @@ class FireflyChaseGame {
     renderComboText(ctx, alpha) {
         if (!this.comboTextVisible || !this.comboText) return;
         ctx.save();
-        ctx.font = 'bold 9px sans-serif';
+        ctx.font = 'bold 8px sans-serif';
         const clrGreen = [
             Colors.Green[0] * 0.9,
             Colors.Green[1] * 0.9,
@@ -8330,7 +8330,7 @@ class FlickItGame {
     renderComboText(ctx, alpha) {
         if (!this.comboTextVisible || !this.comboText) return;
         ctx.save();
-        ctx.font = 'bold 9px sans-serif';
+        ctx.font = 'bold 8px sans-serif';
         const clrGreen = [Colors.Green[0] * 0.9, Colors.Green[1] * 0.9, Colors.Green[2] * 0.9];
         ctx.fillStyle = rgba(clrGreen, alpha);
         ctx.textAlign = 'center';
