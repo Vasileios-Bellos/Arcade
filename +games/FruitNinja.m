@@ -59,7 +59,6 @@ classdef FruitNinja < engine.GameBase
         SlashIdxStart   (1,6) double = 0
         SlashIdxEnd     (1,6) double = 0
         SlashActive     (1,6) logical = false
-        SwipeSlashSlot  (1,1) double = 0  % slash slot for current swipe (0=none)
     end
 
     % =================================================================
@@ -263,7 +262,6 @@ classdef FruitNinja < engine.GameBase
                     obj.SwipeActive = true;
                     obj.SwipeGen = obj.SwipeGen + 1;
                     obj.SwipeGenSliced = 0;
-                    obj.SwipeSlashSlot = 0;
                 end
             else
                 obj.SwipeActive = false;
@@ -885,25 +883,8 @@ classdef FruitNinja < engine.GameBase
             sx = traceX(idxStart:idxEnd);
             sy = traceY(idxStart:idxEnd);
 
-            % Multi-cut: expand existing swipe slash instead of creating new
-            existingSlot = obj.SwipeSlashSlot;
-            if existingSlot > 0 && existingSlot <= 6 ...
-                    && obj.SlashActive(existingSlot)
-                % Extend the existing slash to cover this fruit too
-                obj.SlashIdxStart(existingSlot) = min(obj.SlashIdxStart(existingSlot), idxStart);
-                obj.SlashIdxEnd(existingSlot) = max(obj.SlashIdxEnd(existingSlot), idxEnd);
-                obj.SlashFrames(existingSlot) = 0;  % reset fade timer
-                obj.SlashAge(existingSlot) = 0;
-                newStart = obj.SlashIdxStart(existingSlot);
-                newEnd = obj.SlashIdxEnd(existingSlot);
-                sx = traceX(max(1, newStart):min(nTrace, newEnd));
-                sy = traceY(max(1, newStart):min(nTrace, newEnd));
-                slashSlot = existingSlot;
-            else
-                % New slash slot for this swipe
-                slashSlot = find(~obj.SlashActive, 1);
-                if isempty(slashSlot); slashSlot = []; end
-            end
+            % Find inactive slash slot
+            slashSlot = find(~obj.SlashActive, 1);
             if ~isempty(slashSlot)
                 fadeFrames = 29;
                 obj.SlashFrames(slashSlot) = 0;
@@ -912,7 +893,6 @@ classdef FruitNinja < engine.GameBase
                 obj.SlashIdxStart(slashSlot) = idxStart;
                 obj.SlashIdxEnd(slashSlot) = idxEnd;
                 obj.SlashActive(slashSlot) = true;
-                obj.SwipeSlashSlot = slashSlot;
 
                 glowH = obj.SlashPoolGlow{slashSlot};
                 if ~isempty(glowH) && isvalid(glowH)
