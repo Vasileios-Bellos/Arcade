@@ -5897,7 +5897,7 @@ class FruitNinjaGame {
             }
             slashSpeed = sum / count;
         }
-        const slashThresh = Math.max(1.5, Math.min(areaW, areaH) * 0.008);
+        const slashThresh = Math.max(0.5, Math.min(areaW, areaH) * 0.002);
 
         // ---- Swipe lifecycle ----
         if (slashSpeed > slashThresh) {

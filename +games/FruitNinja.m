@@ -250,7 +250,7 @@ classdef FruitNinja < engine.GameBase
                 speeds = sqrt(diff(traceX).^2 + diff(traceY).^2);
                 slashSpeed = mean(speeds(max(1, end-2):end));
             end
-            slashThresh = max(1.5, min(areaW, areaH) * 0.008);
+            slashThresh = max(0.5, min(areaW, areaH) * 0.002);
 
             % --- Swipe lifecycle tracking ---
             %   A swipe is a single continuous fast finger motion. Starts when
