@@ -5541,23 +5541,28 @@ class FlappyBirdGame {
         }
 
         // ---- Draw bird (MATLAB: 2 scatter layers, no shadow effects) ----
+        // Scatter SizeData→visual radius: sqrt(SD/π) * (dpi/72) / pxPerUnit
+        // collisionR already encodes this conversion for the core scatter.
+        // Glow scatter SizeData = (birdRadius*4)² = 4× core SizeData,
+        // so glow visual radius = collisionR × sqrt(4) = collisionR × 2.
         if (birdVisible !== false) {
-            const glowSize = Math.max(15, this.birdRadius * 4);
-            const coreSize = Math.max(8, this.birdRadius * 2);
+            const cr = this.collisionR;
+            const glowR = cr * 2;
+            const coreR = cr;
 
-            // Glow layer (MATLAB: scatter, MarkerFaceAlpha=0.25, no shadow)
+            // Glow layer (MATLAB: scatter, MarkerFaceAlpha=0.25)
             ctx.save();
             ctx.fillStyle = rgba(this.birdColor, 0.25);
             ctx.beginPath();
-            ctx.arc(bx, by, glowSize / 2, 0, Math.PI * 2);
+            ctx.arc(bx, by, glowR, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
-            // Core (MATLAB: scatter, opaque, no shadow)
+            // Core (MATLAB: scatter, fully opaque)
             ctx.save();
             ctx.fillStyle = rgb(this.birdColor);
             ctx.beginPath();
-            ctx.arc(bx, by, coreSize / 2, 0, Math.PI * 2);
+            ctx.arc(bx, by, coreR, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
@@ -5799,6 +5804,7 @@ class FruitNinjaGame {
         this.swipeActive = false;
         this.swipeGen = 0;
         this.swipeGenSliced = 0;
+        this.swipeSlashSlot = -1;
 
         // Pre-compute circle points (24-point)
         this.theta24 = [];
@@ -5900,6 +5906,7 @@ class FruitNinjaGame {
                 this.swipeActive = true;
                 this.swipeGen++;
                 this.swipeGenSliced = 0;
+                this.swipeSlashSlot = -1;
             }
         } else {
             this.swipeActive = false;
@@ -6445,14 +6452,29 @@ class FruitNinjaGame {
             const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
             const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
 
-            const slashSlot = this.findInactiveSlot(this.slashActive, 6);
+            // Multi-cut: expand existing swipe slash instead of creating new
+            const existing = this.swipeSlashSlot;
+            let slashSlot;
+            if (existing >= 0 && existing < 6 && this.slashActive[existing]) {
+                // Extend existing slash to cover this fruit too
+                this.slashIdxStart[existing] = Math.min(this.slashIdxStart[existing], idxStart);
+                this.slashIdxEnd[existing] = Math.max(this.slashIdxEnd[existing], idxEnd);
+                this.slashFrames[existing] = 0;  // reset fade
+                this.slashAge[existing] = 0;
+                slashSlot = existing;
+            } else {
+                slashSlot = this.findInactiveSlot(this.slashActive, 6);
+            }
             if (slashSlot >= 0) {
                 this.slashFrames[slashSlot] = 0;
                 this.slashAge[slashSlot] = 0;
                 this.slashFadeFrames[slashSlot] = 29;
-                this.slashIdxStart[slashSlot] = idxStart;
-                this.slashIdxEnd[slashSlot] = idxEnd;
+                if (existing < 0 || existing >= 6 || !this.slashActive[existing]) {
+                    this.slashIdxStart[slashSlot] = idxStart;
+                    this.slashIdxEnd[slashSlot] = idxEnd;
+                }
                 this.slashActive[slashSlot] = 1;
+                this.swipeSlashSlot = slashSlot;
             }
         }
 
