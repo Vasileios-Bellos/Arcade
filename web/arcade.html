@@ -2625,7 +2625,7 @@ class BreakoutGame {
             const auraColor = isFireball ? Colors.Red : ballColor;
             const auraAlpha = isFireball ? 0.25 : 0.15;
             // Individually measured: glow=1.53r(BIGGEST), aura=1.14r, core=0.43r
-            const glowR = r * (isFireball ? 2.1 : 1.53);
+            const glowR = r * 1.53; // same size for normal and fireball, only color changes
 
             // Aura
             ctx.beginPath();
@@ -7227,7 +7227,7 @@ class FireflyChaseGame {
         if (tx.length > 1) {
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.2);
-            ctx.lineWidth = dotSize * 0.8;
+            ctx.lineWidth = 0.54; // MATLAB: 0.54 * FontScale
             ctx.shadowColor = rgba(clr, 0.15);
             ctx.shadowBlur = 8;
             ctx.beginPath();
@@ -7241,7 +7241,7 @@ class FireflyChaseGame {
             // Trail solid line
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.4);
-            ctx.lineWidth = Math.max(1, dotSize * 0.3);
+            ctx.lineWidth = 1.1; // MATLAB: 1.1 * FontScale
             ctx.beginPath();
             ctx.moveTo(tx[0], ty[0]);
             for (let j = 1; j < tx.length; j++) {
