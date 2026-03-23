@@ -1580,10 +1580,10 @@ class PongGame {
             const r = this.ballRadius;
 
             // MATLAB z-order: Aura(behind) → Glow(on top) → Core(front)
-            // Aura: faint, 1.14r
+            // Aura: 1.14r, opaque (MATLAB line marker ignores RGBA alpha on face)
             ctx.beginPath();
             ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
-            ctx.fillStyle = rgb(clr, 0.12);
+            ctx.fillStyle = rgb(clr);
             ctx.fill();
 
             // Glow: light blue, 1.53r, on top of aura
@@ -2636,9 +2636,9 @@ class BreakoutGame {
             // Aura
             ctx.beginPath();
             // MATLAB z-order: Aura(behind) → Glow(on top) → Core(front)
-            // Aura (1.14r, faint)
+            // Aura (1.14r, opaque)
             ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
-            ctx.fillStyle = rgb(auraColor, auraAlpha);
+            ctx.fillStyle = rgb(auraColor);
             ctx.fill();
 
             // Glow (1.53r, light blue, on top of aura)
@@ -8210,11 +8210,10 @@ class FlickItGame {
         }
 
         // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
-        // Aura: line marker, 0.63*rr, faint, BREATHES
+        // Aura: line marker, 0.63*rr, opaque, BREATHES
         const auraRadius = rr * 0.63 * auraScale;
-        const auraAlpha = 0.1 + Math.min(0.2, spd * 0.015);
         ctx.save();
-        ctx.fillStyle = rgba(clr, auraAlpha);
+        ctx.fillStyle = rgb(clr);
         ctx.beginPath();
         ctx.arc(bx, by, auraRadius, 0, Math.PI * 2);
         ctx.fill();
@@ -8806,9 +8805,9 @@ class JugglerGame {
         const breathJ = 1 + 0.12 * Math.sin(this.ballPhase || 0);
 
         // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
-        // Aura (0.63*r, faint, BREATHES, drawn first/behind)
+        // Aura (0.63*r, opaque, BREATHES, drawn first/behind)
         ctx.save();
-        ctx.fillStyle = rgba(clr, 0.12);
+        ctx.fillStyle = rgb(clr);
         ctx.beginPath();
         ctx.arc(bx, by, r * 0.63 * auraScaleJ, 0, Math.PI * 2);
         ctx.fill();
