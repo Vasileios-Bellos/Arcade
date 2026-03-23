@@ -49,6 +49,7 @@ classdef Pong < engine.GameBase
         TrailBufX       (1,:) double
         TrailBufY       (1,:) double
         TrailIdx        (1,1) double = 0
+        TrailAccum      (1,1) double = 0  % DtScale accumulator for fps-independent trail
 
 
         % Combo fade
@@ -304,6 +305,13 @@ classdef Pong < engine.GameBase
             end
 
             if bounced
+                % Force-record bounce contact into trail
+                tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(tidx) = obj.BallPos(1);
+                obj.TrailBufY(tidx) = obj.BallPos(2);
+                obj.TrailIdx = tidx;
+                obj.TrailAccum = 0;
+
                 obj.spawnBounceEffect(bouncePos, bounceNormal, 0, ...
                     norm(obj.BallVel) * obj.SpeedScale);
             end
@@ -341,11 +349,15 @@ classdef Pong < engine.GameBase
             % --- AI paddle movement ---
             obj.updateAIPaddle();
 
-            % --- Trail buffer ---
-            tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
-            obj.TrailBufX(tidx) = obj.BallPos(1);
-            obj.TrailBufY(tidx) = obj.BallPos(2);
-            obj.TrailIdx = tidx;
+            % --- Trail buffer (DtScale accumulator, fps-independent) ---
+            obj.TrailAccum = obj.TrailAccum + ds;
+            if obj.TrailAccum >= 2.0
+                obj.TrailAccum = obj.TrailAccum - 2.0;
+                tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(tidx) = obj.BallPos(1);
+                obj.TrailBufY(tidx) = obj.BallPos(2);
+                obj.TrailIdx = tidx;
+            end
 
             % --- Animation + render ---
             obj.BallPhase = obj.BallPhase + 0.0333 * ds;
@@ -425,6 +437,7 @@ classdef Pong < engine.GameBase
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
         end
 
         function launchBall(obj)
@@ -463,6 +476,13 @@ classdef Pong < engine.GameBase
                 obj.BallPos(1) = paddleX + obj.BallRadius;
             end
 
+            % Force-record paddle contact into trail
+            tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+            obj.TrailBufX(tidx) = obj.BallPos(1);
+            obj.TrailBufY(tidx) = obj.BallPos(2);
+            obj.TrailIdx = tidx;
+            obj.TrailAccum = 0;
+
             % Rally tracking
             obj.RallyHits = obj.RallyHits + 1;
             obj.MaxRally = max(obj.MaxRally, obj.RallyHits);
@@ -479,6 +499,7 @@ classdef Pong < engine.GameBase
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
         end
 
         function onGoal(obj, who)
