@@ -7236,7 +7236,7 @@ class FireflyChaseGame {
         if (tx.length > 1) {
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.2);
-            ctx.lineWidth = 0.54; // MATLAB: 0.54 * FontScale
+            ctx.lineWidth = dotSize * 0.8; // MATLAB: dotSize * 0.8 * FontScale
             ctx.shadowColor = rgba(clr, 0.15);
             ctx.shadowBlur = 8;
             ctx.beginPath();
@@ -7250,7 +7250,7 @@ class FireflyChaseGame {
             // Trail solid line
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.4);
-            ctx.lineWidth = 1.1; // MATLAB: 1.1 * FontScale
+            ctx.lineWidth = 1.1; // MATLAB: 1.1 * FontScale (creation value, not changed per-frame)
             ctx.beginPath();
             ctx.moveTo(tx[0], ty[0]);
             for (let j = 1; j < tx.length; j++) {
