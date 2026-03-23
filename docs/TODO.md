@@ -31,8 +31,11 @@ No pending scaling work for arcade games.
 
 ## Per-Game TODOs (from code comments)
 
-- [ ] **TargetPractice**: Target timeout uses wall-clock time (toc), not DtScale. If RefFPS is changed, timeout duration stays the same. Consider scaling timeout by RefFPS ratio
+- [ ] **TargetPractice**: Target timeout uses wall-clock time (toc), not DtScale — only gameplay-affecting tic/toc usage
 - [x] **RailShooter**: Renamed death→defeat terminology (done in this session)
+
+**Note — wall-clock tic/toc (cosmetic, intentionally real-time):**
+Combo decay (FlickIt, FireflyChase, Pong), lives/wave flash animations (Asteroids, Breakout, SpaceInvaders, OrbitalDefense, ShieldGuardian, RailShooter), power-up expiry (Breakout, SpaceInvaders), flick lock cooldown (Juggler), wave advancement timer (ShieldGuardian), difficulty ramp (FireflyChase). These are deliberate real-time durations, not physics.
 
 ---
 
