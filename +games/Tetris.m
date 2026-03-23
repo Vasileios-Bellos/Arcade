@@ -1068,8 +1068,9 @@ classdef Tetris < engine.GameBase
                     y0 = topY + (dr - minR) * obj.CellH;
                     xv = [x0, x0 + obj.CellW, x0 + obj.CellW, x0];
                     yv = [y0, y0, y0 + obj.CellH, y0 + obj.CellH];
-                    if isvalid(obj.NextCell(p, k))
-                        set(obj.NextCell(p, k), "XData", xv, "YData", yv, ...
+                    h = obj.NextCell(p, k);
+                    if ~isempty(h) && isvalid(h) && isprop(h, "XData")
+                        set(h, "XData", xv, "YData", yv, ...
                             "FaceColor", clr, "FaceAlpha", 0.75, ...
                             "EdgeColor", brightClr, "Visible", "on");
                     end
@@ -1082,7 +1083,8 @@ classdef Tetris < engine.GameBase
             % Hide unused slots
             for p = (nPreview + 1):3
                 for k = 1:4
-                    if isvalid(obj.NextCell(p, k)); obj.NextCell(p, k).Visible = "off"; end
+                    h = obj.NextCell(p, k);
+                    if ~isempty(h) && isvalid(h) && isprop(h, "Visible"); h.Visible = "off"; end
                 end
             end
         end
