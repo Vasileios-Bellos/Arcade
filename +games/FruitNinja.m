@@ -885,15 +885,20 @@ classdef FruitNinja < engine.GameBase
             sx = traceX(idxStart:idxEnd);
             sy = traceY(idxStart:idxEnd);
 
-            % Multi-cut: reuse same slash slot if it was created/expanded
-            % this frame (SlashFrames == 0). Once a frame passes, the slash
-            % is sealed — further fruits start a new slash.
+            % Multi-cut: expand existing swipe slash if still young (<10 frames).
+            % Fruits are sliced across consecutive frames as finger moves
+            % through the cluster. Don't reset fade timer — once the slash
+            % ages past 10 frames, it's sealed and further fruits get new slash.
             ss = obj.SwipeSlashSlot;
             if ss > 0 && ss <= 6 && obj.SlashActive(ss) ...
-                    && obj.SlashFrames(ss) == 0
-                % Expand: rewrite with current-frame coordinates (age=0)
-                obj.SlashIdxStart(ss) = min(obj.SlashIdxStart(ss), idxStart);
-                obj.SlashIdxEnd(ss) = max(obj.SlashIdxEnd(ss), idxEnd);
+                    && obj.SlashAge(ss) < 10
+                % Expand: use current-frame coords, reset age so readback
+                % stays aligned with current trace buffer
+                obj.SlashIdxStart(ss) = min(idxStart, ...
+                    obj.SlashIdxStart(ss) - obj.SlashAge(ss));
+                obj.SlashIdxEnd(ss) = max(idxEnd, ...
+                    obj.SlashIdxEnd(ss) - obj.SlashAge(ss));
+                obj.SlashAge(ss) = 0;
                 newSx = traceX(max(1, obj.SlashIdxStart(ss)):min(nTrace, obj.SlashIdxEnd(ss)));
                 newSy = traceY(max(1, obj.SlashIdxStart(ss)):min(nTrace, obj.SlashIdxEnd(ss)));
                 glowH = obj.SlashPoolGlow{ss};

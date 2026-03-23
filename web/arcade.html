@@ -6457,14 +6457,16 @@ class FruitNinjaGame {
             const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
             const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
 
-            // Multi-cut: reuse same slash slot if created this frame
-            // (slashFrames == 0). Once a frame passes, slash is sealed.
+            // Multi-cut: expand existing swipe slash if still young (<10 frames).
             const ss = this.swipeSlashSlot;
             if (ss >= 0 && ss < 6 && this.slashActive[ss]
-                && this.slashFrames[ss] === 0) {
-                // Expand with current-frame coordinates
-                this.slashIdxStart[ss] = Math.min(this.slashIdxStart[ss], idxStart);
-                this.slashIdxEnd[ss] = Math.max(this.slashIdxEnd[ss], idxEnd);
+                && this.slashAge[ss] < 10) {
+                // Expand: convert old indices to current-frame coords, merge
+                this.slashIdxStart[ss] = Math.min(idxStart,
+                    this.slashIdxStart[ss] - this.slashAge[ss]);
+                this.slashIdxEnd[ss] = Math.max(idxEnd,
+                    this.slashIdxEnd[ss] - this.slashAge[ss]);
+                this.slashAge[ss] = 0;
             } else {
                 // New slash
                 const slashSlot = this.findInactiveSlot(this.slashActive, 6);
