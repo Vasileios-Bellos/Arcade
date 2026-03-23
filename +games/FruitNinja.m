@@ -816,11 +816,8 @@ classdef FruitNinja < engine.GameBase
             % Process each fruit: split halves, score, burst
             for fi = 1:nFruit
                 fd = fruits(fi);
-                % Read live position (fruit kept moving since slice)
-                fd.fx = obj.FruitX(fd.slot);
-                fd.fy = obj.FruitY(fd.slot);
-                fd.fvx = obj.FruitVx(fd.slot);
-                fd.fvy = obj.FruitVy(fd.slot);
+                % Use buffered position/velocity from slice time
+                % (cut geometry was computed at that position)
                 obj.deactivateFruit(fd.slot);
                 obj.FruitsSliced = obj.FruitsSliced + 1;
                 obj.incrementCombo();
