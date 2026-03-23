@@ -388,7 +388,7 @@ classdef RailShooter < engine.GameBase
                     end
 
                     % Secondary explosions at random positions during defeat
-                    if progress > 0.1 && progress < 0.7 && rand < 0.2
+                    if progress > 0.1 && progress < 0.7 && rand < 0.2 * ds
                         bOff = baseScale * obj.BaseSize * 0.5;
                         burstX = m.screenX + (rand - 0.5) * bOff * 2;
                         burstY = m.screenY + (rand - 0.5) * bOff * 2;

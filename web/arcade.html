@@ -9961,7 +9961,7 @@ class RailShooterGame {
                     scaleVal * this.baseSize, defeatAlpha, progress);
 
                 // Secondary explosions
-                if (progress > 0.1 && progress < 0.7 && Math.random() < 0.2) {
+                if (progress > 0.1 && progress < 0.7 && Math.random() < 0.2 * ds) {
                     const bOff = baseScale * this.baseSize * 0.5;
                     const burstX = m.screenX + (Math.random() - 0.5) * bOff * 2;
                     const burstY = m.screenY + (Math.random() - 0.5) * bOff * 2;
