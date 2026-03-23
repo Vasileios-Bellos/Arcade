@@ -7260,28 +7260,19 @@ class FireflyChaseGame {
             ctx.restore();
         }
 
-        // Aura glow
+        // Aura (MATLAB: scatter, MarkerFaceAlpha 0.35, FIXED — no breathing)
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.4);
-        ctx.shadowBlur = auraSize;
-        ctx.fillStyle = rgba(clr, breathAlpha);
+        ctx.fillStyle = rgba(clr, 0.35);
         ctx.beginPath();
         ctx.arc(x, y, auraSize * 0.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Core dot
+        // Core dot (MATLAB: scatter, MarkerFaceAlpha 1.0, solid color, no white center)
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = dotSize * 2;
         ctx.fillStyle = rgba(clr, 1);
         ctx.beginPath();
         ctx.arc(x, y, dotSize * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        // White center
-        ctx.fillStyle = rgba(Colors.White, 0.9);
-        ctx.beginPath();
-        ctx.arc(x, y, dotSize * 0.25, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }
