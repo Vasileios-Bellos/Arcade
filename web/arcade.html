@@ -244,9 +244,6 @@ canvas.addEventListener('wheel', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (e.repeat) return;
-    // Allow browser shortcuts (F5 refresh, F12 devtools, Ctrl combos)
-    if (e.key.startsWith('F') && e.key.length <= 3) return;
-    if (e.ctrlKey || e.metaKey) return;
     input.keys[e.key] = true;
     input.keyQueue.push(e.key);
     e.preventDefault();
@@ -4307,19 +4304,19 @@ class AsteroidsGame {
         const [sx, sy] = this.shipPos;
         const r = this.shipRadius;
 
-        // Glow — Asteroids.m lines 87-89 (scatter, MarkerFaceAlpha=0.15, no shadow)
+        // Glow — Asteroids.m lines 87-89
         ctx.save();
-        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
+        ctx.shadowColor = rgba(GB_COLORS.cyan, 0.4);
+        ctx.shadowBlur = r * 2.5;
         ctx.beginPath();
         ctx.arc(sx, sy, r * 2.5, 0, 2 * Math.PI);
+        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
         ctx.fill();
-        ctx.restore();
 
-        // Core — Asteroids.m lines 90-91 (scatter, fully opaque)
-        ctx.save();
-        ctx.fillStyle = rgb(GB_COLORS.cyan);
+        // Core — Asteroids.m lines 90-91
         ctx.beginPath();
         ctx.arc(sx, sy, r, 0, 2 * Math.PI);
+        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.8);
         ctx.fill();
         ctx.restore();
     }
@@ -5543,29 +5540,29 @@ class FlappyBirdGame {
             ctx.restore();
         }
 
-        // ---- Draw bird (MATLAB: 2 scatter layers, no shadow effects) ----
-        // Scatter SizeData→visual radius: sqrt(SD/π) * (dpi/72) / pxPerUnit
-        // collisionR already encodes this conversion for the core scatter.
-        // Glow scatter SizeData = (birdRadius*4)² = 4× core SizeData,
-        // so glow visual radius = collisionR × sqrt(4) = collisionR × 2.
+        // ---- Draw bird ----
         if (birdVisible !== false) {
-            const cr = this.collisionR;
-            const glowR = cr * 2;
-            const coreR = cr;
+            const glowSize = Math.max(15, this.birdRadius * 4);
+            const coreSize = Math.max(8, this.birdRadius * 2);
 
-            // Glow layer (MATLAB: scatter, MarkerFaceAlpha=0.25)
+            // Glow layer
             ctx.save();
-            ctx.fillStyle = rgba(this.birdColor, 0.25);
+            ctx.globalAlpha = 0.25;
+            ctx.shadowBlur = glowSize;
+            ctx.shadowColor = rgb(this.birdColor, 0.6);
+            ctx.fillStyle = rgb(this.birdColor);
             ctx.beginPath();
-            ctx.arc(bx, by, glowR, 0, Math.PI * 2);
+            ctx.arc(bx, by, glowSize / 2, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
-            // Core (MATLAB: scatter, fully opaque)
+            // Core
             ctx.save();
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = rgb(this.birdColor, 0.8);
             ctx.fillStyle = rgb(this.birdColor);
             ctx.beginPath();
-            ctx.arc(bx, by, coreR, 0, Math.PI * 2);
+            ctx.arc(bx, by, coreSize / 2, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
@@ -5808,14 +5805,6 @@ class FruitNinjaGame {
         this.swipeGen = 0;
         this.swipeGenSliced = 0;
 
-        // Slash window
-        this.slashWinActive = false;
-        this.slashWinTimer = 0;
-        this.slashWinFruits = 0;
-        this.slashWinEntryPos = [0, 0];
-        this.slashWinExitPos = [0, 0];
-
-
         // Pre-compute circle points (24-point)
         this.theta24 = [];
         for (let i = 0; i < 24; i++) {
@@ -5908,7 +5897,7 @@ class FruitNinjaGame {
             }
             slashSpeed = sum / count;
         }
-        const slashThresh = Math.max(0.5, Math.min(areaW, areaH) * 0.002);
+        const slashThresh = Math.max(1.5, Math.min(areaW, areaH) * 0.008);
 
         // ---- Swipe lifecycle ----
         if (slashSpeed > slashThresh) {
@@ -5919,14 +5908,6 @@ class FruitNinjaGame {
             }
         } else {
             this.swipeActive = false;
-        }
-
-        // ---- Slash window timeout ----
-        if (this.slashWinActive) {
-            this.slashWinTimer += ds;
-            if (slashSpeed < slashThresh || this.slashWinTimer >= 60) {
-                this._finalizeSlash(traceX, traceY, nTrace);
-            }
         }
 
         // ---- Spawn fruits ----
@@ -6391,7 +6372,13 @@ class FruitNinjaGame {
         const points = Math.round(100 * centralityBonus * comboMult * multiCut);
         this.score += points;
 
-        // Multi-cut text is shown by _finalizeSlash when window closes
+        // Multi-cut text
+        if (multiCut >= 2) {
+            this.multiCutText = `${multiCut}\u00D7`;
+            this.multiCutX = fx;
+            this.multiCutY = fy - fRadius * 2;
+            this.multiCutFade = 48;
+        }
 
         // Store slice diagnostics
         this.sliceHistory.push({
@@ -6446,18 +6433,31 @@ class FruitNinjaGame {
             const searchLen = Math.min(40, nTrace);
             const searchStart = nTrace - searchLen;
 
-            // Update slash window — store entry/exit positions for deferred drawing
+            // Entry point on circle
             const entryOnCircleX = fx + fRadius * Math.cos(a1);
             const entryOnCircleY = fy + fRadius * Math.sin(a1);
-            if (!this.slashWinActive) {
-                this.slashWinActive = true;
-                this.slashWinTimer = 0;
-                this.slashWinFruits = 1;
-                this.slashWinEntryPos = [entryOnCircleX, entryOnCircleY];
-                this.slashWinExitPos = [exitPos[0], exitPos[1]];
-            } else {
-                this.slashWinFruits++;
-                this.slashWinExitPos = [exitPos[0], exitPos[1]];
+
+            let bestEntryDist = Infinity, entryLocal = 0;
+            let bestExitDist = Infinity, exitLocal = 0;
+            for (let i = searchStart; i < nTrace; i++) {
+                const ed = (traceX[i] - entryOnCircleX) ** 2 + (traceY[i] - entryOnCircleY) ** 2;
+                if (ed < bestEntryDist) { bestEntryDist = ed; entryLocal = i; }
+                const xd = (traceX[i] - exitPos[0]) ** 2 + (traceY[i] - exitPos[1]) ** 2;
+                if (xd < bestExitDist) { bestExitDist = xd; exitLocal = i; }
+            }
+
+            const padVal = 4;
+            const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
+            const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
+
+            const slashSlot = this.findInactiveSlot(this.slashActive, 6);
+            if (slashSlot >= 0) {
+                this.slashFrames[slashSlot] = 0;
+                this.slashAge[slashSlot] = 0;
+                this.slashFadeFrames[slashSlot] = 29;
+                this.slashIdxStart[slashSlot] = idxStart;
+                this.slashIdxEnd[slashSlot] = idxEnd;
+                this.slashActive[slashSlot] = 1;
             }
         }
 
@@ -6467,50 +6467,6 @@ class FruitNinjaGame {
         // Deactivate original fruit
         this.fruitActive[fruitSlot] = 0;
         this.fruitSlashing[fruitSlot] = 0;
-    }
-
-    _finalizeSlash(traceX, traceY, nTrace) {
-        if (!this.slashWinActive) return;
-        const nFruits = this.slashWinFruits;
-        const entryPos = this.slashWinEntryPos;
-        const exitPos = this.slashWinExitPos;
-        this.slashWinActive = false;
-        this.slashWinTimer = 0;
-        this.slashWinFruits = 0;
-        if (nFruits === 0) return;
-
-        // Search trace for entry and exit positions
-        const searchLen = Math.min(120, nTrace);
-        const searchStart = nTrace - searchLen;
-        let bestED = Infinity, entryIdx = searchStart;
-        let bestXD = Infinity, exitIdx = searchStart;
-        for (let i = searchStart; i < nTrace; i++) {
-            const ed = (traceX[i] - entryPos[0]) ** 2 + (traceY[i] - entryPos[1]) ** 2;
-            if (ed < bestED) { bestED = ed; entryIdx = i; }
-            const xd = (traceX[i] - exitPos[0]) ** 2 + (traceY[i] - exitPos[1]) ** 2;
-            if (xd < bestXD) { bestXD = xd; exitIdx = i; }
-        }
-        const padVal = 4;
-        const idxStart = Math.max(0, Math.min(entryIdx, exitIdx) - padVal);
-        const idxEnd = Math.min(nTrace - 1, Math.max(entryIdx, exitIdx) + padVal);
-
-        const slashSlot = this.findInactiveSlot(this.slashActive, 6);
-        if (slashSlot >= 0) {
-            this.slashFrames[slashSlot] = 0;
-            this.slashAge[slashSlot] = 0;
-            this.slashFadeFrames[slashSlot] = 29;
-            this.slashIdxStart[slashSlot] = idxStart;
-            this.slashIdxEnd[slashSlot] = idxEnd;
-            this.slashActive[slashSlot] = 1;
-        }
-
-        // Multi-cut text
-        if (nFruits >= 2) {
-            this.multiCutText = `${nFruits}\u00D7`;
-            this.multiCutX = (entryPos[0] + exitPos[0]) / 2;
-            this.multiCutY = (entryPos[1] + exitPos[1]) / 2 - 15;
-            this.multiCutFade = 48;
-        }
     }
 
     incrementCombo() {
@@ -8280,6 +8236,8 @@ class FlickItGame {
         const coreSize = rr * 0.23 * breath;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
+        ctx.shadowColor = rgba(clr, 0.8);
+        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, coreAlpha);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
@@ -8852,15 +8810,16 @@ class JugglerGame {
         const breathJ = 1 + 0.12 * Math.sin(this.ballPhase || 0);
 
         // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
-        // Aura (0.63*r, static alpha 0.12, size scales with speed)
+        // Aura (0.63*r, faint, BREATHES, drawn first/behind)
+        const auraAlpha2 = 0.1 + Math.min(0.2, ballSpeed * 0.015);
         ctx.save();
-        ctx.fillStyle = rgba(clr, 0.12);
+        ctx.fillStyle = rgba(clr, auraAlpha2);
         ctx.beginPath();
         ctx.arc(bx, by, r * 0.63 * auraScaleJ, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Glow (scatter, 1.50*r, FIXED size, alpha 0.4)
+        // Glow (scatter, 1.50*r, light blue, FIXED, on top of aura)
         const glowRadius = r * 1.50;
         ctx.save();
         ctx.fillStyle = rgba(clr, 0.4);
@@ -8869,9 +8828,11 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Core (0.23*r, static size — no breathing in MATLAB Juggler)
-        const coreSize = r * 0.23;
+        // Core (0.23*r base, BREATHES)
+        const coreSize = r * 0.23 * breathJ;
         ctx.save();
+        ctx.shadowColor = rgba(clr, 0.8);
+        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, 1);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
