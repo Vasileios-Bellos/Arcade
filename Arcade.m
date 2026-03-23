@@ -839,7 +839,6 @@ classdef Arcade < handle
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);
                 obj.ComboTextH.FontSize = 9 * obj.FontScale;
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
-                obj.ComboTextH.Interpreter = "tex";
                 obj.ComboTextH.Visible = "on";
             end
 
@@ -942,7 +941,7 @@ classdef Arcade < handle
 
             obj.ComboTextH = text(ax, cx, dy(1) + 34, "", ...
                 "Color", obj.ColorGold * 0.8, ...
-                "FontSize", 9 * ps, ...
+                "FontSize", 9 * ps, "Interpreter", "tex", ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
                 "VerticalAlignment", "top", "Visible", "off", ...
                 "Tag", "GT_arcCombo");
@@ -1020,7 +1019,6 @@ classdef Arcade < handle
             %showCombo  Show combo text.
             if isempty(obj.ComboTextH) || ~isvalid(obj.ComboTextH); return; end
             obj.ComboFadeTic = [];
-            obj.ComboTextH.Interpreter = "none";
             obj.ComboTextH.String = sprintf("%dx Combo", obj.Combo);
             obj.ComboTextH.Color = obj.ColorGreen * 0.9;
             obj.ComboTextH.FontSize = 9 * obj.FontScale;
