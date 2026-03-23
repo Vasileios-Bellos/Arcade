@@ -59,6 +59,7 @@ classdef FruitNinja < engine.GameBase
         SlashIdxStart   (1,6) double = 0
         SlashIdxEnd     (1,6) double = 0
         SlashActive     (1,6) logical = false
+        SwipeSlashSlot  (1,1) double = 0  % slash slot for current swipe (0=none)
     end
 
     % =================================================================
@@ -262,6 +263,7 @@ classdef FruitNinja < engine.GameBase
                     obj.SwipeActive = true;
                     obj.SwipeGen = obj.SwipeGen + 1;
                     obj.SwipeGenSliced = 0;
+                    obj.SwipeSlashSlot = 0;
                 end
             else
                 obj.SwipeActive = false;
@@ -883,32 +885,32 @@ classdef FruitNinja < engine.GameBase
             sx = traceX(idxStart:idxEnd);
             sy = traceY(idxStart:idxEnd);
 
-            % Find inactive slash slot
-            slashSlot = find(~obj.SlashActive, 1);
-            if ~isempty(slashSlot)
-                fadeFrames = 29;
-                obj.SlashFrames(slashSlot) = 0;
-                obj.SlashAge(slashSlot) = 0;
-                obj.SlashFadeFrames(slashSlot) = fadeFrames;
-                obj.SlashIdxStart(slashSlot) = idxStart;
-                obj.SlashIdxEnd(slashSlot) = idxEnd;
-                obj.SlashActive(slashSlot) = true;
-
-                glowH = obj.SlashPoolGlow{slashSlot};
-                if ~isempty(glowH) && isvalid(glowH)
-                    glowH.XData = sx;
-                    glowH.YData = sy;
-                    glowH.Color = [obj.ColorCyan, 0.5];
-                    glowH.Visible = "on";
-                end
-                coreH = obj.SlashPoolCore{slashSlot};
-                if ~isempty(coreH) && isvalid(coreH)
-                    coreH.XData = sx;
-                    coreH.YData = sy;
-                    coreH.Color = [obj.ColorWhite, 0.9];
-                    coreH.Visible = "on";
+            % Multi-cut: expand existing swipe slash or create new
+            ss = obj.SwipeSlashSlot;
+            if ss > 0 && ss <= 6 && obj.SlashActive(ss)
+                % Convert current-frame indices to the slash's coordinate
+                % system: the buffer has shifted by SlashAge since creation
+                age = obj.SlashAge(ss);
+                obj.SlashIdxStart(ss) = min(obj.SlashIdxStart(ss), idxStart + age);
+                obj.SlashIdxEnd(ss) = max(obj.SlashIdxEnd(ss), idxEnd + age);
+                % Reset fade timer so slash stays visible
+                obj.SlashFrames(ss) = 0;
+                obj.SlashFadeFrames(ss) = 29;
+            else
+                % New slash for this swipe
+                slashSlot = find(~obj.SlashActive, 1);
+                if ~isempty(slashSlot)
+                    obj.SlashFrames(slashSlot) = 0;
+                    obj.SlashAge(slashSlot) = 0;
+                    obj.SlashFadeFrames(slashSlot) = 29;
+                    obj.SlashIdxStart(slashSlot) = idxStart;
+                    obj.SlashIdxEnd(slashSlot) = idxEnd;
+                    obj.SlashActive(slashSlot) = true;
+                    obj.SwipeSlashSlot = slashSlot;
                 end
             end
+            % Update slash graphics (the per-frame animation loop handles
+            % subsequent frames via age-offset readback from the trace)
 
             % Spawn burst effect at fruit center
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
