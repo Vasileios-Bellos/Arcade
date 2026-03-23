@@ -798,8 +798,6 @@ classdef FruitNinja < engine.GameBase
             end
             obj.SlashWinLastExit = exitPos;
 
-            % Hide fruit immediately (hit but not yet split)
-            obj.deactivateFruit(fruitSlot);
             obj.FruitSlashing(fruitSlot) = false;
         end
 
@@ -818,6 +816,7 @@ classdef FruitNinja < engine.GameBase
             % Process each fruit: split halves, score, burst
             for fi = 1:nFruit
                 fd = fruits(fi);
+                obj.deactivateFruit(fd.slot);
                 obj.FruitsSliced = obj.FruitsSliced + 1;
                 obj.incrementCombo();
 
