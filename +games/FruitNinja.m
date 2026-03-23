@@ -892,7 +892,7 @@ classdef FruitNinja < engine.GameBase
             % ages past 10 frames, it's sealed and further fruits get new slash.
             ss = obj.SwipeSlashSlot;
             if ss > 0 && ss <= 6 && obj.SlashActive(ss) ...
-                    && obj.SlashFrames(ss) < 6
+                    && obj.SlashFrames(ss) < 15
                 % Expand: use current-frame coords, reset age so readback
                 % stays aligned with current trace buffer
                 obj.SlashIdxStart(ss) = min(idxStart, ...
@@ -938,8 +938,10 @@ classdef FruitNinja < engine.GameBase
             end
 
             % Seal slash after multi-cut (prevents further expansion)
+            % Also reset SwipeGenSliced so next fruits start a fresh group
             if obj.SwipeGenSliced >= 2
                 obj.SwipeSlashSlot = 0;
+                obj.SwipeGenSliced = 0;
             end
 
             % Spawn burst effect at fruit center

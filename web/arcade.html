@@ -6460,7 +6460,7 @@ class FruitNinjaGame {
             // Multi-cut: expand existing swipe slash if still young (<10 frames).
             const ss = this.swipeSlashSlot;
             if (ss >= 0 && ss < 6 && this.slashActive[ss]
-                && this.slashFrames[ss] < 6) {
+                && this.slashFrames[ss] < 15) {
                 // Expand: convert old indices to current-frame coords, merge
                 this.slashIdxStart[ss] = Math.min(idxStart,
                     this.slashIdxStart[ss] - this.slashAge[ss]);
@@ -6482,8 +6482,10 @@ class FruitNinjaGame {
             }
 
             // Seal slash after multi-cut (prevents further expansion)
+            // Reset counter so next fruits start a fresh group
             if (this.swipeGenSliced >= 2) {
                 this.swipeSlashSlot = -1;
+                this.swipeGenSliced = 0;
             }
         }
 
