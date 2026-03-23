@@ -85,8 +85,7 @@ classdef FruitNinja < engine.GameBase
         SwipeGenSliced  (1,1) double = 0        % fruits sliced in current swipe gen
         SwipeSlowFrames (1,1) double = 0        % slow frames accumulator (DtScale-adjusted)
         FruitSwipeGen   (1,8) double = 0        % swipe generation when fruit was entered
-        SwipeFirstEntry (1,2) double = [0 0]    % entry-on-circle of first fruit in swipe
-        SwipeSlashPoints        = []             % collected [x,y] points across all slashes in swipe
+        SwipeFirstEntry (1,2) double = [0 0]    % [idxStart, slashSlot] of first fruit
         MultiCutTextH                            % text handle for "×2" flash
         MultiCutFade    (1,1) double = 0         % fade countdown (frames)
 
@@ -405,21 +404,6 @@ classdef FruitNinja < engine.GameBase
 
                 if obj.SlashFrames(kk) > obj.SlashFadeFrames(kk)
                     obj.deactivateSlash(kk);
-                    continue;
-                end
-
-                % Golden overlay slashes (IdxStart==0) use stored XData — just fade
-                if obj.SlashIdxStart(kk) == 0 && obj.SlashIdxEnd(kk) == 0
-                    fadeProgress = obj.SlashFrames(kk) / obj.SlashFadeFrames(kk);
-                    alphaVal = 1 - fadeProgress^0.5;
-                    coreH = obj.SlashPoolCore{kk};
-                    if ~isempty(coreH) && isvalid(coreH)
-                        coreH.Color(4) = alphaVal * 0.9;
-                    end
-                    glowH = obj.SlashPoolGlow{kk};
-                    if ~isempty(glowH) && isvalid(glowH)
-                        glowH.Color(4) = alphaVal * 0.6;
-                    end
                     continue;
                 end
 
@@ -928,49 +912,44 @@ classdef FruitNinja < engine.GameBase
             % Spawn burst effect at fruit center
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
 
-            % Collect points for golden multi-cut overlay (with padding)
+            % Golden multi-cut overlay — same re-read behavior as white slashes
             if multiCut == 1
-                obj.SwipeFirstEntry = entryOnCircle;
-                obj.SwipeSlashPoints = [sx(:), sy(:)];
+                % Store first slash's slot and idxStart for later
+                obj.SwipeFirstEntry = [idxStart, double(slashSlot)];
             elseif multiCut >= 2
-                obj.SwipeSlashPoints = [obj.SwipeSlashPoints; sx(:), sy(:)];
-                pts = obj.SwipeSlashPoints;
-
-                % Remove near-duplicate points
-                dists = [0; sqrt(diff(pts(:,1)).^2 + diff(pts(:,2)).^2)];
-                keep = dists > 0.5;
-                keep(1) = true; keep(end) = true;
-                pts = pts(keep, :);
-
-                if size(pts, 1) >= 4
-                    % pchip interpolation (shape-preserving, follows points closely)
-                    t = cumsum([0; sqrt(diff(pts(:,1)).^2 + diff(pts(:,2)).^2)]);
-                    tq = linspace(t(1), t(end), max(60, size(pts, 1) * 3));
-                    gx = interp1(t, pts(:,1), tq, "pchip");
-                    gy = interp1(t, pts(:,2), tq, "pchip");
+                % Get first slash's original idxStart in current coordinates
+                firstIdxStart = obj.SwipeFirstEntry(1);
+                firstSlot = obj.SwipeFirstEntry(2);
+                if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot)
+                    firstAge = obj.SlashAge(firstSlot);
+                    adjustedFirstStart = firstIdxStart - firstAge;
                 else
-                    gx = pts(:,1)'; gy = pts(:,2)';
+                    adjustedFirstStart = idxStart;
                 end
 
-                % Create golden overlay in a slash pool slot
+                goldenStart = max(1, adjustedFirstStart);
+                goldenEnd = idxEnd;
+                goldenSx = traceX(goldenStart:min(nTrace, goldenEnd));
+                goldenSy = traceY(goldenStart:min(nTrace, goldenEnd));
+
                 goldSlot = find(~obj.SlashActive, 1);
                 if ~isempty(goldSlot)
                     obj.SlashFrames(goldSlot) = 0;
                     obj.SlashAge(goldSlot) = 0;
                     obj.SlashFadeFrames(goldSlot) = 36;
-                    obj.SlashIdxStart(goldSlot) = 0;
-                    obj.SlashIdxEnd(goldSlot) = 0;
+                    obj.SlashIdxStart(goldSlot) = goldenStart;
+                    obj.SlashIdxEnd(goldSlot) = goldenEnd;
                     obj.SlashActive(goldSlot) = true;
 
                     glowH = obj.SlashPoolGlow{goldSlot};
                     if ~isempty(glowH) && isvalid(glowH)
-                        glowH.XData = gx; glowH.YData = gy;
+                        glowH.XData = goldenSx; glowH.YData = goldenSy;
                         glowH.Color = [obj.ColorGold, 0.6];
                         glowH.Visible = "on";
                     end
                     coreH = obj.SlashPoolCore{goldSlot};
                     if ~isempty(coreH) && isvalid(coreH)
-                        coreH.XData = gx; coreH.YData = gy;
+                        coreH.XData = goldenSx; coreH.YData = goldenSy;
                         coreH.Color = [obj.ColorGold, 0.9];
                         coreH.Visible = "on";
                     end
