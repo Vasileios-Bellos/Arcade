@@ -917,15 +917,23 @@ classdef FruitNinja < engine.GameBase
                 % Store first slash's slot and idxStart for later
                 obj.SwipeFirstEntry = [idxStart, double(slashSlot)];
             elseif multiCut >= 2
-                % Get first slash's original idxStart in current coordinates
+                % Read first slash's age before deactivating
                 firstIdxStart = obj.SwipeFirstEntry(1);
                 firstSlot = obj.SwipeFirstEntry(2);
-                if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot) ...
+                if firstSlot > 0 && firstSlot <= 6 ...
                         && obj.TraceBufferIdx >= obj.TraceBufferMax
                     firstAge = obj.SlashAge(firstSlot);
                     adjustedFirstStart = firstIdxStart - firstAge;
                 else
                     adjustedFirstStart = firstIdxStart;
+                end
+
+                % Deactivate individual white slashes — golden replaces them
+                if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot)
+                    obj.deactivateSlash(firstSlot);
+                end
+                if ~isempty(slashSlot) && obj.SlashActive(slashSlot)
+                    obj.deactivateSlash(slashSlot);
                 end
 
                 goldenStart = max(1, adjustedFirstStart);
@@ -945,7 +953,7 @@ classdef FruitNinja < engine.GameBase
                     glowH = obj.SlashPoolGlow{goldSlot};
                     if ~isempty(glowH) && isvalid(glowH)
                         glowH.XData = goldenSx; glowH.YData = goldenSy;
-                        glowH.Color = [obj.ColorGold, 0.6];
+                        glowH.Color = [obj.ColorGold, 0.5];
                         glowH.Visible = "on";
                     end
                     coreH = obj.SlashPoolCore{goldSlot};
