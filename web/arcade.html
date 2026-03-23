@@ -7181,21 +7181,40 @@ class FireflyChaseGame {
                 ffPosX = ff.pathX[pidx];
                 ffPosY = ff.pathY[pidx];
 
-                // Trail from path history with carry-over (matches MATLAB)
+                // Trail from path with carry-over (matches MATLAB)
                 const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
-                if (pidx >= trailSpan) {
-                    tx = ff.pathX.slice(pidx - trailSpan, pidx + 1);
-                    ty = ff.pathY.slice(pidx - trailSpan, pidx + 1);
+                const tStart = Math.max(0, pidx - trailSpan);
+                if (tStart > 0) {
+                    // Far from start — direct path slice (reuse views, no alloc)
+                    tx = ff.pathX;
+                    ty = ff.pathY;
+                    ff._tStart = tStart;
+                    ff._tEnd = pidx + 1;
                 } else {
-                    // Near start — prepend carry-over from previous loop
-                    const carryX = ff.trailCarryX || [];
-                    const carryY = ff.trailCarryY || [];
-                    tx = carryX.concat(ff.pathX.slice(0, pidx + 1));
-                    ty = carryY.concat(ff.pathY.slice(0, pidx + 1));
-                    if (tx.length > trailSpan) {
-                        tx = tx.slice(tx.length - trailSpan);
-                        ty = ty.slice(ty.length - trailSpan);
+                    // Near start — need carry-over
+                    const cx = ff.trailCarryX || [];
+                    const cy = ff.trailCarryY || [];
+                    // Pre-allocate once and reuse
+                    if (!ff._trailTx || ff._trailTx.length < trailSpan + 1) {
+                        ff._trailTx = new Array(trailSpan + 1);
+                        ff._trailTy = new Array(trailSpan + 1);
                     }
+                    let ti = 0;
+                    const skip = Math.max(0, cx.length - (trailSpan - pidx - 1));
+                    for (let ci = skip; ci < cx.length; ci++) {
+                        ff._trailTx[ti] = cx[ci];
+                        ff._trailTy[ti] = cy[ci];
+                        ti++;
+                    }
+                    for (let pi = 0; pi <= pidx; pi++) {
+                        ff._trailTx[ti] = ff.pathX[pi];
+                        ff._trailTy[ti] = ff.pathY[pi];
+                        ti++;
+                    }
+                    tx = ff._trailTx;
+                    ty = ff._trailTy;
+                    ff._tStart = 0;
+                    ff._tEnd = ti;
                 }
             }
 
@@ -7250,15 +7269,17 @@ class FireflyChaseGame {
         const breathAlpha = 0.25 + 0.15 * Math.sin(ff.phase);
 
         // Trail glow
-        if (tx.length > 1) {
+        const tS = ff._tStart || 0;
+        const tE = ff._tEnd || tx.length;
+        if (tE - tS > 1) {
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.2);
-            ctx.lineWidth = dotSize * 0.8; // MATLAB: dotSize * 0.8 * FontScale
+            ctx.lineWidth = dotSize * 0.8;
             ctx.shadowColor = rgba(clr, 0.15);
             ctx.shadowBlur = 8;
             ctx.beginPath();
-            ctx.moveTo(tx[0], ty[0]);
-            for (let j = 1; j < tx.length; j++) {
+            ctx.moveTo(tx[tS], ty[tS]);
+            for (let j = tS + 1; j < tE; j++) {
                 ctx.lineTo(tx[j], ty[j]);
             }
             ctx.stroke();
@@ -7267,10 +7288,10 @@ class FireflyChaseGame {
             // Trail solid line
             ctx.save();
             ctx.strokeStyle = rgba(clr, 0.4);
-            ctx.lineWidth = 1.1; // MATLAB: 1.1 * FontScale (creation value, not changed per-frame)
+            ctx.lineWidth = 1.1;
             ctx.beginPath();
-            ctx.moveTo(tx[0], ty[0]);
-            for (let j = 1; j < tx.length; j++) {
+            ctx.moveTo(tx[tS], ty[tS]);
+            for (let j = tS + 1; j < tE; j++) {
                 ctx.lineTo(tx[j], ty[j]);
             }
             ctx.stroke();
