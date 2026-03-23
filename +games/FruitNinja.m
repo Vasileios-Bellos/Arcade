@@ -251,7 +251,7 @@ classdef FruitNinja < engine.GameBase
                 speeds = sqrt(diff(traceX).^2 + diff(traceY).^2);
                 slashSpeed = mean(speeds(max(1, end-2):end));
             end
-            slashThresh = max(1.5, min(areaW, areaH) * 0.008);
+            slashThresh = max(0.5, min(areaW, areaH) * 0.002);
 
             % --- Swipe lifecycle tracking ---
             %   A swipe is a single continuous fast finger motion. Starts when
@@ -907,10 +907,23 @@ classdef FruitNinja < engine.GameBase
                     obj.SlashIdxEnd(slashSlot) = idxEnd;
                     obj.SlashActive(slashSlot) = true;
                     obj.SwipeSlashSlot = slashSlot;
+
+                    glowH = obj.SlashPoolGlow{slashSlot};
+                    if ~isempty(glowH) && isvalid(glowH)
+                        glowH.XData = sx;
+                        glowH.YData = sy;
+                        glowH.Color = [obj.ColorCyan, 0.5];
+                        glowH.Visible = "on";
+                    end
+                    coreH = obj.SlashPoolCore{slashSlot};
+                    if ~isempty(coreH) && isvalid(coreH)
+                        coreH.XData = sx;
+                        coreH.YData = sy;
+                        coreH.Color = [obj.ColorWhite, 0.9];
+                        coreH.Visible = "on";
+                    end
                 end
             end
-            % Update slash graphics (the per-frame animation loop handles
-            % subsequent frames via age-offset readback from the trace)
 
             % Spawn burst effect at fruit center
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
