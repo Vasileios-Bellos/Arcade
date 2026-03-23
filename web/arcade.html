@@ -5802,6 +5802,7 @@ class FruitNinjaGame {
         this.swipeActive = false;
         this.swipeGen = 0;
         this.swipeGenSliced = 0;
+        this.swipeFirstEntry = [0, -1]; // [idxStart, slashSlot]
 
         // Pre-compute circle points (24-point)
         this.theta24 = [];
@@ -5838,6 +5839,7 @@ class FruitNinjaGame {
         this.slashIdxStart = new Float64Array(6);
         this.slashIdxEnd = new Float64Array(6);
         this.slashActive = new Uint8Array(6);
+        this.slashGolden = new Uint8Array(6);
 
         // Multi-cut display
         this.multiCutText = '';
@@ -6120,12 +6122,13 @@ class FruitNinjaGame {
             const i2 = Math.min(trN - 1, Math.round(this.slashIdxEnd[kk] - age));
 
             if (i1 < i2 && i2 >= 0 && i1 < trN) {
+                const slashClr = this.slashGolden[kk] ? Colors.Gold : ColorCyan;
                 // Glow
                 ctx.save();
-                ctx.strokeStyle = rgb(ColorCyan, alphaVal * 0.5);
+                ctx.strokeStyle = rgb(slashClr, alphaVal * 0.5);
                 ctx.lineWidth = 5;
                 ctx.shadowBlur = 12;
-                ctx.shadowColor = rgb(ColorCyan, alphaVal * 0.4);
+                ctx.shadowColor = rgb(slashClr, alphaVal * 0.4);
                 ctx.beginPath();
                 ctx.moveTo(traceX[i1], traceY[i1]);
                 for (let i = i1 + 1; i <= i2; i++) {
@@ -6136,7 +6139,8 @@ class FruitNinjaGame {
 
                 // Core
                 ctx.save();
-                ctx.strokeStyle = rgb(ColorWhite, alphaVal * 0.9);
+                const coreClr = this.slashGolden[kk] ? Colors.Gold : ColorWhite;
+                ctx.strokeStyle = rgb(coreClr, alphaVal * 0.9);
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(traceX[i1], traceY[i1]);
@@ -6358,6 +6362,12 @@ class FruitNinjaGame {
         const centrality = 1 - Math.cos(smallerArc / 2);
 
         // Multi-cut tracking
+        // Reset multi-cut if previous slash has faded
+        const prevSlot = this.swipeFirstEntry[1];
+        if (prevSlot >= 0 && prevSlot < 6 && !this.slashActive[prevSlot]) {
+            this.swipeGenSliced = 0;
+        }
+
         const fruitGen = this.fruitSwipeGen[fruitSlot];
         if (fruitGen > 0 && fruitGen === this.swipeGen) {
             this.swipeGenSliced++;
@@ -6448,7 +6458,7 @@ class FruitNinjaGame {
             const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
             const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
 
-            const slashSlot = this.findInactiveSlot(this.slashActive, 6);
+            let slashSlot = this.findInactiveSlot(this.slashActive, 6);
             if (slashSlot >= 0) {
                 this.slashFrames[slashSlot] = 0;
                 this.slashAge[slashSlot] = 0;
@@ -6456,6 +6466,28 @@ class FruitNinjaGame {
                 this.slashIdxStart[slashSlot] = idxStart;
                 this.slashIdxEnd[slashSlot] = idxEnd;
                 this.slashActive[slashSlot] = 1;
+                this.slashGolden[slashSlot] = 0;
+            }
+
+            // Multi-cut: extend first slash or store for later
+            const firstSlot = this.swipeFirstEntry[1];
+            const firstAlive = firstSlot >= 0 && firstSlot < 6 && this.slashActive[firstSlot];
+            if (multiCut === 1 || !firstAlive) {
+                // First fruit or previous slash faded — start fresh
+                this.swipeFirstEntry = [idxStart, slashSlot];
+                this.swipeGenSliced = 1;
+            } else if (multiCut >= 2 && firstAlive) {
+                // Extend first slash to cover this fruit's exit
+                const firstAge = (this.traceBufferIdx >= this.traceBufferMax)
+                    ? this.slashAge[firstSlot] : 0;
+                this.slashIdxEnd[firstSlot] = idxEnd + firstAge;
+                this.slashFrames[firstSlot] = 0; // reset fade
+                this.slashGolden[firstSlot] = 1; // turn golden
+
+                // Deactivate this fruit's individual slash
+                if (slashSlot >= 0 && slashSlot !== firstSlot && this.slashActive[slashSlot]) {
+                    this.slashActive[slashSlot] = 0;
+                }
             }
         }
 
