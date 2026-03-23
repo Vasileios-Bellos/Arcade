@@ -7137,13 +7137,20 @@ class FireflyChaseGame {
                 const bi = ((ff.trailIdx - 1) % ff.trailLen);
                 ff.trailBufX[bi] = ff.posX;
                 ff.trailBufY[bi] = ff.posY;
+                // Extract trail oldest→newest, skip NaN
                 const nFilled = Math.min(ff.trailIdx, ff.trailLen);
                 tx = [];
                 ty = [];
                 for (let j = 0; j < nFilled; j++) {
-                    const idx = ((bi - nFilled + j) % ff.trailLen + ff.trailLen) % ff.trailLen;
-                    tx.push(ff.trailBufX[idx]);
-                    ty.push(ff.trailBufY[idx]);
+                    // bi is the LAST written position (0-based)
+                    // oldest is at bi - nFilled + 1, newest at bi
+                    const idx = ((bi - nFilled + 1 + j) % ff.trailLen + ff.trailLen) % ff.trailLen;
+                    const px = ff.trailBufX[idx];
+                    const py = ff.trailBufY[idx];
+                    if (!isNaN(px) && !isNaN(py)) {
+                        tx.push(px);
+                        ty.push(py);
+                    }
                 }
             } else {
                 // Path-based firefly
