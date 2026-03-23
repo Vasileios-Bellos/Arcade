@@ -72,7 +72,7 @@ No pending scaling work for arcade games.
 
 ## MATLAB Bugs
 
-- [ ] Menu rendering glitch on ESC back to menu — sometimes shows only shooting stars/partial menu, buttons missing, or split screen between game and menu. Possibly orphaned graphics from the results screen not being cleaned up, or the menu's `show()` not fully restoring all elements. Investigate `cleanupOrphans` and `enterMenu` state transitions
+- [ ] Menu rendering glitch on ESC back to menu — sometimes shows only shooting stars/partial menu, buttons missing, or split screen between game and menu. **Root cause investigation:** Timer race condition during `enterMenu`. The timer's `onFrame` can fire mid-transition while some handles are deleted but others not yet shown. The `try-catch` in `onFrame` suppresses "Invalid or deleted" errors (line 436), but the visual state is inconsistent for one frame. Stars/comets are NOT running in background during gameplay — they're just hidden MATLAB objects. **Proposed fix:** Stop timer during `enterMenu` (like we do in `launchGame`), execute the transition, restart timer. This prevents the mid-transition render frame
 
 ## Performance
 
