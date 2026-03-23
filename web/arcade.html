@@ -7134,11 +7134,9 @@ class FireflyChaseGame {
 
                 // Trail (circular buffer, record every frame)
                 ff.trailIdx++;
-                {
-                    const bi = ((ff.trailIdx - 1) % ff.trailLen);
-                    ff.trailBufX[bi] = ff.posX;
-                    ff.trailBufY[bi] = ff.posY;
-                }
+                const bi = ((ff.trailIdx - 1) % ff.trailLen);
+                ff.trailBufX[bi] = ff.posX;
+                ff.trailBufY[bi] = ff.posY;
                 const nFilled = Math.min(ff.trailIdx, ff.trailLen);
                 tx = [];
                 ty = [];
