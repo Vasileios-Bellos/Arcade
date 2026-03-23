@@ -196,11 +196,15 @@ classdef FireflyChase < engine.GameBase
                     pidx = max(1, round(ff.idx));
                     ffPos = [ff.pathX(pidx), ff.pathY(pidx)];
 
-                    % Comet tail from path history (scales with speed)
-                    trailSpan = round(45 * ff.speed / obj.BaseSpeed);
-                    tStart = max(1, pidx - trailSpan);
-                    tx = ff.pathX(tStart:pidx);
-                    ty = ff.pathY(tStart:pidx);
+                    % Trail via circular buffer (persists across loop/reverse)
+                    ff.trailIdx = ff.trailIdx + 1;
+                    bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
+                    ff.trailBufX(bi) = ff.pathX(pidx);
+                    ff.trailBufY(bi) = ff.pathY(pidx);
+                    nFilled = min(ff.trailIdx, ff.trailLen);
+                    indices = mod((bi - nFilled):(bi - 1), ff.trailLen) + 1;
+                    tx = ff.trailBufX(indices);
+                    ty = ff.trailBufY(indices);
                 end
 
                 % Check catch (mouse gets bonus radius for precision parity)
@@ -389,8 +393,10 @@ classdef FireflyChase < engine.GameBase
                 ff.freqX = 0; ff.freqY = 0;
                 ff.phaseX = 0; ff.phaseY = 0;
                 ff.evadeX = 0; ff.evadeY = 0;
-                ff.trailLen = 0;
-                ff.trailBufX = []; ff.trailBufY = [];
+                trailSpan = max(30, round(45 * spd / obj.BaseSpeed));
+                ff.trailLen = trailSpan;
+                ff.trailBufX = NaN(1, trailSpan);
+                ff.trailBufY = NaN(1, trailSpan);
                 ff.trailIdx = 0;
                 startX = p.X(1); startY = p.Y(1);
             end
