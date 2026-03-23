@@ -882,7 +882,8 @@ classdef FruitNinja < engine.GameBase
             % One slash line from first entry to last exit
             entryPos = obj.SlashWinEntryOnCircle;
             lastExit = obj.SlashWinLastExit;
-            searchLen = min(120, nTrace);
+            % Search range: window duration + small buffer (avoid old matches)
+            searchLen = min(round(obj.SlashWinTimer) + 20, nTrace);
             searchStart = nTrace - searchLen + 1;
             recentX = traceX(searchStart:end);
             recentY = traceY(searchStart:end);
