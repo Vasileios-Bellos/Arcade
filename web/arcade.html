@@ -7175,11 +7175,30 @@ class FireflyChaseGame {
                 ffPosX = ff.pathX[pidx];
                 ffPosY = ff.pathY[pidx];
 
-                // Comet tail from path history
-                const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
-                const tStart = Math.max(0, pidx - trailSpan);
-                tx = ff.pathX.slice(tStart, pidx + 1);
-                ty = ff.pathY.slice(tStart, pidx + 1);
+                // Trail: use circular buffer (same as snitch) so trail persists across loops
+                if (!ff.trailBufX) {
+                    const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
+                    ff.trailLen = Math.max(trailSpan, 30);
+                    ff.trailBufX = new Array(ff.trailLen).fill(NaN);
+                    ff.trailBufY = new Array(ff.trailLen).fill(NaN);
+                    ff.trailIdx = 0;
+                }
+                ff.trailIdx++;
+                const pbi = ((ff.trailIdx - 1) % ff.trailLen);
+                ff.trailBufX[pbi] = ffPosX;
+                ff.trailBufY[pbi] = ffPosY;
+                const pnFilled = Math.min(ff.trailIdx, ff.trailLen);
+                tx = [];
+                ty = [];
+                for (let j = 0; j < pnFilled; j++) {
+                    const pidx2 = ((pbi - pnFilled + 1 + j) % ff.trailLen + ff.trailLen) % ff.trailLen;
+                    const px = ff.trailBufX[pidx2];
+                    const py = ff.trailBufY[pidx2];
+                    if (!isNaN(px) && !isNaN(py)) {
+                        tx.push(px);
+                        ty.push(py);
+                    }
+                }
             }
 
             // Check catch
