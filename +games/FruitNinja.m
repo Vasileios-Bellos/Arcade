@@ -917,51 +917,22 @@ classdef FruitNinja < engine.GameBase
                 % Store first slash's slot and idxStart for later
                 obj.SwipeFirstEntry = [idxStart, double(slashSlot)];
             elseif multiCut >= 2
-                % Read first slash's age before deactivating
-                firstIdxStart = obj.SwipeFirstEntry(1);
+                % Extend first slash to cover this fruit's exit
                 firstSlot = obj.SwipeFirstEntry(2);
-                if firstSlot > 0 && firstSlot <= 6 ...
-                        && obj.TraceBufferIdx >= obj.TraceBufferMax
-                    firstAge = obj.SlashAge(firstSlot);
-                    adjustedFirstStart = firstIdxStart - firstAge;
-                else
-                    adjustedFirstStart = firstIdxStart;
-                end
-
-                % Deactivate individual white slashes — golden replaces them
                 if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot)
-                    obj.deactivateSlash(firstSlot);
+                    % Convert current idxEnd to first slash's coordinate system
+                    if obj.TraceBufferIdx >= obj.TraceBufferMax
+                        firstAge = obj.SlashAge(firstSlot);
+                    else
+                        firstAge = 0;
+                    end
+                    obj.SlashIdxEnd(firstSlot) = idxEnd + firstAge;
+                    obj.SlashFrames(firstSlot) = 0;  % reset fade
                 end
-                if ~isempty(slashSlot) && obj.SlashActive(slashSlot)
+                % Deactivate this fruit's individual slash (first slash covers it)
+                if ~isempty(slashSlot) && slashSlot ~= firstSlot ...
+                        && obj.SlashActive(slashSlot)
                     obj.deactivateSlash(slashSlot);
-                end
-
-                goldenStart = max(1, adjustedFirstStart);
-                goldenEnd = idxEnd;
-                goldenSx = traceX(goldenStart:min(nTrace, goldenEnd));
-                goldenSy = traceY(goldenStart:min(nTrace, goldenEnd));
-
-                goldSlot = find(~obj.SlashActive, 1);
-                if ~isempty(goldSlot)
-                    obj.SlashFrames(goldSlot) = 0;
-                    obj.SlashAge(goldSlot) = 0;
-                    obj.SlashFadeFrames(goldSlot) = 36;
-                    obj.SlashIdxStart(goldSlot) = goldenStart;
-                    obj.SlashIdxEnd(goldSlot) = goldenEnd;
-                    obj.SlashActive(goldSlot) = true;
-
-                    glowH = obj.SlashPoolGlow{goldSlot};
-                    if ~isempty(glowH) && isvalid(glowH)
-                        glowH.XData = goldenSx; glowH.YData = goldenSy;
-                        glowH.Color = [obj.ColorGold, 0.5];
-                        glowH.Visible = "on";
-                    end
-                    coreH = obj.SlashPoolCore{goldSlot};
-                    if ~isempty(coreH) && isvalid(coreH)
-                        coreH.XData = goldenSx; coreH.YData = goldenSy;
-                        coreH.Color = [obj.ColorGold, 0.9];
-                        coreH.Visible = "on";
-                    end
                 end
             end
 
