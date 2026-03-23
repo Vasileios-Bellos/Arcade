@@ -177,7 +177,7 @@ classdef FireflyChase < engine.GameBase
                     % Update trail history (distance-based recording)
                     % Record a new point when snitch has moved >= minDist
                     % since last recorded point. FPS-independent.
-                    minDist = 5; % ~5px spacing (matches subsampled path trails)
+                    minDist = 2; % spacing between recorded points
                     lastBi = mod(max(0, ff.trailIdx - 1), ff.trailLen) + 1;
                     if ff.trailIdx == 0 || hypot(ff.posX - ff.trailBufX(lastBi), ...
                             ff.posY - ff.trailBufY(lastBi)) >= minDist
@@ -394,9 +394,9 @@ classdef FireflyChase < engine.GameBase
                 ampY = (dry(2) - dry(1)) * 0.4;
                 ff.posX = cx + ampX * sin(ff.theta * ff.freqX + ff.phaseX);
                 ff.posY = cy + ampY * sin(ff.theta * ff.freqY + ff.phaseY);
-                ff.trailLen = 40;
-                ff.trailBufX = NaN(1, 40);
-                ff.trailBufY = NaN(1, 40);
+                ff.trailLen = 20;
+                ff.trailBufX = NaN(1, 20);
+                ff.trailBufY = NaN(1, 20);
                 ff.trailIdx = 0;
                 ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = ff.posX; startY = ff.posY;

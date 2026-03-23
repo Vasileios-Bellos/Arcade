@@ -7133,7 +7133,7 @@ class FireflyChaseGame {
                 ffPosY = ff.posY;
 
                 // Trail (distance-based recording, FPS-independent)
-                const minDist = 5;
+                const minDist = 2;
                 let bi;
                 if (ff.trailIdx === 0) {
                     ff.trailIdx++;
@@ -7490,9 +7490,9 @@ class FireflyChaseGame {
             const ampY = (dy[1] - dy[0]) * 0.4;
             ff.posX = cx + ampX * Math.sin(ff.theta * ff.freqX + ff.phaseX);
             ff.posY = cy + ampY * Math.sin(ff.theta * ff.freqY + ff.phaseY);
-            ff.trailLen = 40; // distance-based recording, same as MATLAB
-            ff.trailBufX = new Array(40).fill(NaN);
-            ff.trailBufY = new Array(40).fill(NaN);
+            ff.trailLen = 20; // distance-based recording, same as MATLAB
+            ff.trailBufX = new Array(20).fill(NaN);
+            ff.trailBufY = new Array(20).fill(NaN);
             ff.trailIdx = 0;
         } else {
             // Path-based firefly — closed orbits only (loop, figure8)
