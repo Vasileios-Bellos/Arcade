@@ -244,6 +244,9 @@ canvas.addEventListener('wheel', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (e.repeat) return;
+    // Allow browser shortcuts (F5 refresh, F12 devtools, Ctrl combos)
+    if (e.key.startsWith('F') && e.key.length <= 3) return;
+    if (e.ctrlKey || e.metaKey) return;
     input.keys[e.key] = true;
     input.keyQueue.push(e.key);
     e.preventDefault();
