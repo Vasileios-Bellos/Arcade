@@ -174,16 +174,31 @@ classdef FireflyChase < engine.GameBase
                     ff.posY = max(dy(1) + pad, min(dy(2) - pad, ff.posY));
                     ffPos = [ff.posX, ff.posY];
 
-                    % Update trail history (DtScale-accumulator based)
-                    % Record when accumulated ds reaches 1.0 (= 1 reference frame).
-                    % At any fps, records at same rate as MATLAB's ~30fps baseline.
-                    ff.trailAccum = ff.trailAccum + ds;
-                    if ff.trailAccum >= 1.0
-                        ff.trailAccum = ff.trailAccum - 1.0;
-                        ff.trailIdx = ff.trailIdx + 1;
-                        bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
+                    % Update trail history (distance-based, same principle as path trails)
+                    % Record a point every ~3px of movement. Trail covers trailLen * 3 px.
+                    lastBi = mod(max(0, ff.trailIdx - 1), ff.trailLen) + 1;
+                    if ff.trailIdx == 0
+                        ff.trailIdx = 1;
+                        bi = 1;
                         ff.trailBufX(bi) = ff.posX;
                         ff.trailBufY(bi) = ff.posY;
+                    else
+                        movedDist = hypot(ff.posX - ff.trailBufX(lastBi), ...
+                                          ff.posY - ff.trailBufY(lastBi));
+                        if movedDist >= 3
+                            % Insert intermediate points at ~3px spacing
+                            nPts = min(5, floor(movedDist / 3));
+                            for pi = 1:nPts
+                                frac = pi / nPts;
+                                ff.trailIdx = ff.trailIdx + 1;
+                                bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
+                                ff.trailBufX(bi) = ff.trailBufX(lastBi) + ...
+                                    (ff.posX - ff.trailBufX(lastBi)) * frac;
+                                ff.trailBufY(bi) = ff.trailBufY(lastBi) + ...
+                                    (ff.posY - ff.trailBufY(lastBi)) * frac;
+                                lastBi = bi;
+                            end
+                        end
                     end
                     nFilled = min(ff.trailIdx, ff.trailLen);
                     bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;

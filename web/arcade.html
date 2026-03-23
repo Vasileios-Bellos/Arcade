@@ -7133,18 +7133,30 @@ class FireflyChaseGame {
                 ffPosY = ff.posY;
 
                 // Trail (DtScale-accumulator, FPS-independent — matches MATLAB)
-                // Record at reference frame rate (1 ds unit = 1 reference frame)
-                ff.trailAccum = (ff.trailAccum || 0) + dtScale;
+                // Distance-based trail (same principle as path fireflies)
+                // Record every ~3px of movement. Trail = trailLen * 3px.
                 let bi;
-                while (ff.trailAccum >= 1.0) {
-                    ff.trailAccum -= 1.0;
-                    ff.trailIdx++;
-                    bi = ((ff.trailIdx - 1) % ff.trailLen);
+                if (ff.trailIdx === 0) {
+                    ff.trailIdx = 1;
+                    bi = 0;
                     ff.trailBufX[bi] = ff.posX;
                     ff.trailBufY[bi] = ff.posY;
-                }
-                if (bi === undefined) {
-                    bi = ((Math.max(0, ff.trailIdx - 1)) % ff.trailLen);
+                } else {
+                    let lastBi = ((ff.trailIdx - 1) % ff.trailLen);
+                    const movedDist = hypot(ff.posX - ff.trailBufX[lastBi], ff.posY - ff.trailBufY[lastBi]);
+                    if (movedDist >= 3) {
+                        const nPts = Math.min(5, Math.floor(movedDist / 3));
+                        const lx = ff.trailBufX[lastBi], ly = ff.trailBufY[lastBi];
+                        for (let pi = 1; pi <= nPts; pi++) {
+                            const frac = pi / nPts;
+                            ff.trailIdx++;
+                            bi = ((ff.trailIdx - 1) % ff.trailLen);
+                            ff.trailBufX[bi] = lx + (ff.posX - lx) * frac;
+                            ff.trailBufY[bi] = ly + (ff.posY - ly) * frac;
+                        }
+                    } else {
+                        bi = lastBi;
+                    }
                 }
                 // Extract trail oldest→newest, skip NaN
                 const nFilled = Math.min(ff.trailIdx, ff.trailLen);
