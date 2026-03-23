@@ -45,7 +45,7 @@ Seven original games — physics toys, challenges and shooters that will test yo
 | # | Game | Controls | |
 |:-:|------|:--------:|---|
 | 9 | **Target Practice** | Mouse / Keyboard | Glowing targets appear and shrink. Hit them before they vanish. Combo tightens the timer. |
-| 10 | **Firefly Chase** | Mouse / Keyboard | 5 tiers of fireflies on orbital paths. The golden snitch flies Lissajous curves and evades your cursor. |
+| 10 | **Firefly Chase** | Mouse / Keyboard | 5 tiers of fireflies on orbital paths. The "Golden Snitch" firefly traces Lissajous curves and actively evades your cursor. |
 | 11 | **Flick It!** | Mouse / Keyboard | Flick a physics orb off walls. It shifts from cyan to red with speed. Re-flick for combo. |
 | 12 | **Juggler** | Mouse / Keyboard | Keep balls airborne with flick physics and gravity. Drop one and combo resets. Extra balls spawn at milestones. |
 | 13 | **Orbital Defense** | Mouse / Keyboard | Defend a hex base from asteroid waves. Launch interceptors for chain-reaction explosions. |
