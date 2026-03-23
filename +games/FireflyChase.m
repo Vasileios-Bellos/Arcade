@@ -382,6 +382,7 @@ classdef FireflyChase < engine.GameBase
                 ff.trailBufX = NaN(1, 12);
                 ff.trailBufY = NaN(1, 12);
                 ff.trailIdx = 0;
+                ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = ff.posX; startY = ff.posY;
             else
                 % Path-based firefly — closed orbits only (loop, figure8)
