@@ -7157,7 +7157,13 @@ class FireflyChaseGame {
                 ff.idx += ff.speed * dtScale;
 
                 if (ff.idx >= ff.pathX.length) {
-                    // Reached end — loop or reverse
+                    // Save carry-over trail before loop/reverse
+                    const ts = Math.round(45 * ff.speed / this.baseSpeed);
+                    const nP = ff.pathX.length;
+                    const cStart = Math.max(0, nP - ts);
+                    ff.trailCarryX = ff.pathX.slice(cStart, nP);
+                    ff.trailCarryY = ff.pathY.slice(cStart, nP);
+
                     const gapDist = hypot(
                         ff.pathX[ff.pathX.length - 1] - ff.pathX[0],
                         ff.pathY[ff.pathY.length - 1] - ff.pathY[0]
@@ -7175,34 +7181,20 @@ class FireflyChaseGame {
                 ffPosX = ff.pathX[pidx];
                 ffPosY = ff.pathY[pidx];
 
-                // Trail: circular buffer (persists across loops, matches MATLAB)
-                if (!ff.trailBufX) {
-                    const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
-                    ff.trailLen = Math.max(trailSpan, 30);
-                    ff.trailBufX = new Array(ff.trailLen).fill(NaN);
-                    ff.trailBufY = new Array(ff.trailLen).fill(NaN);
-                    ff.trailIdx = 0;
-                    ff.trailAccum = 0;
-                }
-                // Record at ~30fps rate to match MATLAB trail temporal length
-                ff.trailAccum = (ff.trailAccum || 0) + dtScale;
-                if (ff.trailAccum >= 2.0) {
-                    ff.trailAccum -= 2.0;
-                    ff.trailIdx++;
-                    const pbi = ((ff.trailIdx - 1) % ff.trailLen);
-                    ff.trailBufX[pbi] = ffPosX;
-                    ff.trailBufY[pbi] = ffPosY;
-                }
-                const pnFilled = Math.min(ff.trailIdx, ff.trailLen);
-                tx = [];
-                ty = [];
-                for (let j = 0; j < pnFilled; j++) {
-                    const pidx2 = ((pbi - pnFilled + 1 + j) % ff.trailLen + ff.trailLen) % ff.trailLen;
-                    const px = ff.trailBufX[pidx2];
-                    const py = ff.trailBufY[pidx2];
-                    if (!isNaN(px) && !isNaN(py)) {
-                        tx.push(px);
-                        ty.push(py);
+                // Trail from path history with carry-over (matches MATLAB)
+                const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
+                if (pidx >= trailSpan) {
+                    tx = ff.pathX.slice(pidx - trailSpan, pidx + 1);
+                    ty = ff.pathY.slice(pidx - trailSpan, pidx + 1);
+                } else {
+                    // Near start — prepend carry-over from previous loop
+                    const carryX = ff.trailCarryX || [];
+                    const carryY = ff.trailCarryY || [];
+                    tx = carryX.concat(ff.pathX.slice(0, pidx + 1));
+                    ty = carryY.concat(ff.pathY.slice(0, pidx + 1));
+                    if (tx.length > trailSpan) {
+                        tx = tx.slice(tx.length - trailSpan);
+                        ty = ty.slice(ty.length - trailSpan);
                     }
                 }
             }

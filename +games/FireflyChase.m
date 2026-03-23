@@ -196,15 +196,22 @@ classdef FireflyChase < engine.GameBase
                     pidx = max(1, round(ff.idx));
                     ffPos = [ff.pathX(pidx), ff.pathY(pidx)];
 
-                    % Trail via circular buffer (persists across loop/reverse)
-                    ff.trailIdx = ff.trailIdx + 1;
-                    bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
-                    ff.trailBufX(bi) = ff.pathX(pidx);
-                    ff.trailBufY(bi) = ff.pathY(pidx);
-                    nFilled = min(ff.trailIdx, ff.trailLen);
-                    indices = mod((bi - nFilled):(bi - 1), ff.trailLen) + 1;
-                    tx = ff.trailBufX(indices);
-                    ty = ff.trailBufY(indices);
+                    % Comet tail from path history (scales with speed)
+                    trailSpan = round(45 * ff.speed / obj.BaseSpeed);
+                    if pidx > trailSpan
+                        tStart = pidx - trailSpan;
+                        tx = ff.pathX(tStart:pidx);
+                        ty = ff.pathY(tStart:pidx);
+                    else
+                        % Near start of path — append carry-over from previous loop
+                        tx = [ff.trailCarryX, ff.pathX(1:pidx)];
+                        ty = [ff.trailCarryY, ff.pathY(1:pidx)];
+                        % Trim to trailSpan length
+                        if numel(tx) > trailSpan
+                            tx = tx(end - trailSpan + 1:end);
+                            ty = ty(end - trailSpan + 1:end);
+                        end
+                    end
                 end
 
                 % Check catch (mouse gets bonus radius for precision parity)
@@ -393,11 +400,10 @@ classdef FireflyChase < engine.GameBase
                 ff.freqX = 0; ff.freqY = 0;
                 ff.phaseX = 0; ff.phaseY = 0;
                 ff.evadeX = 0; ff.evadeY = 0;
-                trailSpan = max(30, round(45 * spd / obj.BaseSpeed));
-                ff.trailLen = trailSpan;
-                ff.trailBufX = NaN(1, trailSpan);
-                ff.trailBufY = NaN(1, trailSpan);
+                ff.trailLen = 0;
+                ff.trailBufX = []; ff.trailBufY = [];
                 ff.trailIdx = 0;
+                ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = p.X(1); startY = p.Y(1);
             end
 
@@ -465,6 +471,13 @@ classdef FireflyChase < engine.GameBase
         function onMiss(obj, idx)
             %onMiss  Firefly reached end of path — loop or reverse.
             ff = obj.ActiveFF(idx);
+
+            % Save trail carry-over (last trailSpan points from current path end)
+            trailSpan = round(45 * ff.speed / obj.BaseSpeed);
+            nPath = numel(ff.pathX);
+            cStart = max(1, nPath - trailSpan);
+            ff.trailCarryX = ff.pathX(cStart:nPath);
+            ff.trailCarryY = ff.pathY(cStart:nPath);
 
             gapDist = hypot(ff.pathX(end) - ff.pathX(1), ...
                             ff.pathY(end) - ff.pathY(1));
