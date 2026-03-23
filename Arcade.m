@@ -880,7 +880,7 @@ classdef Arcade < handle
             for k = 1:numel(hudHandles)
                 h = hudHandles{k};
                 if ~isempty(h) && isvalid(h)
-                    uistack(h, "top");
+                    try uistack(h, "top"); catch; end
                 end
             end
         end
