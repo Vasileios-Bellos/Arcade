@@ -5540,26 +5540,21 @@ class FlappyBirdGame {
             ctx.restore();
         }
 
-        // ---- Draw bird ----
+        // ---- Draw bird (MATLAB: 2 scatter layers, no shadow effects) ----
         if (birdVisible !== false) {
             const glowSize = Math.max(15, this.birdRadius * 4);
             const coreSize = Math.max(8, this.birdRadius * 2);
 
-            // Glow layer
+            // Glow layer (MATLAB: scatter, MarkerFaceAlpha=0.25, no shadow)
             ctx.save();
-            ctx.globalAlpha = 0.25;
-            ctx.shadowBlur = glowSize;
-            ctx.shadowColor = rgb(this.birdColor, 0.6);
-            ctx.fillStyle = rgb(this.birdColor);
+            ctx.fillStyle = rgba(this.birdColor, 0.25);
             ctx.beginPath();
             ctx.arc(bx, by, glowSize / 2, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
-            // Core
+            // Core (MATLAB: scatter, opaque, no shadow)
             ctx.save();
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = rgb(this.birdColor, 0.8);
             ctx.fillStyle = rgb(this.birdColor);
             ctx.beginPath();
             ctx.arc(bx, by, coreSize / 2, 0, Math.PI * 2);
@@ -8236,8 +8231,6 @@ class FlickItGame {
         const coreSize = rr * 0.23 * breath;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, coreAlpha);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
@@ -8810,16 +8803,15 @@ class JugglerGame {
         const breathJ = 1 + 0.12 * Math.sin(this.ballPhase || 0);
 
         // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
-        // Aura (0.63*r, faint, BREATHES, drawn first/behind)
-        const auraAlpha2 = 0.1 + Math.min(0.2, ballSpeed * 0.015);
+        // Aura (0.63*r, static alpha 0.12, size scales with speed)
         ctx.save();
-        ctx.fillStyle = rgba(clr, auraAlpha2);
+        ctx.fillStyle = rgba(clr, 0.12);
         ctx.beginPath();
         ctx.arc(bx, by, r * 0.63 * auraScaleJ, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Glow (scatter, 1.50*r, light blue, FIXED, on top of aura)
+        // Glow (scatter, 1.50*r, FIXED size, alpha 0.4)
         const glowRadius = r * 1.50;
         ctx.save();
         ctx.fillStyle = rgba(clr, 0.4);
@@ -8828,11 +8820,9 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Core (0.23*r base, BREATHES)
-        const coreSize = r * 0.23 * breathJ;
+        // Core (0.23*r, static size — no breathing in MATLAB Juggler)
+        const coreSize = r * 0.23;
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, 1);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
