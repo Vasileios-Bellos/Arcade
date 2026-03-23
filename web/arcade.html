@@ -1268,7 +1268,7 @@ class PongGame {
         const errorPx = this.aiErrorPx * (1.5 - d * 1.2);
 
         // Recalculate target periodically (lines 535-543)
-        this.aiRecalcCD -= 1;
+        this.aiRecalcCD -= dtScale;
         if (this.aiRecalcCD <= 0) {
             this.aiRecalcCD = Math.max(2, reactionFrames);   // line 537
             if (this.ballVel[0] < 0) {
@@ -1667,7 +1667,7 @@ class PongGame {
                 }
             }
             if (this.comboVisible) {
-                ctx.font = 'bold 14px sans-serif';
+                ctx.font = 'bold 7px sans-serif';
                 ctx.fillStyle = rgb(this.comboFadeColor, alpha);
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';

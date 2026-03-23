@@ -522,7 +522,7 @@ classdef Pong < engine.GameBase
             errorPx = obj.AIErrorPx * (1.5 - difficultyVal * 1.2);
 
             % Recalculate target periodically
-            obj.AIRecalcCD = obj.AIRecalcCD - 1;
+            obj.AIRecalcCD = obj.AIRecalcCD - obj.DtScale;
             if obj.AIRecalcCD <= 0
                 obj.AIRecalcCD = max(2, reactionFrames);
                 if obj.BallVel(1) < 0
