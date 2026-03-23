@@ -174,13 +174,12 @@ classdef FireflyChase < engine.GameBase
                     ff.posY = max(dy(1) + pad, min(dy(2) - pad, ff.posY));
                     ffPos = [ff.posX, ff.posY];
 
-                    % Update trail history (distance-based recording)
-                    % Record a new point when snitch has moved >= minDist
-                    % since last recorded point. FPS-independent.
-                    minDist = 2; % spacing between recorded points
-                    lastBi = mod(max(0, ff.trailIdx - 1), ff.trailLen) + 1;
-                    if ff.trailIdx == 0 || hypot(ff.posX - ff.trailBufX(lastBi), ...
-                            ff.posY - ff.trailBufY(lastBi)) >= minDist
+                    % Update trail history (DtScale-accumulator based)
+                    % Record when accumulated ds reaches 1.0 (= 1 reference frame).
+                    % At any fps, records at same rate as MATLAB's ~30fps baseline.
+                    ff.trailAccum = ff.trailAccum + ds;
+                    if ff.trailAccum >= 1.0
+                        ff.trailAccum = ff.trailAccum - 1.0;
                         ff.trailIdx = ff.trailIdx + 1;
                         bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
                         ff.trailBufX(bi) = ff.posX;
@@ -398,6 +397,7 @@ classdef FireflyChase < engine.GameBase
                 ff.trailBufX = NaN(1, 20);
                 ff.trailBufY = NaN(1, 20);
                 ff.trailIdx = 0;
+                ff.trailAccum = 0;
                 ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = ff.posX; startY = ff.posY;
             else
@@ -420,6 +420,7 @@ classdef FireflyChase < engine.GameBase
                 ff.trailLen = 0;
                 ff.trailBufX = []; ff.trailBufY = [];
                 ff.trailIdx = 0;
+                ff.trailAccum = 0;
                 ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = p.X(1); startY = p.Y(1);
             end
