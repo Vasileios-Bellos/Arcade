@@ -888,6 +888,7 @@ classdef (Sealed) GameMenu < handle
 
         function setSlotVisible(obj, slot, vis)
             %setSlotVisible  Show/hide all graphics in a single slot.
+            if slot > numel(obj.MenuItemBg); return; end
             handles = {obj.MenuItemBg{slot}, obj.MenuItemGlow{slot}, ...
                 obj.MenuItemKeyBg{slot}, obj.MenuItemKeyText{slot}, ...
                 obj.MenuItemNameText{slot}, obj.MenuItemScoreText{slot}};
