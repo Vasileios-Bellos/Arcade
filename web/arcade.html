@@ -5807,6 +5807,7 @@ class FruitNinjaGame {
         this.swipeActive = false;
         this.swipeGen = 0;
         this.swipeGenSliced = 0;
+        this.swipeSlashSlot = -1;
 
 
         // Pre-compute circle points (24-point)
@@ -5909,6 +5910,7 @@ class FruitNinjaGame {
                 this.swipeActive = true;
                 this.swipeGen++;
                 this.swipeGenSliced = 0;
+                this.swipeSlashSlot = -1;
         
             }
         } else {
@@ -6455,15 +6457,26 @@ class FruitNinjaGame {
             const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
             const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
 
-            // Each fruit gets its own slash slot
-            const slashSlot = this.findInactiveSlot(this.slashActive, 6);
-            if (slashSlot >= 0) {
-                this.slashFrames[slashSlot] = 0;
-                this.slashAge[slashSlot] = 0;
-                this.slashFadeFrames[slashSlot] = 29;
-                this.slashIdxStart[slashSlot] = idxStart;
-                this.slashIdxEnd[slashSlot] = idxEnd;
-                this.slashActive[slashSlot] = 1;
+            // Multi-cut: reuse same slash slot if created this frame
+            // (slashFrames == 0). Once a frame passes, slash is sealed.
+            const ss = this.swipeSlashSlot;
+            if (ss >= 0 && ss < 6 && this.slashActive[ss]
+                && this.slashFrames[ss] === 0) {
+                // Expand with current-frame coordinates
+                this.slashIdxStart[ss] = Math.min(this.slashIdxStart[ss], idxStart);
+                this.slashIdxEnd[ss] = Math.max(this.slashIdxEnd[ss], idxEnd);
+            } else {
+                // New slash
+                const slashSlot = this.findInactiveSlot(this.slashActive, 6);
+                if (slashSlot >= 0) {
+                    this.slashFrames[slashSlot] = 0;
+                    this.slashAge[slashSlot] = 0;
+                    this.slashFadeFrames[slashSlot] = 29;
+                    this.slashIdxStart[slashSlot] = idxStart;
+                    this.slashIdxEnd[slashSlot] = idxEnd;
+                    this.slashActive[slashSlot] = 1;
+                    this.swipeSlashSlot = slashSlot;
+                }
             }
         }
 

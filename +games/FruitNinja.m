@@ -59,6 +59,7 @@ classdef FruitNinja < engine.GameBase
         SlashIdxStart   (1,6) double = 0
         SlashIdxEnd     (1,6) double = 0
         SlashActive     (1,6) logical = false
+        SwipeSlashSlot  (1,1) double = 0  % active slash for current swipe (0=none)
     end
 
     % =================================================================
@@ -262,6 +263,7 @@ classdef FruitNinja < engine.GameBase
                     obj.SwipeActive = true;
                     obj.SwipeGen = obj.SwipeGen + 1;
                     obj.SwipeGenSliced = 0;
+                    obj.SwipeSlashSlot = 0;
                 end
             else
                 obj.SwipeActive = false;
@@ -883,30 +885,49 @@ classdef FruitNinja < engine.GameBase
             sx = traceX(idxStart:idxEnd);
             sy = traceY(idxStart:idxEnd);
 
-            % Each fruit gets its own slash slot
-            slashSlot = find(~obj.SlashActive, 1);
-            if ~isempty(slashSlot)
-                fadeFrames = 29;
-                obj.SlashFrames(slashSlot) = 0;
-                obj.SlashAge(slashSlot) = 0;
-                obj.SlashFadeFrames(slashSlot) = fadeFrames;
-                obj.SlashIdxStart(slashSlot) = idxStart;
-                obj.SlashIdxEnd(slashSlot) = idxEnd;
-                obj.SlashActive(slashSlot) = true;
-
-                glowH = obj.SlashPoolGlow{slashSlot};
+            % Multi-cut: reuse same slash slot if it was created/expanded
+            % this frame (SlashFrames == 0). Once a frame passes, the slash
+            % is sealed — further fruits start a new slash.
+            ss = obj.SwipeSlashSlot;
+            if ss > 0 && ss <= 6 && obj.SlashActive(ss) ...
+                    && obj.SlashFrames(ss) == 0
+                % Expand: rewrite with current-frame coordinates (age=0)
+                obj.SlashIdxStart(ss) = min(obj.SlashIdxStart(ss), idxStart);
+                obj.SlashIdxEnd(ss) = max(obj.SlashIdxEnd(ss), idxEnd);
+                newSx = traceX(max(1, obj.SlashIdxStart(ss)):min(nTrace, obj.SlashIdxEnd(ss)));
+                newSy = traceY(max(1, obj.SlashIdxStart(ss)):min(nTrace, obj.SlashIdxEnd(ss)));
+                glowH = obj.SlashPoolGlow{ss};
                 if ~isempty(glowH) && isvalid(glowH)
-                    glowH.XData = sx;
-                    glowH.YData = sy;
-                    glowH.Color = [obj.ColorCyan, 0.5];
-                    glowH.Visible = "on";
+                    glowH.XData = newSx; glowH.YData = newSy;
                 end
-                coreH = obj.SlashPoolCore{slashSlot};
+                coreH = obj.SlashPoolCore{ss};
                 if ~isempty(coreH) && isvalid(coreH)
-                    coreH.XData = sx;
-                    coreH.YData = sy;
-                    coreH.Color = [obj.ColorWhite, 0.9];
-                    coreH.Visible = "on";
+                    coreH.XData = newSx; coreH.YData = newSy;
+                end
+            else
+                % New slash
+                slashSlot = find(~obj.SlashActive, 1);
+                if ~isempty(slashSlot)
+                    obj.SlashFrames(slashSlot) = 0;
+                    obj.SlashAge(slashSlot) = 0;
+                    obj.SlashFadeFrames(slashSlot) = 29;
+                    obj.SlashIdxStart(slashSlot) = idxStart;
+                    obj.SlashIdxEnd(slashSlot) = idxEnd;
+                    obj.SlashActive(slashSlot) = true;
+                    obj.SwipeSlashSlot = slashSlot;
+
+                    glowH = obj.SlashPoolGlow{slashSlot};
+                    if ~isempty(glowH) && isvalid(glowH)
+                        glowH.XData = sx; glowH.YData = sy;
+                        glowH.Color = [obj.ColorCyan, 0.5];
+                        glowH.Visible = "on";
+                    end
+                    coreH = obj.SlashPoolCore{slashSlot};
+                    if ~isempty(coreH) && isvalid(coreH)
+                        coreH.XData = sx; coreH.YData = sy;
+                        coreH.Color = [obj.ColorWhite, 0.9];
+                        coreH.Visible = "on";
+                    end
                 end
             end
 
