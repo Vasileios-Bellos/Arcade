@@ -32,7 +32,7 @@ No pending scaling work for arcade games.
 ## Per-Game TODOs (from code comments)
 
 - [ ] **TargetPractice**: Target timeout uses wall-clock time (toc), not DtScale. If RefFPS is changed, timeout duration stays the same. Consider scaling timeout by RefFPS ratio
-- [ ] **RailShooter**: Rename "death" terminology (deathFrame, deathMaxFrames, deathAlpha, dying) to "defeat" or "elimination". Also affects Juggler.m
+- [x] **RailShooter**: Renamed death→defeat terminology (done in this session)
 
 ---
 
@@ -56,8 +56,9 @@ No pending scaling work for arcade games.
 - [x] Rename ARCADE_README.md to README.md (done)
 - [ ] GameHost interface cleanup -- accept generic struct/interface instead of GestureMouse instance directly
 - [ ] MATLAB File Exchange listing: "MATLAB Arcade" -- standalone mouse-driven arcade, no webcam needed
-- [ ] MATLAB Toolbox (.mltbx) packaging -- create .prj, package with matlab.addons.toolbox.packageToolbox(), host as GitHub release asset
-- [ ] Standalone executable via MATLAB Compiler (mcc) -- requires Compiler toolbox license
+- [x] MATLAB Toolbox (.mltbx) — built, packaging/MATLABArcade.mltbx
+- [x] Standalone executable — built, packaging/build/MATLABarcade.exe (Windows GUI, no console)
+- [x] Installer — built, packaging/installer/MATLABarcadeInstaller.exe (web runtime delivery)
 
 ---
 
@@ -83,8 +84,13 @@ No pending scaling work for arcade games.
 - [ ] Remove console.log debug messages from arcade.html before release
 - [ ] Fix remaining game launch errors (test all 15 games in browser)
 - [ ] Verify all game physics/scoring match MATLAB versions
-- [x] Trail rendering — fixed via frame-rate accumulator (record at ~30fps rate)
-- [ ] FlickIt detection sensitivity — threshold may need tuning for 60fps (velocity per frame is halved)
+- [x] Trail rendering — fixed: path-based fireflies use carry-over on loop; Pong/Breakout/FlickIt/Juggler use DtScale accumulator
+- [x] FlickIt/Juggler velocity — fixed: raw deltas + 1/ds normalization at flick point
+- [x] Ball layer sizes — measured individually from MATLAB getframe (Pong: 1.53r/1.14r/0.43r, FlickIt: 1.50r/0.63r/0.23r)
+- [x] Ball layer z-order — aura behind, glow on top (matching MATLAB creation order)
+- [x] Firefly rendering — 2 circles only (aura fixed 0.35 alpha + core solid), no white center, no breathing aura
+- [ ] Flappy Bird — bird circles too large vs MATLAB, green burst on pipe clear that MATLAB doesn't have
+- [ ] Fruit Ninja — multi-cut needs continuous slash line, not per-fruit lines
 - [ ] Menu title shadow/glow — add glow text layer behind title to match MATLAB
 - [ ] RailShooter — verify defeat effect sizes and score text formatting
 - [ ] Pong AI jitter — add TODO to smooth AI paddle when stationary
