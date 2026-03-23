@@ -913,12 +913,14 @@ classdef FruitNinja < engine.GameBase
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
 
             % Golden multi-cut overlay — same re-read behavior as white slashes
-            if multiCut == 1
-                % Store first slash's slot and idxStart for later
+            firstSlot = obj.SwipeFirstEntry(2);
+            firstAlive = firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot);
+            if multiCut == 1 || ~firstAlive
+                % First fruit or previous slash faded — start fresh
                 obj.SwipeFirstEntry = [idxStart, double(slashSlot)];
+                obj.SwipeGenSliced = 1;
             elseif multiCut >= 2
                 % Extend first slash to cover this fruit's exit
-                firstSlot = obj.SwipeFirstEntry(2);
                 if firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot)
                     % Convert current idxEnd to first slash's coordinate system
                     if obj.TraceBufferIdx >= obj.TraceBufferMax
