@@ -9853,7 +9853,7 @@ class RailShooterGame {
         const areaH = dy[1] - dy[0];
         const vpX = this.vanishPt[0];
         const vpY = this.vanishPt[1];
-        this.frameCount++;
+        this.frameCount += ds;
         const fc = this.frameCount;
 
         if (this.gameOver) return;
@@ -10173,9 +10173,8 @@ class RailShooterGame {
         ctx.fillStyle = `rgba(255,38,26,0.95)`;
         ctx.fill();
 
-        // Outer ring — fixed size, no breathing (MATLAB: scatter SizeData=6000)
-        // radius = sqrt(6000/pi) ≈ 43.7 pts at reference display
-        const ringR = Math.sqrt(6000 / Math.PI);
+        // Outer ring — fixed size, no breathing
+        const ringR = crLen + 2;
         ctx.beginPath();
         ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
         ctx.strokeStyle = 'red';
