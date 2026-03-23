@@ -249,7 +249,7 @@ classdef RailShooter < engine.GameBase
             if ~any(isnan(pos))
                 crLen = max(5, round(min(areaW, areaH) * 0.04));
                 gap = max(2, round(crLen * 0.3));
-                breathScale = 1.0 + 0.06 * sin(fc * 0.1);
+                breathScale = 1.0 + 0.06 * sin(fc * 0.2);
                 crLen = round(crLen * breathScale);
                 cx = pos(1); cy = pos(2);
 

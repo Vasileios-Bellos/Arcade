@@ -9900,7 +9900,7 @@ class RailShooterGame {
         if (mousePos && !isNaN(mousePos[0]) && !isNaN(mousePos[1])) {
             const crLen = Math.max(5, Math.round(Math.min(areaW, areaH) * 0.04));
             const gap = Math.max(2, Math.round(crLen * 0.3));
-            const breathScale = 1.0 + 0.06 * Math.sin(fc * 0.1);
+            const breathScale = 1.0 + 0.06 * Math.sin(fc * 0.2);
             const crLenB = Math.round(crLen * breathScale);
             this.crossPos = [mousePos[0], mousePos[1]];
 
@@ -10131,7 +10131,7 @@ class RailShooterGame {
     _drawCrosshair(ctx, cx, cy, areaW, areaH, fc, ds) {
         const crLen = Math.max(5, Math.round(Math.min(areaW, areaH) * 0.04));
         const gap = Math.max(2, Math.round(crLen * 0.3));
-        const breathScale = 1.0 + 0.06 * Math.sin(fc * 0.1);
+        const breathScale = 1.0 + 0.06 * Math.sin(fc * 0.2);
         const crLenB = Math.round(crLen * breathScale);
 
         let crossCol, crossGlowA;
@@ -10143,10 +10143,8 @@ class RailShooterGame {
             crossGlowA = 0.25;
         }
 
-        // Glow cross
+        // Glow cross (no shadow — MATLAB line has none)
         ctx.save();
-        ctx.shadowColor = rgb(crossCol, 0.5);
-        ctx.shadowBlur = 8;
         ctx.strokeStyle = rgb(crossCol, crossGlowA);
         ctx.lineWidth = 2.7;
         ctx.beginPath();
