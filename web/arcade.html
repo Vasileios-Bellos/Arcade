@@ -6717,23 +6717,10 @@ class TargetPracticeGame {
                 ringColor = lerpColor(ColorCyan, ColorRed, t);
             }
 
-            // Glow
+            // Outer ring (MATLAB: scatter, fixed SizeData=6000, MarkerEdgeColor red, no breathing)
             ctx.save();
-            ctx.strokeStyle = rgb(ringColor, 0.1 + 0.08 * Math.sin(this.pulsePhase));
-            ctx.lineWidth = 10;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = rgb(ringColor, 0.3);
-            ctx.beginPath();
-            ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-
-            // Outer ring
-            ctx.save();
-            ctx.strokeStyle = rgb(ringColor, 0.7 + 0.3 * Math.sin(this.pulsePhase));
-            ctx.lineWidth = 2.5;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = rgb(ringColor, 0.5);
+            ctx.strokeStyle = rgb(ringColor, 0.7);
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
             ctx.stroke();
