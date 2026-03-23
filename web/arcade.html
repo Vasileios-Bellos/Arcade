@@ -7132,47 +7132,33 @@ class FireflyChaseGame {
                 ffPosX = ff.posX;
                 ffPosY = ff.posY;
 
-                // Trail (DtScale-accumulator, FPS-independent — matches MATLAB)
-                // Distance-based trail (same principle as path fireflies)
-                // Record every ~3px of movement. Trail = trailLen * 3px.
-                let bi;
-                if (ff.trailIdx === 0) {
-                    ff.trailIdx = 1;
-                    bi = 0;
+                // Trail (DtScale accumulator — FPS-independent, matches MATLAB)
+                ff.trailAccum = (ff.trailAccum || 0) + dtScale;
+                if (ff.trailAccum >= 2.0) {
+                    ff.trailAccum -= 2.0;
+                    ff.trailIdx++;
+                    const bi = ((ff.trailIdx - 1) % ff.trailLen);
                     ff.trailBufX[bi] = ff.posX;
                     ff.trailBufY[bi] = ff.posY;
-                } else {
-                    let lastBi = ((ff.trailIdx - 1) % ff.trailLen);
-                    const movedDist = hypot(ff.posX - ff.trailBufX[lastBi], ff.posY - ff.trailBufY[lastBi]);
-                    if (movedDist >= 3) {
-                        const nPts = Math.min(5, Math.floor(movedDist / 3));
-                        const lx = ff.trailBufX[lastBi], ly = ff.trailBufY[lastBi];
-                        for (let pi = 1; pi <= nPts; pi++) {
-                            const frac = pi / nPts;
-                            ff.trailIdx++;
-                            bi = ((ff.trailIdx - 1) % ff.trailLen);
-                            ff.trailBufX[bi] = lx + (ff.posX - lx) * frac;
-                            ff.trailBufY[bi] = ly + (ff.posY - ly) * frac;
-                        }
-                    } else {
-                        bi = lastBi;
-                    }
                 }
-                // Extract trail oldest→newest, skip NaN
+                // Extract trail oldest→newest, append current position as head
                 const nFilled = Math.min(ff.trailIdx, ff.trailLen);
                 tx = [];
                 ty = [];
-                for (let j = 0; j < nFilled; j++) {
-                    // bi is the LAST written position (0-based)
-                    // oldest is at bi - nFilled + 1, newest at bi
-                    const idx = ((bi - nFilled + 1 + j) % ff.trailLen + ff.trailLen) % ff.trailLen;
-                    const px = ff.trailBufX[idx];
-                    const py = ff.trailBufY[idx];
-                    if (!isNaN(px) && !isNaN(py)) {
-                        tx.push(px);
-                        ty.push(py);
+                if (nFilled > 0) {
+                    const bi = ((ff.trailIdx - 1) % ff.trailLen);
+                    for (let j = 0; j < nFilled; j++) {
+                        const idx = ((bi - nFilled + 1 + j) % ff.trailLen + ff.trailLen) % ff.trailLen;
+                        const px = ff.trailBufX[idx];
+                        const py = ff.trailBufY[idx];
+                        if (!isNaN(px) && !isNaN(py)) {
+                            tx.push(px);
+                            ty.push(py);
+                        }
                     }
                 }
+                tx.push(ff.posX);
+                ty.push(ff.posY);
             } else {
                 // Path-based firefly
                 ff.idx += ff.speed * dtScale;
@@ -7497,9 +7483,9 @@ class FireflyChaseGame {
             const ampY = (dy[1] - dy[0]) * 0.4;
             ff.posX = cx + ampX * Math.sin(ff.theta * ff.freqX + ff.phaseX);
             ff.posY = cy + ampY * Math.sin(ff.theta * ff.freqY + ff.phaseY);
-            ff.trailLen = 20; // distance-based recording, same as MATLAB
-            ff.trailBufX = new Array(20).fill(NaN);
-            ff.trailBufY = new Array(20).fill(NaN);
+            ff.trailLen = 10;
+            ff.trailBufX = new Array(10).fill(NaN);
+            ff.trailBufY = new Array(10).fill(NaN);
             ff.trailIdx = 0;
         } else {
             // Path-based firefly — closed orbits only (loop, figure8)

@@ -174,37 +174,25 @@ classdef FireflyChase < engine.GameBase
                     ff.posY = max(dy(1) + pad, min(dy(2) - pad, ff.posY));
                     ffPos = [ff.posX, ff.posY];
 
-                    % Update trail history (distance-based, same principle as path trails)
-                    % Record a point every ~3px of movement. Trail covers trailLen * 3 px.
-                    lastBi = mod(max(0, ff.trailIdx - 1), ff.trailLen) + 1;
-                    if ff.trailIdx == 0
-                        ff.trailIdx = 1;
-                        bi = 1;
+                    % Update trail history (DtScale accumulator for fps-independence)
+                    ff.trailAccum = ff.trailAccum + ds;
+                    if ff.trailAccum >= 2.0
+                        ff.trailAccum = ff.trailAccum - 2.0;
+                        ff.trailIdx = ff.trailIdx + 1;
+                        bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
                         ff.trailBufX(bi) = ff.posX;
                         ff.trailBufY(bi) = ff.posY;
-                    else
-                        movedDist = hypot(ff.posX - ff.trailBufX(lastBi), ...
-                                          ff.posY - ff.trailBufY(lastBi));
-                        if movedDist >= 3
-                            % Insert intermediate points at ~3px spacing
-                            nPts = min(5, floor(movedDist / 3));
-                            for pi = 1:nPts
-                                frac = pi / nPts;
-                                ff.trailIdx = ff.trailIdx + 1;
-                                bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
-                                ff.trailBufX(bi) = ff.trailBufX(lastBi) + ...
-                                    (ff.posX - ff.trailBufX(lastBi)) * frac;
-                                ff.trailBufY(bi) = ff.trailBufY(lastBi) + ...
-                                    (ff.posY - ff.trailBufY(lastBi)) * frac;
-                                lastBi = bi;
-                            end
-                        end
                     end
                     nFilled = min(ff.trailIdx, ff.trailLen);
-                    bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
-                    indices = mod((bi - nFilled):(bi - 1), ff.trailLen) + 1;
-                    tx = ff.trailBufX(indices);
-                    ty = ff.trailBufY(indices);
+                    if nFilled > 0
+                        bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
+                        indices = mod((bi - nFilled):(bi - 1), ff.trailLen) + 1;
+                        tx = [ff.trailBufX(indices), ff.posX];
+                        ty = [ff.trailBufY(indices), ff.posY];
+                    else
+                        tx = ff.posX;
+                        ty = ff.posY;
+                    end
                 else
                     % Path-based firefly
                     ff.idx = ff.idx + ff.speed * ds;
@@ -408,9 +396,9 @@ classdef FireflyChase < engine.GameBase
                 ampY = (dry(2) - dry(1)) * 0.4;
                 ff.posX = cx + ampX * sin(ff.theta * ff.freqX + ff.phaseX);
                 ff.posY = cy + ampY * sin(ff.theta * ff.freqY + ff.phaseY);
-                ff.trailLen = 20;
-                ff.trailBufX = NaN(1, 20);
-                ff.trailBufY = NaN(1, 20);
+                ff.trailLen = 10;
+                ff.trailBufX = NaN(1, 10);
+                ff.trailBufY = NaN(1, 10);
                 ff.trailIdx = 0;
                 ff.trailAccum = 0;
                 ff.trailCarryX = []; ff.trailCarryY = [];
