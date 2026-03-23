@@ -7132,11 +7132,25 @@ class FireflyChaseGame {
                 ffPosX = ff.posX;
                 ffPosY = ff.posY;
 
-                // Trail (circular buffer, record every frame)
-                ff.trailIdx++;
-                const bi = ((ff.trailIdx - 1) % ff.trailLen);
-                ff.trailBufX[bi] = ff.posX;
-                ff.trailBufY[bi] = ff.posY;
+                // Trail (distance-based recording, FPS-independent)
+                const minDist = 5;
+                let bi;
+                if (ff.trailIdx === 0) {
+                    ff.trailIdx++;
+                    bi = 0;
+                    ff.trailBufX[bi] = ff.posX;
+                    ff.trailBufY[bi] = ff.posY;
+                } else {
+                    const lastBi = ((ff.trailIdx - 1) % ff.trailLen);
+                    if (hypot(ff.posX - ff.trailBufX[lastBi], ff.posY - ff.trailBufY[lastBi]) >= minDist) {
+                        ff.trailIdx++;
+                        bi = ((ff.trailIdx - 1) % ff.trailLen);
+                        ff.trailBufX[bi] = ff.posX;
+                        ff.trailBufY[bi] = ff.posY;
+                    } else {
+                        bi = ((ff.trailIdx - 1) % ff.trailLen);
+                    }
+                }
                 // Extract trail oldest→newest, skip NaN
                 const nFilled = Math.min(ff.trailIdx, ff.trailLen);
                 tx = [];
@@ -7184,15 +7198,16 @@ class FireflyChaseGame {
                 // Trail from path with carry-over (matches MATLAB)
                 const trailSpan = Math.round(45 * ff.speed / this.baseSpeed);
                 const tStart = Math.max(0, pidx - trailSpan);
+                // Compute fixed step once per firefly (not per frame)
+                if (!ff._trailStep) {
+                    ff._trailStep = Math.max(1, Math.floor(trailSpan / 40));
+                }
                 if (tStart > 0) {
-                    // Far from start — use path array with subsampled index range
                     tx = ff.pathX;
                     ty = ff.pathY;
-                    const span = pidx - tStart;
-                    const step = Math.max(1, Math.floor(span / 40));
                     ff._tStart = tStart;
                     ff._tEnd = pidx + 1;
-                    ff._tStep = step;
+                    ff._tStep = ff._trailStep;
                 } else {
                     // Near start — need carry-over
                     const cx = ff.trailCarryX || [];
@@ -7475,9 +7490,9 @@ class FireflyChaseGame {
             const ampY = (dy[1] - dy[0]) * 0.4;
             ff.posX = cx + ampX * Math.sin(ff.theta * ff.freqX + ff.phaseX);
             ff.posY = cy + ampY * Math.sin(ff.theta * ff.freqY + ff.phaseY);
-            ff.trailLen = 96; // MATLAB: 12 at ~30fps ≈ 0.4s; at 240fps need 96 for same duration
-            ff.trailBufX = new Array(96).fill(NaN);
-            ff.trailBufY = new Array(96).fill(NaN);
+            ff.trailLen = 40; // distance-based recording, same as MATLAB
+            ff.trailBufX = new Array(40).fill(NaN);
+            ff.trailBufY = new Array(40).fill(NaN);
             ff.trailIdx = 0;
         } else {
             // Path-based firefly — closed orbits only (loop, figure8)

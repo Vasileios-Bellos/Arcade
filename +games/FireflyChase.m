@@ -174,12 +174,20 @@ classdef FireflyChase < engine.GameBase
                     ff.posY = max(dy(1) + pad, min(dy(2) - pad, ff.posY));
                     ffPos = [ff.posX, ff.posY];
 
-                    % Update trail history (circular buffer)
-                    ff.trailIdx = ff.trailIdx + 1;
-                    bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
-                    ff.trailBufX(bi) = ff.posX;
-                    ff.trailBufY(bi) = ff.posY;
+                    % Update trail history (distance-based recording)
+                    % Record a new point when snitch has moved >= minDist
+                    % since last recorded point. FPS-independent.
+                    minDist = 5; % ~5px spacing (matches subsampled path trails)
+                    lastBi = mod(max(0, ff.trailIdx - 1), ff.trailLen) + 1;
+                    if ff.trailIdx == 0 || hypot(ff.posX - ff.trailBufX(lastBi), ...
+                            ff.posY - ff.trailBufY(lastBi)) >= minDist
+                        ff.trailIdx = ff.trailIdx + 1;
+                        bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
+                        ff.trailBufX(bi) = ff.posX;
+                        ff.trailBufY(bi) = ff.posY;
+                    end
                     nFilled = min(ff.trailIdx, ff.trailLen);
+                    bi = mod(ff.trailIdx - 1, ff.trailLen) + 1;
                     indices = mod((bi - nFilled):(bi - 1), ff.trailLen) + 1;
                     tx = ff.trailBufX(indices);
                     ty = ff.trailBufY(indices);
@@ -386,9 +394,9 @@ classdef FireflyChase < engine.GameBase
                 ampY = (dry(2) - dry(1)) * 0.4;
                 ff.posX = cx + ampX * sin(ff.theta * ff.freqX + ff.phaseX);
                 ff.posY = cy + ampY * sin(ff.theta * ff.freqY + ff.phaseY);
-                ff.trailLen = 12;
-                ff.trailBufX = NaN(1, 12);
-                ff.trailBufY = NaN(1, 12);
+                ff.trailLen = 40;
+                ff.trailBufX = NaN(1, 40);
+                ff.trailBufY = NaN(1, 40);
                 ff.trailIdx = 0;
                 ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = ff.posX; startY = ff.posY;
