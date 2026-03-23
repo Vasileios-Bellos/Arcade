@@ -7132,11 +7132,9 @@ class FireflyChaseGame {
                 ffPosX = ff.posX;
                 ffPosY = ff.posY;
 
-                // Trail (circular buffer, record at ~30fps rate)
-                ff.trailAccum = (ff.trailAccum || 0) + dtScale;
-                if (ff.trailAccum >= 2.0) {
-                    ff.trailAccum -= 2.0;
-                    ff.trailIdx++;
+                // Trail (circular buffer, record every frame)
+                ff.trailIdx++;
+                {
                     const bi = ((ff.trailIdx - 1) % ff.trailLen);
                     ff.trailBufX[bi] = ff.posX;
                     ff.trailBufY[bi] = ff.posY;
@@ -7437,9 +7435,9 @@ class FireflyChaseGame {
             const ampY = (dy[1] - dy[0]) * 0.4;
             ff.posX = cx + ampX * Math.sin(ff.theta * ff.freqX + ff.phaseX);
             ff.posY = cy + ampY * Math.sin(ff.theta * ff.freqY + ff.phaseY);
-            ff.trailLen = 12; // matches MATLAB, trail accumulator handles frame rate
-            ff.trailBufX = new Array(12).fill(NaN);
-            ff.trailBufY = new Array(12).fill(NaN);
+            ff.trailLen = 96; // MATLAB: 12 at ~30fps ≈ 0.4s; at 240fps need 96 for same duration
+            ff.trailBufX = new Array(96).fill(NaN);
+            ff.trailBufY = new Array(96).fill(NaN);
             ff.trailIdx = 0;
         } else {
             // Path-based firefly — closed orbits only (loop, figure8)
@@ -8116,12 +8114,14 @@ class FlickItGame {
         const clr = flickSpeedColor(spd * this.speedScale);
 
         // Idle breathing / motion scaling
-        // Only the middle glow breathes/grows. Outer and core are fixed.
-        let glowScale;
+        // MATLAB: breath affects Core + Aura. Glow is FIXED size.
+        let breath, auraScale;
         if (!this.ballMoving) {
-            glowScale = 1 + 0.12 * Math.sin(this.ballPhase);
+            breath = 1 + 0.12 * Math.sin(this.ballPhase);
+            auraScale = 1.2 + 0.15 * Math.sin(this.ballPhase * 0.7);
         } else {
-            glowScale = 1 + Math.min(1.5, spd * 0.08);
+            breath = 1;
+            auraScale = 1 + Math.min(1.5, spd * 0.08);
         }
 
         // --- Trail ---
@@ -8167,9 +8167,8 @@ class FlickItGame {
             }
         }
 
-        // --- Glow ring (scatter, 1.50*rr, BIGGEST, drawn first/behind, breathes) ---
-        const glowBreathFI = this.ballMoving ? 1.0 : (1 + 0.12 * Math.sin(this.ballPhase));
-        const glowRadius = rr * 1.50 * glowBreathFI;
+        // --- Glow (scatter, 1.50*rr, BIGGEST, FIXED size, drawn first) ---
+        const glowRadius = rr * 1.50;
         const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.15);
@@ -8180,8 +8179,8 @@ class FlickItGame {
         ctx.fill();
         ctx.restore();
 
-        // --- Aura (line marker, 0.63*rr, FIXED, middle layer) ---
-        const auraRadius = rr * 0.63;
+        // --- Aura (line marker, 0.63*rr base, BREATHES via auraScale) ---
+        const auraRadius = rr * 0.63 * auraScale;
         const auraAlpha = 0.1 + Math.min(0.2, spd * 0.015);
         ctx.save();
         ctx.fillStyle = rgba(clr, auraAlpha);
@@ -8190,10 +8189,8 @@ class FlickItGame {
         ctx.fill();
         ctx.restore();
 
-        // --- Core dot ---
-        // --- Core (line marker MS=20, measured 0.23*rr, breathes) ---
-        const coreBreath = this.ballMoving ? 1 : (1 + 0.12 * Math.sin(this.ballPhase));
-        const coreSize = rr * 0.23 * coreBreath;
+        // --- Core (line marker, 0.23*rr base, BREATHES via breath) ---
+        const coreSize = rr * 0.23 * breath;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
@@ -8765,9 +8762,12 @@ class JugglerGame {
             }
         }
 
-        // Glow (scatter, 1.50*r, BIGGEST, drawn first/behind, breathes)
-        const glowBreath = 1 + 0.12 * Math.sin(this.ballPhase || 0);
-        const glowRadius = r * 1.50 * glowBreath;
+        // MATLAB: breath affects Core+Aura, Glow is FIXED
+        const auraScaleJ = 1 + Math.min(1.5, ballSpeed * 0.08);
+        const breathJ = 1 + 0.12 * Math.sin(this.ballPhase || 0);
+
+        // Glow (scatter, 1.50*r, BIGGEST, FIXED, drawn first)
+        const glowRadius = r * 1.50;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.15);
         ctx.shadowBlur = 4;
@@ -8777,18 +8777,17 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Aura (line marker, 0.63*r, FIXED, middle layer)
+        // Aura (0.63*r base, BREATHES via auraScale)
         const auraAlpha2 = 0.1 + Math.min(0.2, ballSpeed * 0.015);
         ctx.save();
         ctx.fillStyle = rgba(clr, auraAlpha2);
         ctx.beginPath();
-        ctx.arc(bx, by, r * 0.63, 0, Math.PI * 2);
+        ctx.arc(bx, by, r * 0.63 * auraScaleJ, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Core (line marker MS=20, measured 0.23*r, breathes)
-        const coreBreath2 = 1 + 0.12 * Math.sin(this.ballPhase || 0);
-        const coreSize = r * 0.23 * coreBreath2;
+        // Core (0.23*r base, BREATHES)
+        const coreSize = r * 0.23 * breathJ;
         ctx.save();
         ctx.shadowColor = rgba(clr, 0.8);
         ctx.shadowBlur = 6; // subtle core glow
@@ -10123,8 +10122,8 @@ class RailShooterGame {
         ctx.fillStyle = `rgba(255,38,26,0.95)`;
         ctx.fill();
 
-        // Outer ring (MATLAB: scatter SizeData 6000 = area in pt², diameter ≈ 87pt)
-        const ringR = Math.sqrt(6000 / Math.PI); // ≈ 43.7 radius
+        // Outer ring — should just cover the crosshair arms (crLen ≈ 19 data units)
+        const ringR = crLenB + 2; // slightly larger than cross arm
         ctx.beginPath();
         ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
         ctx.strokeStyle = 'red';
