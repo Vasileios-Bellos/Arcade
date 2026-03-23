@@ -4304,19 +4304,19 @@ class AsteroidsGame {
         const [sx, sy] = this.shipPos;
         const r = this.shipRadius;
 
-        // Glow — Asteroids.m lines 87-89
+        // Glow — Asteroids.m lines 87-89 (scatter, MarkerFaceAlpha=0.15, no shadow)
         ctx.save();
-        ctx.shadowColor = rgba(GB_COLORS.cyan, 0.4);
-        ctx.shadowBlur = r * 2.5;
+        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
         ctx.beginPath();
         ctx.arc(sx, sy, r * 2.5, 0, 2 * Math.PI);
-        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
         ctx.fill();
+        ctx.restore();
 
-        // Core — Asteroids.m lines 90-91
+        // Core — Asteroids.m lines 90-91 (scatter, fully opaque)
+        ctx.save();
+        ctx.fillStyle = rgb(GB_COLORS.cyan);
         ctx.beginPath();
         ctx.arc(sx, sy, r, 0, 2 * Math.PI);
-        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.8);
         ctx.fill();
         ctx.restore();
     }
