@@ -1573,19 +1573,17 @@ class PongGame {
             const by = this.ballPos[1];
             const r = this.ballRadius;
 
-            // Individually measured: glow=1.53r(BIGGEST), aura=1.14r, core=0.43r
-            // Draw biggest first (back), smallest last (front)
-            ctx.beginPath();
-            ctx.arc(bx, by, r * 1.53, 0, Math.PI * 2);
-            ctx.fillStyle = rgb(clr, 0.4);
-            ctx.shadowColor = rgb(clr, 0.15);
-            ctx.shadowBlur = 4;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
+            // MATLAB z-order: Aura(behind) → Glow(on top) → Core(front)
+            // Aura: faint, 1.14r
             ctx.beginPath();
             ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
             ctx.fillStyle = rgb(clr, 0.12);
+            ctx.fill();
+
+            // Glow: light blue, 1.53r, on top of aura
+            ctx.beginPath();
+            ctx.arc(bx, by, r * 1.53, 0, Math.PI * 2);
+            ctx.fillStyle = rgb(clr, 0.4);
             ctx.fill();
 
             ctx.beginPath();
@@ -1604,7 +1602,7 @@ class PongGame {
             // Glow
             ctx.shadowColor = rgb(Colors.Red, 0.5);
             ctx.shadowBlur = 10;
-            ctx.fillStyle = rgb(Colors.Red, 0.25);
+            ctx.fillStyle = rgb(Colors.Red, 0.65);
             ctx.fillRect(aiPX - pw / 2, this.aiPaddleY - ph, pw, ph * 2);
             ctx.shadowBlur = 0;
             // Edge
@@ -1618,7 +1616,7 @@ class PongGame {
         if (!isNaN(this.playerPaddleY)) {
             ctx.shadowColor = rgb(Colors.Cyan, 0.5);
             ctx.shadowBlur = 10;
-            ctx.fillStyle = rgb(Colors.Cyan, 0.25);
+            ctx.fillStyle = rgb(Colors.Cyan, 0.65);
             ctx.fillRect(plPX - pw / 2, this.playerPaddleY - ph, pw, ph * 2);
             ctx.shadowBlur = 0;
             ctx.strokeStyle = rgb(Colors.Cyan, 1);
@@ -2631,19 +2629,17 @@ class BreakoutGame {
 
             // Aura
             ctx.beginPath();
-            // Glow (biggest, 1.53r) drawn first
-            ctx.arc(bx, by, glowR, 0, Math.PI * 2);
-            const glowColor = isFireball ? Colors.Red : ballColor;
-            ctx.fillStyle = rgb(glowColor, isFireball ? 0.7 : 0.4);
-            ctx.shadowColor = rgb(glowColor, 0.15);
-            ctx.shadowBlur = 4;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // Aura (1.14r)
-            ctx.beginPath();
+            // MATLAB z-order: Aura(behind) → Glow(on top) → Core(front)
+            // Aura (1.14r, faint)
             ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
             ctx.fillStyle = rgb(auraColor, auraAlpha);
+            ctx.fill();
+
+            // Glow (1.53r, light blue, on top of aura)
+            const glowColor = isFireball ? Colors.Red : ballColor;
+            ctx.beginPath();
+            ctx.arc(bx, by, glowR, 0, Math.PI * 2);
+            ctx.fillStyle = rgb(glowColor, isFireball ? 0.7 : 0.4);
             ctx.fill();
 
             // Core (0.43r)
@@ -8167,19 +8163,8 @@ class FlickItGame {
             }
         }
 
-        // --- Glow (scatter, 1.50*rr, BIGGEST, FIXED size, drawn first) ---
-        const glowRadius = rr * 1.50;
-        const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
-        ctx.save();
-        ctx.shadowColor = rgba(clr, 0.15);
-        ctx.shadowBlur = 4;
-        ctx.fillStyle = rgba(clr, glowAlpha);
-        ctx.beginPath();
-        ctx.arc(bx, by, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // --- Aura (line marker, 0.63*rr base, BREATHES via auraScale) ---
+        // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
+        // Aura: line marker, 0.63*rr, faint, BREATHES
         const auraRadius = rr * 0.63 * auraScale;
         const auraAlpha = 0.1 + Math.min(0.2, spd * 0.015);
         ctx.save();
@@ -8189,7 +8174,17 @@ class FlickItGame {
         ctx.fill();
         ctx.restore();
 
-        // --- Core (line marker, 0.23*rr base, BREATHES via breath) ---
+        // Glow: scatter, 1.50*rr, light blue, FIXED size, ON TOP of aura
+        const glowRadius = rr * 1.50;
+        const glowAlpha = 0.3 + Math.min(0.5, spd * 0.04);
+        ctx.save();
+        ctx.fillStyle = rgba(clr, glowAlpha);
+        ctx.beginPath();
+        ctx.arc(bx, by, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Core: line marker, 0.23*rr, white, BREATHES, on top
         const coreSize = rr * 0.23 * breath;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
@@ -8766,23 +8761,22 @@ class JugglerGame {
         const auraScaleJ = 1 + Math.min(1.5, ballSpeed * 0.08);
         const breathJ = 1 + 0.12 * Math.sin(this.ballPhase || 0);
 
-        // Glow (scatter, 1.50*r, BIGGEST, FIXED, drawn first)
-        const glowRadius = r * 1.50;
-        ctx.save();
-        ctx.shadowColor = rgba(clr, 0.15);
-        ctx.shadowBlur = 4;
-        ctx.fillStyle = rgba(clr, 0.4);
-        ctx.beginPath();
-        ctx.arc(bx, by, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // Aura (0.63*r base, BREATHES via auraScale)
+        // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
+        // Aura (0.63*r, faint, BREATHES, drawn first/behind)
         const auraAlpha2 = 0.1 + Math.min(0.2, ballSpeed * 0.015);
         ctx.save();
         ctx.fillStyle = rgba(clr, auraAlpha2);
         ctx.beginPath();
         ctx.arc(bx, by, r * 0.63 * auraScaleJ, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Glow (scatter, 1.50*r, light blue, FIXED, on top of aura)
+        const glowRadius = r * 1.50;
+        ctx.save();
+        ctx.fillStyle = rgba(clr, 0.4);
+        ctx.beginPath();
+        ctx.arc(bx, by, glowRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 

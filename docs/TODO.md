@@ -70,6 +70,10 @@ No pending scaling work for arcade games.
 
 - [ ] Tetris: rapidly rotating a piece on low speed can stall it indefinitely on the landing row — instant lock doesn't prevent rotation-based stalling
 
+## MATLAB Bugs
+
+- [ ] Menu rendering glitch on ESC back to menu — sometimes shows only shooting stars/partial menu, buttons missing, or split screen between game and menu. Possibly orphaned graphics from the results screen not being cleaned up, or the menu's `show()` not fully restoring all elements. Investigate `cleanupOrphans` and `enterMenu` state transitions
+
 ## Performance
 
 - [ ] Investigate jumpy/stuttery gameplay at 40+ FPS — the DtScale system handles physics correctly but abrupt dt variations cause visible hitches. Possible fixes: smooth dt with a short EMA filter, cap dt variance between frames, or use fixed timestep with interpolated rendering
