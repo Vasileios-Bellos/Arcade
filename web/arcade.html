@@ -244,6 +244,8 @@ canvas.addEventListener('wheel', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (e.repeat) return;
+    if (e.key.startsWith('F') && e.key.length <= 3) return;
+    if (e.ctrlKey || e.metaKey) return;
     input.keys[e.key] = true;
     input.keyQueue.push(e.key);
     e.preventDefault();
@@ -4304,19 +4306,19 @@ class AsteroidsGame {
         const [sx, sy] = this.shipPos;
         const r = this.shipRadius;
 
-        // Glow — Asteroids.m lines 87-89
+        // Glow — Asteroids.m lines 87-89 (scatter, MarkerFaceAlpha=0.15, no shadow)
         ctx.save();
-        ctx.shadowColor = rgba(GB_COLORS.cyan, 0.4);
-        ctx.shadowBlur = r * 2.5;
+        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
         ctx.beginPath();
         ctx.arc(sx, sy, r * 2.5, 0, 2 * Math.PI);
-        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
         ctx.fill();
+        ctx.restore();
 
-        // Core — Asteroids.m lines 90-91
+        // Core — Asteroids.m lines 90-91 (scatter, fully opaque)
+        ctx.save();
+        ctx.fillStyle = rgb(GB_COLORS.cyan);
         ctx.beginPath();
         ctx.arc(sx, sy, r, 0, 2 * Math.PI);
-        ctx.fillStyle = rgba(GB_COLORS.cyan, 0.8);
         ctx.fill();
         ctx.restore();
     }
@@ -5540,29 +5542,25 @@ class FlappyBirdGame {
             ctx.restore();
         }
 
-        // ---- Draw bird ----
+        // ---- Draw bird (MATLAB: 2 scatter layers, no shadow) ----
         if (birdVisible !== false) {
-            const glowSize = Math.max(15, this.birdRadius * 4);
-            const coreSize = Math.max(8, this.birdRadius * 2);
+            const cr = this.collisionR;
+            const glowR = cr * 2;
+            const coreR = cr;
 
-            // Glow layer
+            // Glow (scatter, MarkerFaceAlpha=0.25, no shadow)
             ctx.save();
-            ctx.globalAlpha = 0.25;
-            ctx.shadowBlur = glowSize;
-            ctx.shadowColor = rgb(this.birdColor, 0.6);
-            ctx.fillStyle = rgb(this.birdColor);
+            ctx.fillStyle = rgba(this.birdColor, 0.25);
             ctx.beginPath();
-            ctx.arc(bx, by, glowSize / 2, 0, Math.PI * 2);
+            ctx.arc(bx, by, glowR, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
-            // Core
+            // Core (scatter, fully opaque, no shadow)
             ctx.save();
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = rgb(this.birdColor, 0.8);
             ctx.fillStyle = rgb(this.birdColor);
             ctx.beginPath();
-            ctx.arc(bx, by, coreSize / 2, 0, Math.PI * 2);
+            ctx.arc(bx, by, coreR, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
@@ -8236,8 +8234,6 @@ class FlickItGame {
         const coreSize = rr * 0.23 * breath;
         const coreAlpha = Math.min(1, 0.8 + spd * 0.02);
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, coreAlpha);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
@@ -8811,15 +8807,14 @@ class JugglerGame {
 
         // MATLAB z-order: Aura(behind) → Glow(middle) → Core(front)
         // Aura (0.63*r, faint, BREATHES, drawn first/behind)
-        const auraAlpha2 = 0.1 + Math.min(0.2, ballSpeed * 0.015);
         ctx.save();
-        ctx.fillStyle = rgba(clr, auraAlpha2);
+        ctx.fillStyle = rgba(clr, 0.12);
         ctx.beginPath();
         ctx.arc(bx, by, r * 0.63 * auraScaleJ, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Glow (scatter, 1.50*r, light blue, FIXED, on top of aura)
+        // Glow (scatter, 1.50*r, alpha 0.4, FIXED)
         const glowRadius = r * 1.50;
         ctx.save();
         ctx.fillStyle = rgba(clr, 0.4);
@@ -8828,11 +8823,9 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Core (0.23*r base, BREATHES)
-        const coreSize = r * 0.23 * breathJ;
+        // Core (0.23*r, static — no breathing in MATLAB Juggler)
+        const coreSize = r * 0.23;
         ctx.save();
-        ctx.shadowColor = rgba(clr, 0.8);
-        ctx.shadowBlur = 6; // subtle core glow
         ctx.fillStyle = rgba(Colors.White, 1);
         ctx.beginPath();
         ctx.arc(bx, by, coreSize, 0, Math.PI * 2);
