@@ -7115,8 +7115,8 @@ class FireflyChaseGame {
                     const evadeR = Math.round(100 * this.sc);
                     if (dFinger < evadeR && dFinger > 0.1) {
                         const push = Math.pow((evadeR - dFinger) / evadeR, 2) * 8 * this.sc;
-                        evadeX = (ddx / dFinger) * push;
-                        evadeY = (ddy / dFinger) * push;
+                        evadeX = (ddx / dFinger) * push * dtScale;
+                        evadeY = (ddy / dFinger) * push * dtScale;
                     }
                 }
                 ff.evadeX = ff.evadeX * Math.pow(0.9664, dtScale) + evadeX;
