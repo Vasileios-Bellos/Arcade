@@ -537,16 +537,12 @@ class GameMenu {
 
         const cx = DISPLAY_W / 2;
 
-        // Title glow (MATLAB: [0 0.12 0.17])
-        ctx.save();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = rgb([0, 140, 166], 0.3);
+        // Title glow (MATLAB: [0 0.12 0.17], offset text behind main)
         ctx.fillStyle = rgb([0, 31, 43]);
         ctx.font = 'bold 29px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText('A  R  C  A  D  E', cx + 2, 31.5);
-        ctx.restore();
 
         // Title core (MATLAB: [0.0 0.55 0.65])
         ctx.fillStyle = rgb([0, 140, 166]);
@@ -5480,12 +5476,8 @@ class FlappyBirdGame {
                         this.pipeGapH = Math.max(this.collisionR * 8,
                             this.pipeBaseGapH * Math.max(0.25, 1 - 0.05 * this.combo));
 
-                        // Flash scored pipe gold
+                        // Flash scored pipe gold (no hit effect — MATLAB only flashes edge)
                         this.pipeEdgeColor[s] = [...ColorGold];
-
-                        // Spawn hit effect
-                        this.spawnHitEffect(this.pipeX[s] + pw / 2,
-                            this.pipeGapY[s], ColorGreen, totalPts, this.pipeGapHSlot[s] / 3);
                     }
                 }
             }
@@ -8854,7 +8846,7 @@ class JugglerGame {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillStyle = rgba(clr, 0.7);
-        ctx.fillText(`${elapsed.toFixed(1)}s  |  ${flicks} flicks`, bx, by - r - 14);
+        ctx.fillText(`${elapsed.toFixed(1)}s  |  ${flicks} bounces`, bx, by - r - 14);
         ctx.restore();
     }
 
@@ -8900,7 +8892,7 @@ class JugglerGame {
         return {
             title: 'JUGGLER',
             lines: [
-                `Total Flicks: ${this.flicks}  |  Best Streak: ${bestStreak}`
+                `Total Bounces: ${this.flicks}  |  Best Streak: ${bestStreak}`
             ],
         };
     }

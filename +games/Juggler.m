@@ -339,7 +339,7 @@ classdef Juggler < engine.GameBase
             % Capture current ball's streak before results
             bestStreak = max(obj.BestStreak, obj.BallFlicks);
             r.Lines = {
-                sprintf("Total Flicks: %d  |  Best Streak: %d", ...
+                sprintf("Total Bounces: %d  |  Best Streak: %d", ...
                     obj.Flicks, bestStreak)
             };
         end
@@ -464,7 +464,7 @@ classdef Juggler < engine.GameBase
                 if ~isempty(obj.StartTic)
                     elapsed = toc(obj.StartTic);
                 end
-                obj.BallInfoTextH.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.BallFlicks);
+                obj.BallInfoTextH.String = sprintf("%.1fs  |  %d bounces", elapsed, obj.BallFlicks);
                 obj.BallInfoTextH.Position = [bx, by - r - 14, 0];
                 obj.BallInfoTextH.Color = [clr, 0.7];
             end
@@ -685,7 +685,7 @@ classdef Juggler < engine.GameBase
                 % Info text
                 h = obj.ExtraBallInfoTextH{bi};
                 if ~isempty(h) && isvalid(h)
-                    h.String = sprintf("%.1fs  |  %d flicks", elapsed, obj.ExtraBallFlicks(bi));
+                    h.String = sprintf("%.1fs  |  %d bounces", elapsed, obj.ExtraBallFlicks(bi));
                     h.Position = [bx, by - r - 14, 0];
                     h.Color = [clr, 0.7];
                 end
