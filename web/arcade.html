@@ -5807,7 +5807,13 @@ class FruitNinjaGame {
         this.swipeActive = false;
         this.swipeGen = 0;
         this.swipeGenSliced = 0;
-        this.swipeSlashSlot = -1;
+
+        // Slash window
+        this.slashWinActive = false;
+        this.slashWinTimer = 0;
+        this.slashWinFruits = 0;
+        this.slashWinEntryPos = [0, 0];
+        this.slashWinExitPos = [0, 0];
 
 
         // Pre-compute circle points (24-point)
@@ -5910,11 +5916,17 @@ class FruitNinjaGame {
                 this.swipeActive = true;
                 this.swipeGen++;
                 this.swipeGenSliced = 0;
-                this.swipeSlashSlot = -1;
-        
             }
         } else {
             this.swipeActive = false;
+        }
+
+        // ---- Slash window timeout ----
+        if (this.slashWinActive) {
+            this.slashWinTimer += ds;
+            if (slashSpeed < slashThresh || this.slashWinTimer >= 60) {
+                this._finalizeSlash(traceX, traceY, nTrace);
+            }
         }
 
         // ---- Spawn fruits ----
@@ -6379,13 +6391,7 @@ class FruitNinjaGame {
         const points = Math.round(100 * centralityBonus * comboMult * multiCut);
         this.score += points;
 
-        // Multi-cut text
-        if (multiCut >= 2) {
-            this.multiCutText = `${multiCut}\u00D7`;
-            this.multiCutX = fx;
-            this.multiCutY = fy - fRadius * 2;
-            this.multiCutFade = 48;
-        }
+        // Multi-cut text is shown by _finalizeSlash when window closes
 
         // Store slice diagnostics
         this.sliceHistory.push({
@@ -6440,52 +6446,18 @@ class FruitNinjaGame {
             const searchLen = Math.min(40, nTrace);
             const searchStart = nTrace - searchLen;
 
-            // Entry point on circle
+            // Update slash window — store entry/exit positions for deferred drawing
             const entryOnCircleX = fx + fRadius * Math.cos(a1);
             const entryOnCircleY = fy + fRadius * Math.sin(a1);
-
-            let bestEntryDist = Infinity, entryLocal = 0;
-            let bestExitDist = Infinity, exitLocal = 0;
-            for (let i = searchStart; i < nTrace; i++) {
-                const ed = (traceX[i] - entryOnCircleX) ** 2 + (traceY[i] - entryOnCircleY) ** 2;
-                if (ed < bestEntryDist) { bestEntryDist = ed; entryLocal = i; }
-                const xd = (traceX[i] - exitPos[0]) ** 2 + (traceY[i] - exitPos[1]) ** 2;
-                if (xd < bestExitDist) { bestExitDist = xd; exitLocal = i; }
-            }
-
-            const padVal = 4;
-            const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
-            const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
-
-            // Multi-cut: expand existing swipe slash if still young (<10 frames).
-            const ss = this.swipeSlashSlot;
-            if (ss >= 0 && ss < 6 && this.slashActive[ss]
-                && this.slashFrames[ss] < 15) {
-                // Expand: convert old indices to current-frame coords, merge
-                this.slashIdxStart[ss] = Math.min(idxStart,
-                    this.slashIdxStart[ss] - this.slashAge[ss]);
-                this.slashIdxEnd[ss] = Math.max(idxEnd,
-                    this.slashIdxEnd[ss] - this.slashAge[ss]);
-                this.slashAge[ss] = 0;
+            if (!this.slashWinActive) {
+                this.slashWinActive = true;
+                this.slashWinTimer = 0;
+                this.slashWinFruits = 1;
+                this.slashWinEntryPos = [entryOnCircleX, entryOnCircleY];
+                this.slashWinExitPos = [exitPos[0], exitPos[1]];
             } else {
-                // New slash
-                const slashSlot = this.findInactiveSlot(this.slashActive, 6);
-                if (slashSlot >= 0) {
-                    this.slashFrames[slashSlot] = 0;
-                    this.slashAge[slashSlot] = 0;
-                    this.slashFadeFrames[slashSlot] = 29;
-                    this.slashIdxStart[slashSlot] = idxStart;
-                    this.slashIdxEnd[slashSlot] = idxEnd;
-                    this.slashActive[slashSlot] = 1;
-                    this.swipeSlashSlot = slashSlot;
-                }
-            }
-
-            // Seal slash after multi-cut (prevents further expansion)
-            // Reset counter so next fruits start a fresh group
-            if (this.swipeGenSliced >= 2) {
-                this.swipeSlashSlot = -1;
-                this.swipeGenSliced = 0;
+                this.slashWinFruits++;
+                this.slashWinExitPos = [exitPos[0], exitPos[1]];
             }
         }
 
@@ -6495,6 +6467,50 @@ class FruitNinjaGame {
         // Deactivate original fruit
         this.fruitActive[fruitSlot] = 0;
         this.fruitSlashing[fruitSlot] = 0;
+    }
+
+    _finalizeSlash(traceX, traceY, nTrace) {
+        if (!this.slashWinActive) return;
+        const nFruits = this.slashWinFruits;
+        const entryPos = this.slashWinEntryPos;
+        const exitPos = this.slashWinExitPos;
+        this.slashWinActive = false;
+        this.slashWinTimer = 0;
+        this.slashWinFruits = 0;
+        if (nFruits === 0) return;
+
+        // Search trace for entry and exit positions
+        const searchLen = Math.min(120, nTrace);
+        const searchStart = nTrace - searchLen;
+        let bestED = Infinity, entryIdx = searchStart;
+        let bestXD = Infinity, exitIdx = searchStart;
+        for (let i = searchStart; i < nTrace; i++) {
+            const ed = (traceX[i] - entryPos[0]) ** 2 + (traceY[i] - entryPos[1]) ** 2;
+            if (ed < bestED) { bestED = ed; entryIdx = i; }
+            const xd = (traceX[i] - exitPos[0]) ** 2 + (traceY[i] - exitPos[1]) ** 2;
+            if (xd < bestXD) { bestXD = xd; exitIdx = i; }
+        }
+        const padVal = 4;
+        const idxStart = Math.max(0, Math.min(entryIdx, exitIdx) - padVal);
+        const idxEnd = Math.min(nTrace - 1, Math.max(entryIdx, exitIdx) + padVal);
+
+        const slashSlot = this.findInactiveSlot(this.slashActive, 6);
+        if (slashSlot >= 0) {
+            this.slashFrames[slashSlot] = 0;
+            this.slashAge[slashSlot] = 0;
+            this.slashFadeFrames[slashSlot] = 29;
+            this.slashIdxStart[slashSlot] = idxStart;
+            this.slashIdxEnd[slashSlot] = idxEnd;
+            this.slashActive[slashSlot] = 1;
+        }
+
+        // Multi-cut text
+        if (nFruits >= 2) {
+            this.multiCutText = `${nFruits}\u00D7`;
+            this.multiCutX = (entryPos[0] + exitPos[0]) / 2;
+            this.multiCutY = (entryPos[1] + exitPos[1]) / 2 - 15;
+            this.multiCutFade = 48;
+        }
     }
 
     incrementCombo() {

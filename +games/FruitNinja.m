@@ -59,7 +59,13 @@ classdef FruitNinja < engine.GameBase
         SlashIdxStart   (1,6) double = 0
         SlashIdxEnd     (1,6) double = 0
         SlashActive     (1,6) logical = false
-        SwipeSlashSlot  (1,1) double = 0  % active slash for current swipe (0=none)
+
+        % Slash window — collects fruits during one swipe motion
+        SlashWinActive  (1,1) logical = false  % window open?
+        SlashWinTimer   (1,1) double = 0       % DtScale accumulator (closes at 60 = 1s)
+        SlashWinFruits  (1,1) double = 0       % fruits sliced in this window
+        SlashWinEntryPos (1,2) double = [0 0]  % entry-on-circle of FIRST fruit
+        SlashWinExitPos  (1,2) double = [0 0]  % exit position of LAST fruit
     end
 
     % =================================================================
@@ -263,10 +269,17 @@ classdef FruitNinja < engine.GameBase
                     obj.SwipeActive = true;
                     obj.SwipeGen = obj.SwipeGen + 1;
                     obj.SwipeGenSliced = 0;
-                    obj.SwipeSlashSlot = 0;
                 end
             else
                 obj.SwipeActive = false;
+            end
+
+            % --- Slash window timeout ---
+            if obj.SlashWinActive
+                obj.SlashWinTimer = obj.SlashWinTimer + ds;
+                if slashSpeed < slashThresh || obj.SlashWinTimer >= 60
+                    obj.finalizeSlash(traceX, traceY, nTrace);
+                end
             end
 
             % --- Spawn fruits ---
@@ -732,6 +745,70 @@ classdef FruitNinja < engine.GameBase
             end
         end
 
+        function finalizeSlash(obj, traceX, traceY, nTrace)
+            %finalizeSlash  Close the slash window and draw the slash line.
+            if ~obj.SlashWinActive; return; end
+            nFruits = obj.SlashWinFruits;
+            entryPos = obj.SlashWinEntryPos;
+            exitPos = obj.SlashWinExitPos;
+            obj.SlashWinActive = false;
+            obj.SlashWinTimer = 0;
+            obj.SlashWinFruits = 0;
+            if nFruits == 0; return; end
+
+            % Search trace for entry and exit positions
+            searchLen = min(120, nTrace);  % wider search for longer swipes
+            searchStart = nTrace - searchLen + 1;
+            recentX = traceX(searchStart:end);
+            recentY = traceY(searchStart:end);
+            entryDists = (recentX - entryPos(1)).^2 + (recentY - entryPos(2)).^2;
+            [~, entryLocal] = min(entryDists);
+            exitDists = (recentX - exitPos(1)).^2 + (recentY - exitPos(2)).^2;
+            [~, exitLocal] = min(exitDists);
+            entryIdx = searchStart + entryLocal - 1;
+            exitIdx = searchStart + exitLocal - 1;
+            padVal = 4;
+            idxStart = max(1, min(entryIdx, exitIdx) - padVal);
+            idxEnd = min(nTrace, max(entryIdx, exitIdx) + padVal);
+            sx = traceX(idxStart:idxEnd);
+            sy = traceY(idxStart:idxEnd);
+
+            % Create slash visual
+            slashSlot = find(~obj.SlashActive, 1);
+            if ~isempty(slashSlot)
+                obj.SlashFrames(slashSlot) = 0;
+                obj.SlashAge(slashSlot) = 0;
+                obj.SlashFadeFrames(slashSlot) = 29;
+                obj.SlashIdxStart(slashSlot) = idxStart;
+                obj.SlashIdxEnd(slashSlot) = idxEnd;
+                obj.SlashActive(slashSlot) = true;
+
+                glowH = obj.SlashPoolGlow{slashSlot};
+                if ~isempty(glowH) && isvalid(glowH)
+                    glowH.XData = sx; glowH.YData = sy;
+                    glowH.Color = [obj.ColorCyan, 0.5];
+                    glowH.Visible = "on";
+                end
+                coreH = obj.SlashPoolCore{slashSlot};
+                if ~isempty(coreH) && isvalid(coreH)
+                    coreH.XData = sx; coreH.YData = sy;
+                    coreH.Color = [obj.ColorWhite, 0.9];
+                    coreH.Visible = "on";
+                end
+            end
+
+            % Multi-cut text
+            if nFruits >= 2 && ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
+                obj.MultiCutTextH.String = sprintf("%d%s", nFruits, char(215));
+                midX = (entryPos(1) + exitPos(1)) / 2;
+                midY = (entryPos(2) + exitPos(2)) / 2;
+                obj.MultiCutTextH.Position = [midX, midY - 15, 0];
+                obj.MultiCutTextH.Color = [obj.ColorGold, 1];
+                obj.MultiCutTextH.Visible = "on";
+                obj.MultiCutFade = 48;
+            end
+        end
+
         function sliceFruit(obj, fruitSlot, exitPos, slashSpeed, traceX, traceY, nTrace)
             %sliceFruit  Slice fruit into two halves with slash animation.
             %   Uses entry/exit angles for accurate cut geometry.
@@ -802,14 +879,7 @@ classdef FruitNinja < engine.GameBase
             points = round(100 * centralityBonus * comboMult * multiCut);
             obj.addScore(points);
 
-            % Flash multi-cut text (×2, ×3, ...) at fruit position
-            if multiCut >= 2 && ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
-                obj.MultiCutTextH.String = sprintf("%d%s", multiCut, char(215));
-                obj.MultiCutTextH.Position = [fx, fy - fRadius * 2, 0];
-                obj.MultiCutTextH.Color = [obj.ColorGold, 1];
-                obj.MultiCutTextH.Visible = "on";
-                obj.MultiCutFade = 48;  % frames to display
-            end
+            % Multi-cut text is shown by finalizeSlash when window closes
 
             % Store slice diagnostics
             slashAngle = atan2(sin(a2 - a1), cos(a2 - a1));
@@ -864,84 +934,19 @@ classdef FruitNinja < engine.GameBase
                 end
             end
 
-            % Slash animation — find entry/exit in RECENT trace only
-            % (searching full buffer matches old positions, creating huge spans)
-            searchLen = min(40, nTrace);
-            searchStart = nTrace - searchLen + 1;
-            recentX = traceX(searchStart:end);
-            recentY = traceY(searchStart:end);
-            entryOnCircle = [fx + fRadius * cos(a1), ...
-                             fy + fRadius * sin(a1)];
-            entryDists = (recentX - entryOnCircle(1)).^2 + ...
-                         (recentY - entryOnCircle(2)).^2;
-            [~, entryLocal] = min(entryDists);
-            exitDists = (recentX - exitPos(1)).^2 + ...
-                        (recentY - exitPos(2)).^2;
-            [~, exitLocal] = min(exitDists);
-            entryIdx = searchStart + entryLocal - 1;
-            exitIdx = searchStart + exitLocal - 1;
-            padVal = 4;
-            idxStart = max(1, min(entryIdx, exitIdx) - padVal);
-            idxEnd = min(nTrace, max(entryIdx, exitIdx) + padVal);
-            sx = traceX(idxStart:idxEnd);
-            sy = traceY(idxStart:idxEnd);
-
-            % Multi-cut: expand existing swipe slash if still young (<10 frames).
-            % Fruits are sliced across consecutive frames as finger moves
-            % through the cluster. Don't reset fade timer — once the slash
-            % ages past 10 frames, it's sealed and further fruits get new slash.
-            ss = obj.SwipeSlashSlot;
-            if ss > 0 && ss <= 6 && obj.SlashActive(ss) ...
-                    && obj.SlashFrames(ss) < 15
-                % Expand: use current-frame coords, reset age so readback
-                % stays aligned with current trace buffer
-                obj.SlashIdxStart(ss) = min(idxStart, ...
-                    obj.SlashIdxStart(ss) - obj.SlashAge(ss));
-                obj.SlashIdxEnd(ss) = max(idxEnd, ...
-                    obj.SlashIdxEnd(ss) - obj.SlashAge(ss));
-                obj.SlashAge(ss) = 0;
-                newSx = traceX(max(1, obj.SlashIdxStart(ss)):min(nTrace, obj.SlashIdxEnd(ss)));
-                newSy = traceY(max(1, obj.SlashIdxStart(ss)):min(nTrace, obj.SlashIdxEnd(ss)));
-                glowH = obj.SlashPoolGlow{ss};
-                if ~isempty(glowH) && isvalid(glowH)
-                    glowH.XData = newSx; glowH.YData = newSy;
-                end
-                coreH = obj.SlashPoolCore{ss};
-                if ~isempty(coreH) && isvalid(coreH)
-                    coreH.XData = newSx; coreH.YData = newSy;
-                end
+            % Update slash window — store entry/exit positions for deferred drawing
+            entryOnCircle = [fx + fRadius * cos(a1), fy + fRadius * sin(a1)];
+            if ~obj.SlashWinActive
+                % Open window on first fruit
+                obj.SlashWinActive = true;
+                obj.SlashWinTimer = 0;
+                obj.SlashWinFruits = 1;
+                obj.SlashWinEntryPos = entryOnCircle;
+                obj.SlashWinExitPos = exitPos;
             else
-                % New slash
-                slashSlot = find(~obj.SlashActive, 1);
-                if ~isempty(slashSlot)
-                    obj.SlashFrames(slashSlot) = 0;
-                    obj.SlashAge(slashSlot) = 0;
-                    obj.SlashFadeFrames(slashSlot) = 29;
-                    obj.SlashIdxStart(slashSlot) = idxStart;
-                    obj.SlashIdxEnd(slashSlot) = idxEnd;
-                    obj.SlashActive(slashSlot) = true;
-                    obj.SwipeSlashSlot = slashSlot;
-
-                    glowH = obj.SlashPoolGlow{slashSlot};
-                    if ~isempty(glowH) && isvalid(glowH)
-                        glowH.XData = sx; glowH.YData = sy;
-                        glowH.Color = [obj.ColorCyan, 0.5];
-                        glowH.Visible = "on";
-                    end
-                    coreH = obj.SlashPoolCore{slashSlot};
-                    if ~isempty(coreH) && isvalid(coreH)
-                        coreH.XData = sx; coreH.YData = sy;
-                        coreH.Color = [obj.ColorWhite, 0.9];
-                        coreH.Visible = "on";
-                    end
-                end
-            end
-
-            % Seal slash after multi-cut (prevents further expansion)
-            % Also reset SwipeGenSliced so next fruits start a fresh group
-            if obj.SwipeGenSliced >= 2
-                obj.SwipeSlashSlot = 0;
-                obj.SwipeGenSliced = 0;
+                % Subsequent fruit — update exit and count
+                obj.SlashWinFruits = obj.SlashWinFruits + 1;
+                obj.SlashWinExitPos = exitPos;
             end
 
             % Spawn burst effect at fruit center
