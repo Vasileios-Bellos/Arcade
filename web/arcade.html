@@ -8210,12 +8210,12 @@ class FlickItGame {
             ctx.fillStyle = rgba(clr, 0.7);
             ctx.fillText(
                 `${Math.round(spd * 10)}  |  ${this.bounces} Bounces`,
-                bx, by - rr * coreBreath - 14
+                bx, by - rr * breath - 14
             );
         } else {
             const flicker = 0.4 + 0.3 * Math.sin(this.ballPhase * 1.5);
             ctx.fillStyle = rgba(Colors.Cyan, flicker);
-            ctx.fillText('Flick Me!', bx, by - rr * coreBreath - 14);
+            ctx.fillText('Flick Me!', bx, by - rr * breath - 14);
         }
         ctx.restore();
     }
