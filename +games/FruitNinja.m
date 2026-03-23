@@ -401,12 +401,13 @@ classdef FruitNinja < engine.GameBase
                 if ~obj.SlashActive(kk); continue; end
 
                 obj.SlashFrames(kk) = obj.SlashFrames(kk) + ds;
-                obj.SlashAge(kk) = obj.SlashAge(kk) + 1;  % buffer shifts once per frame, not by ds
+                obj.SlashAge(kk) = obj.SlashAge(kk) + 1;
 
                 if obj.SlashFrames(kk) > obj.SlashFadeFrames(kk)
                     obj.deactivateSlash(kk);
                     continue;
                 end
+
 
                 % Re-read from live trace — buffer shifts 1/frame when full,
                 % so subtract age to track the same physical points.
@@ -808,7 +809,7 @@ classdef FruitNinja < engine.GameBase
                 obj.MultiCutTextH.Color = [obj.ColorGold, 1];
                 obj.MultiCutTextH.Visible = "on";
                 obj.MultiCutFade = 48;  % frames to display
-                obj.SwipeSlashSlot = 0;  % seal the slash — no more expansion
+                obj.SwipeSlashSlot = 0;  % seal — no more expansion
             end
 
             % Store slice diagnostics
