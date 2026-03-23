@@ -783,9 +783,13 @@ classdef FruitNinja < engine.GameBase
             smallerArc = min(mod(a2 - a1, 2*pi), mod(a1 - a2, 2*pi));
             centrality = 1 - cos(smallerArc / 2);
 
+            % Reset multi-cut if previous slash has faded
+            firstSlot = obj.SwipeFirstEntry(2);
+            if firstSlot > 0 && firstSlot <= 6 && ~obj.SlashActive(firstSlot)
+                obj.SwipeGenSliced = 0;
+            end
+
             % Multi-cut: count fruits sliced in the same swipe generation.
-            % The fruit records which swipe it was entered during (FruitSwipeGen).
-            % This works even if the swipe ended before the exit was detected.
             fruitGen = obj.FruitSwipeGen(fruitSlot);
             if fruitGen > 0 && fruitGen == obj.SwipeGen
                 obj.SwipeGenSliced = obj.SwipeGenSliced + 1;
