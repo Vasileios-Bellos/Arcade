@@ -2302,6 +2302,13 @@ class BreakoutGame {
         }
 
         if (bounced) {
+            // Force-record bounce contact into trail
+            const tidx = this.trailIdx % this.trailLen;
+            this.trailBufX[tidx] = this.ballPos[0];
+            this.trailBufY[tidx] = this.ballPos[1];
+            this.trailIdx = tidx + 1;
+            this.trailAccum = 0;
+
             // Slight speed gain per wall bounce (line 412)
             this.ballVel[0] *= 1.005;
             this.ballVel[1] *= 1.005;
@@ -8129,6 +8136,13 @@ class FlickItGame {
         }
 
         if (bounced) {
+            // Force-record bounce contact into trail
+            const tidxB = this.trailIdx % this.trailLen;
+            this.trailBufX[tidxB] = this.ballPos[0];
+            this.trailBufY[tidxB] = this.ballPos[1];
+            this.trailIdx = tidxB + 1;
+            this.trailAccum = 0;
+
             this.bounces++;
             this.totalBounces++;
 
@@ -8563,6 +8577,13 @@ class JugglerGame {
         }
 
         if (bounced) {
+            // Force-record bounce contact into trail
+            const tidxB = this.trailIdx % this.trailLen;
+            this.trailBufX[tidxB] = this.ballPos[0];
+            this.trailBufY[tidxB] = this.ballPos[1];
+            this.trailIdx = tidxB + 1;
+            this.trailAccum = 0;
+
             this.bounces++;
             const bspd = hypot(this.ballVel[0], this.ballVel[1]);
             this.hitEffects.spawnBounceEffect(bouncePos[0], bouncePos[1], bounceNormalX, bounceNormalY, 0, bspd * this.speedScale);
