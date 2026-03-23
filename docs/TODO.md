@@ -31,7 +31,7 @@ No pending scaling work for arcade games.
 
 ## Per-Game TODOs (from code comments)
 
-- [ ] **TargetPractice**: Target timeout uses wall-clock time (toc), not DtScale — only gameplay-affecting tic/toc usage
+- [x] **TargetPractice**: Target timeout uses wall-clock time (toc) — this is correct, equivalent to DtScale for normal play
 - [x] **RailShooter**: Renamed death→defeat terminology (done in this session)
 
 **Note — wall-clock tic/toc (cosmetic, intentionally real-time):**
