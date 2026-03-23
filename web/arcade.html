@@ -9987,8 +9987,7 @@ class RailShooterGame {
         // --- Damage flash overlay ---
         if (this.damageFlashFrames > 0) {
             this.damageFlashFrames -= ds;
-            const alphaVal = this.damageFlashFrames / 19;
-            const fa = Math.max(0, Math.min(0.35, alphaVal * 0.35));
+            const fa = Math.max(0, Math.min(0.4, this.damageFlashFrames / 24 * 0.4));
             ctx.fillStyle = rgb(Colors.Red, fa);
             ctx.fillRect(dx[0], dy[0], areaW, areaH);
         }
