@@ -928,28 +928,26 @@ classdef FruitNinja < engine.GameBase
             % Spawn burst effect at fruit center
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
 
-            % Collect points for golden multi-cut overlay
+            % Collect points for golden multi-cut overlay (with padding)
             if multiCut == 1
-                % First fruit — store its entry and slash points
                 obj.SwipeFirstEntry = entryOnCircle;
                 obj.SwipeSlashPoints = [sx(:), sy(:)];
             elseif multiCut >= 2
-                % Append this slash's points, then build golden spline overlay
                 obj.SwipeSlashPoints = [obj.SwipeSlashPoints; sx(:), sy(:)];
                 pts = obj.SwipeSlashPoints;
 
-                % Remove duplicate/near-duplicate points for clean spline
+                % Remove near-duplicate points
                 dists = [0; sqrt(diff(pts(:,1)).^2 + diff(pts(:,2)).^2)];
                 keep = dists > 0.5;
                 keep(1) = true; keep(end) = true;
                 pts = pts(keep, :);
 
                 if size(pts, 1) >= 4
-                    % Spline interpolation for smooth golden line
+                    % pchip interpolation (shape-preserving, follows points closely)
                     t = cumsum([0; sqrt(diff(pts(:,1)).^2 + diff(pts(:,2)).^2)]);
-                    tq = linspace(t(1), t(end), max(40, size(pts, 1) * 2));
-                    gx = interp1(t, pts(:,1), tq, "spline");
-                    gy = interp1(t, pts(:,2), tq, "spline");
+                    tq = linspace(t(1), t(end), max(60, size(pts, 1) * 3));
+                    gx = interp1(t, pts(:,1), tq, "pchip");
+                    gy = interp1(t, pts(:,2), tq, "pchip");
                 else
                     gx = pts(:,1)'; gy = pts(:,2)';
                 end
