@@ -823,12 +823,11 @@ classdef Arcade < handle
                 if strlength(gameId) > 0
                     [isNewHigh, ~] = services.ScoreManager.submit( ...
                         gameId, obj.Score, obj.MaxCombo, elapsed);
-                    goldHex = sprintf("#%02X%02X%02X", ...
-                        round(obj.ColorGold * 255));
+                    g = obj.ColorGold;
                     if isNewHigh
                         detailLines{end + 1} = sprintf( ...
-                            '<font color="%s">★  NEW HIGH SCORE: %d  ★</font>', ...
-                            goldHex, obj.Score);
+                            "\\color[rgb]{%.2f,%.2f,%.2f}\\bigstar  NEW HIGH SCORE: %d  \\bigstar", ...
+                            g(1), g(2), g(3), obj.Score);
                     else
                         hsRec = services.ScoreManager.get(gameId);
                         detailLines{end + 1} = sprintf( ...
@@ -840,7 +839,7 @@ classdef Arcade < handle
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);
                 obj.ComboTextH.FontSize = 9 * obj.FontScale;
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
-                obj.ComboTextH.Interpreter = "html";
+                obj.ComboTextH.Interpreter = "tex";
                 obj.ComboTextH.Visible = "on";
             end
 
