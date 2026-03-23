@@ -1450,6 +1450,13 @@ class PongGame {
         }
 
         if (bounced) {
+            // Force-record bounce contact into trail (accumulator might skip it)
+            const tidx = this.trailIdx % this.trailLen;
+            this.trailBufX[tidx] = this.ballPos[0];
+            this.trailBufY[tidx] = this.ballPos[1];
+            this.trailIdx = tidx + 1;
+            this.trailAccum = 0;
+
             const spd = Math.hypot(this.ballVel[0], this.ballVel[1]);
             this.hitEffects.spawnBounceEffect(bouncePos, bounceNormal, 0, spd * this.speedScale);
         }
