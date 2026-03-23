@@ -375,7 +375,7 @@ classdef SpaceInvaders < engine.GameBase
             end
 
             % Enemy fire (random alien shoots) — use pool
-            if ~isempty(obj.Aliens) && rand < 0.0083 * (1 + obj.Wave * 0.3)
+            if ~isempty(obj.Aliens) && rand < 0.0083 * (1 + obj.Wave * 0.3) * ds
                 shooter = obj.Aliens(randi(numel(obj.Aliens)));
                 obj.activateEBullet(shooter.x, shooter.y);
             end

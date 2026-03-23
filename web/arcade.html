@@ -4737,7 +4737,7 @@ class SpaceInvadersGame {
         }
 
         // Enemy fire — SpaceInvaders.m lines 378-381
-        if (this.aliens.length > 0 && Math.random() < 0.0083 * (1 + this.wave * 0.3)) {
+        if (this.aliens.length > 0 && Math.random() < 0.0083 * (1 + this.wave * 0.3) * ds) {
             const shooter = this.aliens[Math.floor(Math.random() * this.aliens.length)];
             this._activateEBullet(shooter.x, shooter.y);
         }
