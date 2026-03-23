@@ -9961,12 +9961,12 @@ class RailShooterGame {
                     scaleVal * this.baseSize, defeatAlpha, progress);
 
                 // Secondary explosions
-                if (progress > 0.1 && progress < 0.7 && Math.random() < 0.2 * ds) {
+                if (progress > 0.1 && progress < 0.7 && Math.random() < 0.1 * ds) {
                     const bOff = baseScale * this.baseSize * 0.5;
                     const burstX = m.screenX + (Math.random() - 0.5) * bOff * 2;
                     const burstY = m.screenY + (Math.random() - 0.5) * bOff * 2;
                     this.hitFx.spawnBounce(burstX, burstY,
-                        Math.random() - 0.5, Math.random() - 0.5, 0, 15, this.Sc);
+                        Math.random() - 0.5, Math.random() - 0.5, 0, 7, this.Sc);
                 }
                 continue;
             }
@@ -10574,18 +10574,18 @@ class RailShooterGame {
         const defeatPts = (basePoints[m.type] || 100) * Math.max(1, Math.floor(this.combo / 5));
         this.addScore(defeatPts);
 
-        this.hitFx.spawnBounce(m.screenX, m.screenY, 0, -1, defeatPts, 15, this.Sc);
+        this.hitFx.spawnBounce(m.screenX, m.screenY, 0, -1, defeatPts, 7, this.Sc);
         if (m.type >= 2) {
             const scaleVal = this._depthScale(m.depth);
             const offsetVal = scaleVal * this.baseSize * 0.4;
-            this.hitFx.spawnBounce(m.screenX - offsetVal, m.screenY, -1, 0, 0, 15, this.Sc);
-            this.hitFx.spawnBounce(m.screenX + offsetVal, m.screenY, 1, 0, 0, 15, this.Sc);
+            this.hitFx.spawnBounce(m.screenX - offsetVal, m.screenY, -1, 0, 0, 7, this.Sc);
+            this.hitFx.spawnBounce(m.screenX + offsetVal, m.screenY, 1, 0, 0, 7, this.Sc);
         }
         if (m.type === 4) {
             const scaleVal = this._depthScale(m.depth);
             const offsetVal = scaleVal * this.baseSize * 0.4;
-            this.hitFx.spawnBounce(m.screenX, m.screenY - offsetVal, 0, -1, 0, 15, this.Sc);
-            this.hitFx.spawnBounce(m.screenX, m.screenY + offsetVal, 0, 1, 0, 15, this.Sc);
+            this.hitFx.spawnBounce(m.screenX, m.screenY - offsetVal, 0, -1, 0, 7, this.Sc);
+            this.hitFx.spawnBounce(m.screenX, m.screenY + offsetVal, 0, 1, 0, 7, this.Sc);
         }
 
         this.monsters[idx].defeated = true;

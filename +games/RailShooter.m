@@ -388,14 +388,14 @@ classdef RailShooter < engine.GameBase
                     end
 
                     % Secondary explosions at random positions during defeat
-                    if progress > 0.1 && progress < 0.7 && rand < 0.2 * ds
+                    if progress > 0.1 && progress < 0.7 && rand < 0.1 * ds
                         bOff = baseScale * obj.BaseSize * 0.5;
                         burstX = m.screenX + (rand - 0.5) * bOff * 2;
                         burstY = m.screenY + (rand - 0.5) * bOff * 2;
                         burstDir = [rand - 0.5, rand - 0.5];
                         dirNorm = norm(burstDir);
                         if dirNorm > 0; burstDir = burstDir / dirNorm; end
-                        obj.spawnBounceEffect([burstX, burstY], burstDir, 0, 15);
+                        obj.spawnBounceEffect([burstX, burstY], burstDir, 0, 7);
                     end
 
                     obj.hideMonsterDetails(m);
@@ -928,18 +928,18 @@ classdef RailShooter < engine.GameBase
             obj.addScore(defeatPts);
 
             % Defeat explosion
-            obj.spawnBounceEffect([m.screenX, m.screenY], [0, -1], defeatPts, 15);
+            obj.spawnBounceEffect([m.screenX, m.screenY], [0, -1], defeatPts, 7);
             if m.type >= 2
                 scaleVal = obj.depthScale(m.depth);
                 offsetVal = scaleVal * obj.BaseSize * 0.4;
-                obj.spawnBounceEffect([m.screenX - offsetVal, m.screenY], [-1, 0], 0, 15);
-                obj.spawnBounceEffect([m.screenX + offsetVal, m.screenY], [1, 0], 0, 15);
+                obj.spawnBounceEffect([m.screenX - offsetVal, m.screenY], [-1, 0], 0, 7);
+                obj.spawnBounceEffect([m.screenX + offsetVal, m.screenY], [1, 0], 0, 7);
             end
             if m.type == 4
                 scaleVal = obj.depthScale(m.depth);
                 offsetVal = scaleVal * obj.BaseSize * 0.4;
-                obj.spawnBounceEffect([m.screenX, m.screenY - offsetVal], [0, -1], 0, 15);
-                obj.spawnBounceEffect([m.screenX, m.screenY + offsetVal], [0, 1], 0, 15);
+                obj.spawnBounceEffect([m.screenX, m.screenY - offsetVal], [0, -1], 0, 7);
+                obj.spawnBounceEffect([m.screenX, m.screenY + offsetVal], [0, 1], 0, 7);
             end
 
             % Start defeat animation
