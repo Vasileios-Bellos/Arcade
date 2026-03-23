@@ -928,6 +928,16 @@ classdef FruitNinja < engine.GameBase
                     end
                     obj.SlashIdxEnd(firstSlot) = idxEnd + firstAge;
                     obj.SlashFrames(firstSlot) = 0;  % reset fade
+
+                    % Turn line golden
+                    glowH = obj.SlashPoolGlow{firstSlot};
+                    if ~isempty(glowH) && isvalid(glowH)
+                        glowH.Color = [obj.ColorGold, 0.5];
+                    end
+                    coreH = obj.SlashPoolCore{firstSlot};
+                    if ~isempty(coreH) && isvalid(coreH)
+                        coreH.Color = [obj.ColorGold, 0.9];
+                    end
                 end
                 % Deactivate this fruit's individual slash (first slash covers it)
                 if ~isempty(slashSlot) && slashSlot ~= firstSlot ...
