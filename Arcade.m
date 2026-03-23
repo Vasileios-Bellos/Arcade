@@ -820,15 +820,18 @@ classdef Arcade < handle
                     "Score: %d  |  Max Combo: %d  |  Time: %.0fs", ...
                     obj.Score, obj.MaxCombo, elapsed);
                 % Line 3: high score
+                highScoreLine = "";
+                highScoreColor = obj.ColorWhite * 0.85;
                 if strlength(gameId) > 0
                     [isNewHigh, ~] = services.ScoreManager.submit( ...
                         gameId, obj.Score, obj.MaxCombo, elapsed);
                     if isNewHigh
-                        detailLines{end + 1} = sprintf( ...
+                        highScoreLine = sprintf( ...
                             "★  NEW HIGH SCORE: %d  ★", obj.Score);
+                        highScoreColor = obj.ColorGold;
                     else
                         hsRec = services.ScoreManager.get(gameId);
-                        detailLines{end + 1} = sprintf( ...
+                        highScoreLine = sprintf( ...
                             "High Score: %d", hsRec.highScore);
                     end
                 end
@@ -838,10 +841,21 @@ classdef Arcade < handle
                 obj.ComboTextH.FontSize = 9 * obj.FontScale;
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
                 obj.ComboTextH.Visible = "on";
-            end
 
-            if ~isempty(obj.HudTextH) && isvalid(obj.HudTextH)
-                obj.HudTextH.Visible = "off";
+                % High score on separate text handle for gold color
+                if ~isempty(obj.HudTextH) && isvalid(obj.HudTextH)
+                    if strlength(highScoreLine) > 0
+                        obj.HudTextH.String = highScoreLine;
+                        obj.HudTextH.Position = [cx, cy + diff(dy) * 0.05, 0];
+                        obj.HudTextH.FontSize = 9 * obj.FontScale;
+                        obj.HudTextH.Color = highScoreColor;
+                        obj.HudTextH.HorizontalAlignment = "center";
+                        obj.HudTextH.VerticalAlignment = "top";
+                        obj.HudTextH.Visible = "on";
+                    else
+                        obj.HudTextH.Visible = "off";
+                    end
+                end
             end
         end
 
