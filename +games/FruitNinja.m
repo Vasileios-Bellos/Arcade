@@ -85,6 +85,8 @@ classdef FruitNinja < engine.GameBase
         SwipeGenSliced  (1,1) double = 0        % fruits sliced in current swipe gen
         SwipeSlowFrames (1,1) double = 0        % slow frames accumulator (DtScale-adjusted)
         FruitSwipeGen   (1,8) double = 0        % swipe generation when fruit was entered
+        SwipeFirstEntry (1,2) double = [0 0]    % entry-on-circle of first fruit in swipe
+        SwipeSlashPoints        = []             % collected [x,y] points across all slashes in swipe
         MultiCutTextH                            % text handle for "×2" flash
         MultiCutFade    (1,1) double = 0         % fade countdown (frames)
 
@@ -406,9 +408,22 @@ classdef FruitNinja < engine.GameBase
                     continue;
                 end
 
-                % Re-read from live trace — buffer shifts 1/frame when full,
-                % so subtract age to track the same physical points.
-                % During growing phase (buffer not full), no shift occurs.
+                % Golden overlay slashes (IdxStart==0) use stored XData — just fade
+                if obj.SlashIdxStart(kk) == 0 && obj.SlashIdxEnd(kk) == 0
+                    fadeProgress = obj.SlashFrames(kk) / obj.SlashFadeFrames(kk);
+                    alphaVal = 1 - fadeProgress^0.5;
+                    coreH = obj.SlashPoolCore{kk};
+                    if ~isempty(coreH) && isvalid(coreH)
+                        coreH.Color(4) = alphaVal * 0.9;
+                    end
+                    glowH = obj.SlashPoolGlow{kk};
+                    if ~isempty(glowH) && isvalid(glowH)
+                        glowH.Color(4) = alphaVal * 0.6;
+                    end
+                    continue;
+                end
+
+                % Re-read from live trace — buffer shifts 1/frame when full
                 if obj.TraceBufferIdx >= obj.TraceBufferMax
                     age = obj.SlashAge(kk) - 1;
                 else
@@ -912,6 +927,57 @@ classdef FruitNinja < engine.GameBase
 
             % Spawn burst effect at fruit center
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
+
+            % Collect points for golden multi-cut overlay
+            if multiCut == 1
+                % First fruit — store its entry and slash points
+                obj.SwipeFirstEntry = entryOnCircle;
+                obj.SwipeSlashPoints = [sx(:), sy(:)];
+            elseif multiCut >= 2
+                % Append this slash's points, then build golden spline overlay
+                obj.SwipeSlashPoints = [obj.SwipeSlashPoints; sx(:), sy(:)];
+                pts = obj.SwipeSlashPoints;
+
+                % Remove duplicate/near-duplicate points for clean spline
+                dists = [0; sqrt(diff(pts(:,1)).^2 + diff(pts(:,2)).^2)];
+                keep = dists > 0.5;
+                keep(1) = true; keep(end) = true;
+                pts = pts(keep, :);
+
+                if size(pts, 1) >= 4
+                    % Spline interpolation for smooth golden line
+                    t = cumsum([0; sqrt(diff(pts(:,1)).^2 + diff(pts(:,2)).^2)]);
+                    tq = linspace(t(1), t(end), max(40, size(pts, 1) * 2));
+                    gx = interp1(t, pts(:,1), tq, "spline");
+                    gy = interp1(t, pts(:,2), tq, "spline");
+                else
+                    gx = pts(:,1)'; gy = pts(:,2)';
+                end
+
+                % Create golden overlay in a slash pool slot
+                goldSlot = find(~obj.SlashActive, 1);
+                if ~isempty(goldSlot)
+                    obj.SlashFrames(goldSlot) = 0;
+                    obj.SlashAge(goldSlot) = 0;
+                    obj.SlashFadeFrames(goldSlot) = 36;
+                    obj.SlashIdxStart(goldSlot) = 0;
+                    obj.SlashIdxEnd(goldSlot) = 0;
+                    obj.SlashActive(goldSlot) = true;
+
+                    glowH = obj.SlashPoolGlow{goldSlot};
+                    if ~isempty(glowH) && isvalid(glowH)
+                        glowH.XData = gx; glowH.YData = gy;
+                        glowH.Color = [obj.ColorGold, 0.6];
+                        glowH.Visible = "on";
+                    end
+                    coreH = obj.SlashPoolCore{goldSlot};
+                    if ~isempty(coreH) && isvalid(coreH)
+                        coreH.XData = gx; coreH.YData = gy;
+                        coreH.Color = [obj.ColorGold, 0.9];
+                        coreH.Visible = "on";
+                    end
+                end
+            end
 
             % Deactivate original fruit (hide, not delete)
             obj.deactivateFruit(fruitSlot);
