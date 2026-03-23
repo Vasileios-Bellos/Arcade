@@ -460,7 +460,7 @@ classdef Arcade < handle
                 obj.MousePos(2) = max(obj.DisplayRange.Y(1), min(obj.DisplayRange.Y(2), obj.MousePos(2)));
             end
 
-            obj.ActiveGame.DtScale = obj.SmoothedDt * obj.ActiveGame.RefFPS;
+            obj.ActiveGame.DtScale = obj.RawDt * obj.ActiveGame.RefFPS;
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
 
