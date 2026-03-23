@@ -9966,7 +9966,7 @@ class RailShooterGame {
                     const burstX = m.screenX + (Math.random() - 0.5) * bOff * 2;
                     const burstY = m.screenY + (Math.random() - 0.5) * bOff * 2;
                     this.hitFx.spawnBounce(burstX, burstY,
-                        Math.random() - 0.5, Math.random() - 0.5, 0, 6, this.Sc);
+                        Math.random() - 0.5, Math.random() - 0.5, 0, 15, this.Sc);
                 }
                 continue;
             }
@@ -10578,14 +10578,14 @@ class RailShooterGame {
         if (m.type >= 2) {
             const scaleVal = this._depthScale(m.depth);
             const offsetVal = scaleVal * this.baseSize * 0.4;
-            this.hitFx.spawnBounce(m.screenX - offsetVal, m.screenY, -1, 0, 0, 8, this.Sc);
-            this.hitFx.spawnBounce(m.screenX + offsetVal, m.screenY, 1, 0, 0, 8, this.Sc);
+            this.hitFx.spawnBounce(m.screenX - offsetVal, m.screenY, -1, 0, 0, 15, this.Sc);
+            this.hitFx.spawnBounce(m.screenX + offsetVal, m.screenY, 1, 0, 0, 15, this.Sc);
         }
         if (m.type === 4) {
             const scaleVal = this._depthScale(m.depth);
             const offsetVal = scaleVal * this.baseSize * 0.4;
-            this.hitFx.spawnBounce(m.screenX, m.screenY - offsetVal, 0, -1, 0, 12, this.Sc);
-            this.hitFx.spawnBounce(m.screenX, m.screenY + offsetVal, 0, 1, 0, 12, this.Sc);
+            this.hitFx.spawnBounce(m.screenX, m.screenY - offsetVal, 0, -1, 0, 15, this.Sc);
+            this.hitFx.spawnBounce(m.screenX, m.screenY + offsetVal, 0, 1, 0, 15, this.Sc);
         }
 
         this.monsters[idx].defeated = true;

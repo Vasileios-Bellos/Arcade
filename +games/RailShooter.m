@@ -395,7 +395,7 @@ classdef RailShooter < engine.GameBase
                         burstDir = [rand - 0.5, rand - 0.5];
                         dirNorm = norm(burstDir);
                         if dirNorm > 0; burstDir = burstDir / dirNorm; end
-                        obj.spawnBounceEffect([burstX, burstY], burstDir, 0, 6);
+                        obj.spawnBounceEffect([burstX, burstY], burstDir, 0, 15);
                     end
 
                     obj.hideMonsterDetails(m);
@@ -932,14 +932,14 @@ classdef RailShooter < engine.GameBase
             if m.type >= 2
                 scaleVal = obj.depthScale(m.depth);
                 offsetVal = scaleVal * obj.BaseSize * 0.4;
-                obj.spawnBounceEffect([m.screenX - offsetVal, m.screenY], [-1, 0], 0, 8);
-                obj.spawnBounceEffect([m.screenX + offsetVal, m.screenY], [1, 0], 0, 8);
+                obj.spawnBounceEffect([m.screenX - offsetVal, m.screenY], [-1, 0], 0, 15);
+                obj.spawnBounceEffect([m.screenX + offsetVal, m.screenY], [1, 0], 0, 15);
             end
             if m.type == 4
                 scaleVal = obj.depthScale(m.depth);
                 offsetVal = scaleVal * obj.BaseSize * 0.4;
-                obj.spawnBounceEffect([m.screenX, m.screenY - offsetVal], [0, -1], 0, 12);
-                obj.spawnBounceEffect([m.screenX, m.screenY + offsetVal], [0, 1], 0, 12);
+                obj.spawnBounceEffect([m.screenX, m.screenY - offsetVal], [0, -1], 0, 15);
+                obj.spawnBounceEffect([m.screenX, m.screenY + offsetVal], [0, 1], 0, 15);
             end
 
             % Start defeat animation
