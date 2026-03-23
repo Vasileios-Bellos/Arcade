@@ -36,7 +36,7 @@ Eight legendary arcade games, recreated from scratch in pure MATLAB.
 | 5 | **Asteroids** | Mouse / Keyboard | Wireframe polygons that split on impact. Auto-fire crosshair tracks your cursor. |
 | 6 | **Space Invaders** | Mouse / Keyboard | 3 alien types, 5 wave formations, destructible shields, and power-up drops. |
 | 7 | **Flappy Bird** | Mouse / Keyboard | Pipe gaps tighten and scroll speed ramps up. Space, Up, or click to flap. |
-| 8 | **Fruit Ninja** | Mouse / Keyboard | Slash arcing fruit with your cursor. Multi-cut combos and centrality scoring. |
+| 8 | **Fruit Ninja** | Mouse / Keyboard | Slash arcing fruit with your cursor. Cut multiple fruits in quick succession for a golden multi-cut streak with score multiplier. |
 
 ## The Originals
 

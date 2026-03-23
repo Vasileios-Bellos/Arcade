@@ -277,7 +277,7 @@ MATLAB graphics object creation involves handle registration, renderer sync, and
 | SpaceInvaders | 10 player bullets + 15 enemy bullets + 4 power-ups + 1 shield |
 | ShieldGuardian | 20 projectiles (scatter pairs) |
 | OrbitalDefense | 10 interceptors + 12 explosions + 50 asteroids |
-| FruitNinja | 8 fruits + 16 halves + 6 slash effects |
+| FruitNinja | 8 fruits + 16 halves + 6 slash effects. Multi-cut: first slash extends its `idxEnd` to cover subsequent fruits (age-adjusted). Line turns golden on ×2+. Slash fades in ~0.48s (29 DtScale units); each hit resets the timer. `SwipeGenSliced` resets when the slash deactivates, preventing stale multipliers. |
 | Firefly Chase | 4 fireflies (dot + aura + trail + trailGlow each) |
 | Snake | 60 body segments + 2 food handles |
 | FlappyBird | 10 pipe pairs |
