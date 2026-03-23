@@ -77,7 +77,7 @@ No pending scaling work for arcade games.
 
 ## Performance
 
-- [ ] Investigate jumpy/stuttery gameplay at 40+ FPS — the DtScale system handles physics correctly but abrupt dt variations cause visible hitches. Possible fixes: smooth dt with a short EMA filter, cap dt variance between frames, or use fixed timestep with interpolated rendering
+- [x] Investigate jumpy/stuttery gameplay at 40+ FPS — EMA dt smoothing tested and reverted (introduced lag-induced jitter). Raw dt with cap at 0.1s is the correct approach. Mouse motion callback overhead during drawnow is a known MATLAB limitation
 
 ## HTML Port
 
