@@ -834,8 +834,11 @@ classdef Arcade < handle
                             "High Score: %d", hsRec.highScore);
                     end
                 end
+                w = obj.ColorWhite * 0.85;
                 detailLines{end + 1} = "";
-                detailLines{end + 1} = "[R] PLAY AGAIN   |   [ESC] MENU";
+                detailLines{end + 1} = sprintf( ...
+                    "\\color[rgb]{%.2f %.2f %.2f}[R] PLAY AGAIN   |   [ESC] MENU", ...
+                    w(1), w(2), w(3));
                 obj.ComboTextH.String = strjoin(string(detailLines), newline);
                 obj.ComboTextH.FontSize = 9 * obj.FontScale;
                 obj.ComboTextH.Color = obj.ColorWhite * 0.85;
