@@ -2382,6 +2382,14 @@ class BreakoutGame {
         // --- Brick collisions (lines 477-481) ---
         if (!isNaN(this.ballPos[0])) {
             const result = this.brickCollision(prePos, this.ballPos, this.ballVel);
+            // Force-record if position changed (brick bounce)
+            if (result.pos[0] !== this.ballPos[0] || result.pos[1] !== this.ballPos[1]) {
+                const tidxBr = this.trailIdx % this.trailLen;
+                this.trailBufX[tidxBr] = result.pos[0];
+                this.trailBufY[tidxBr] = result.pos[1];
+                this.trailIdx = tidxBr + 1;
+                this.trailAccum = 0;
+            }
             this.ballPos = result.pos;
             this.ballVel = result.vel;
             this.ballSpeed = Math.hypot(this.ballVel[0], this.ballVel[1]);
