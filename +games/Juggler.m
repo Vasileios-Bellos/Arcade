@@ -339,7 +339,7 @@ classdef Juggler < engine.GameBase
             % Capture current ball's streak before results
             bestStreak = max(obj.BestStreak, obj.BallFlicks);
             r.Lines = {
-                sprintf("Total Flicks: %d  |  Best Flick Streak: %d", ...
+                sprintf("Total Flicks: %d  |  Best Streak: %d", ...
                     obj.Flicks, bestStreak)
             };
         end

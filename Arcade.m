@@ -71,6 +71,7 @@ classdef Arcade < handle
         DtBufIdx        (1,1) double = 0        % current write index
         DtScale         (1,1) double = 1        % rawDt * RefFPS
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
+        SmoothedDt      (1,1) double = 0.040   % EMA-smoothed dt for physics
         PrevAxPx        (1,2) double = [0, 0]  % previous [width, height] in pixels
         FontScale       (1,1) double = 1       % min(axPx/[854,480]) — current scale
     end
@@ -379,9 +380,11 @@ classdef Arcade < handle
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
-            % Measure frame dt (cap at 50ms / 20 FPS floor)
+            % Measure frame dt (cap at 100ms / 10 FPS floor)
             obj.RawDt = min(toc(obj.FpsLastTic), 0.1);
             obj.FpsLastTic = tic;
+            % EMA smoothing (alpha=0.3): absorbs single-frame dt spikes
+            obj.SmoothedDt = 0.3 * obj.RawDt + 0.7 * obj.SmoothedDt;
             % Update ring buffer for FPS display
             obj.DtBufIdx = mod(obj.DtBufIdx, numel(obj.DtBuffer)) + 1;
             obj.DtBuffer(obj.DtBufIdx) = obj.RawDt;
@@ -457,7 +460,7 @@ classdef Arcade < handle
                 obj.MousePos(2) = max(obj.DisplayRange.Y(1), min(obj.DisplayRange.Y(2), obj.MousePos(2)));
             end
 
-            obj.ActiveGame.DtScale = obj.RawDt * obj.ActiveGame.RefFPS;
+            obj.ActiveGame.DtScale = obj.SmoothedDt * obj.ActiveGame.RefFPS;
             obj.ActiveGame.onUpdate(obj.MousePos);
             obj.ActiveGame.updateHitEffects();
 
@@ -630,6 +633,16 @@ classdef Arcade < handle
 
         function enterMenu(obj)
             %enterMenu  Return to menu screen.
+
+            % Stop timer during transition to prevent mid-transition render
+            % (same pattern as launchGame — avoids partial-state drawnow)
+            timerWasRunning = false;
+            if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer) ...
+                    && strcmp(obj.RenderTimer.Running, "on")
+                stop(obj.RenderTimer);
+                timerWasRunning = true;
+            end
+
             obj.State = "menu";
             obj.ArrowHeld(:) = false;
             obj.KeyboardMode = false;
@@ -647,6 +660,12 @@ classdef Arcade < handle
             obj.hideGameplayHUD();
             if ~isempty(obj.Menu)
                 obj.Menu.show();
+            end
+
+            % Restart timer
+            if timerWasRunning && ~isempty(obj.RenderTimer) ...
+                    && isvalid(obj.RenderTimer)
+                start(obj.RenderTimer);
             end
         end
 

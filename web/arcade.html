@@ -45,7 +45,7 @@ const Colors = {
     green:   [51, 255, 102],
     gold:    [255, 217, 51],
     red:     [255, 77, 51],
-    white:   [242, 242, 247],
+    white:   [255, 255, 255],
     magenta: [255, 77, 217],
     purple:  [179, 77, 255],
     teal:    [20, 140, 179],
@@ -537,40 +537,41 @@ class GameMenu {
 
         const cx = DISPLAY_W / 2;
 
-        // Title glow
+        // Title glow (MATLAB: [0 0.12 0.17])
         ctx.save();
         ctx.shadowBlur = 15;
-        ctx.shadowColor = rgb(Colors.cyan, 0.3);
-        ctx.fillStyle = rgb(Colors.cyan, 0.2);
+        ctx.shadowColor = rgb([0, 140, 166], 0.3);
+        ctx.fillStyle = rgb([0, 31, 43]);
         ctx.font = 'bold 29px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText('A  R  C  A  D  E', cx, 30);
+        ctx.fillText('A  R  C  A  D  E', cx + 2, 31.5);
         ctx.restore();
 
-        // Title core
-        ctx.fillStyle = rgb(Colors.cyan, 0.85);
+        // Title core (MATLAB: [0.0 0.55 0.65])
+        ctx.fillStyle = rgb([0, 140, 166]);
         ctx.font = 'bold 29px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText('A  R  C  A  D  E', cx, 30);
 
-        // Subtitle
-        ctx.fillStyle = rgb(Colors.teal);
+        // Subtitle (MATLAB: [0.0 0.55 0.65])
+        ctx.fillStyle = rgb([0, 140, 166]);
         ctx.font = 'bold 13px Arial';
         ctx.fillText('S E L E C T   G A M E', cx, 68);
 
-        // Deco line
+        // Deco line (MATLAB: [0.0 0.55 0.65] with alpha 0.6 core, 0.25 glow)
         const lineW = 160;
-        ctx.strokeStyle = rgb(Colors.cyan, 0.6);
-        ctx.lineWidth = 2;
+        // Glow first (behind)
+        ctx.strokeStyle = rgb([0, 140, 166], 0.25);
+        ctx.lineWidth = 6;
         ctx.beginPath();
         ctx.moveTo(cx - lineW / 2, 85);
         ctx.lineTo(cx + lineW / 2, 85);
         ctx.stroke();
-        // Glow
-        ctx.strokeStyle = rgb(Colors.cyan, 0.15);
-        ctx.lineWidth = 6;
+        // Core on top
+        ctx.strokeStyle = rgb([0, 140, 166], 0.6);
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(cx - lineW / 2, 85);
         ctx.lineTo(cx + lineW / 2, 85);
@@ -1283,7 +1284,10 @@ class PongGame {
         // Move toward target (lines 547-553)
         const scaledSpeed = paddleSpeed * dtScale;
         const deltaY = this.aiTargetY - this.aiPaddleY;
-        if (Math.abs(deltaY) > scaledSpeed) {
+        // Dead zone: suppress jitter when near target and ball moving away
+        if (Math.abs(deltaY) < 2 && this.ballVel[0] > 0) {
+            // Ball heading right (away from AI) — hold position
+        } else if (Math.abs(deltaY) > scaledSpeed) {
             this.aiPaddleY += Math.sign(deltaY) * scaledSpeed;
         } else {
             this.aiPaddleY = this.aiTargetY;
@@ -8896,7 +8900,7 @@ class JugglerGame {
         return {
             title: 'JUGGLER',
             lines: [
-                `Total Flicks: ${this.flicks}  |  Best Flick Streak: ${bestStreak}`
+                `Total Flicks: ${this.flicks}  |  Best Streak: ${bestStreak}`
             ],
         };
     }

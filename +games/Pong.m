@@ -546,7 +546,10 @@ classdef Pong < engine.GameBase
             % Move toward target (scale by dt for frame-rate independence)
             scaledSpeed = paddleSpeed * obj.DtScale;
             deltaY = obj.AITargetY - obj.AIPaddleY;
-            if abs(deltaY) > scaledSpeed
+            % Dead zone: suppress jitter when near target and ball moving away
+            if abs(deltaY) < 2 && obj.BallVel(1) > 0
+                % Ball heading right (away from AI) — hold position
+            elseif abs(deltaY) > scaledSpeed
                 obj.AIPaddleY = obj.AIPaddleY + sign(deltaY) * scaledSpeed;
             else
                 obj.AIPaddleY = obj.AITargetY;

@@ -240,6 +240,8 @@ classdef (Sealed) GameMenu < handle
 
         function show(obj)
             %show  Make all menu graphics visible and refresh scores.
+            if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
+            if obj.NumSlots == 0; return; end
             obj.updateSlotContent();
             obj.setAllVisible("on");
             obj.AnimStartTic = tic;
@@ -758,7 +760,8 @@ classdef (Sealed) GameMenu < handle
         function updateSlotContent(obj)
             %updateSlotContent  Fill slot graphics with game data from scroll window.
             nGames = numel(obj.RegistryOrder);
-            for slot = 1:obj.NumSlots
+            nCells = numel(obj.MenuItemKeyText);
+            for slot = 1:min(obj.NumSlots, nCells)
                 gameIdx = obj.ScrollOffset + slot;
                 if gameIdx >= 1 && gameIdx <= nGames
                     entry = obj.Registry(obj.RegistryOrder(gameIdx));
