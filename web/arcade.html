@@ -5807,7 +5807,7 @@ class FruitNinjaGame {
         this.swipeActive = false;
         this.swipeGen = 0;
         this.swipeGenSliced = 0;
-        this.swipeSlashSlot = -1;
+
 
         // Pre-compute circle points (24-point)
         this.theta24 = [];
@@ -5901,7 +5901,7 @@ class FruitNinjaGame {
             }
             slashSpeed = sum / count;
         }
-        const slashThresh = Math.max(1.5, Math.min(areaW, areaH) * 0.008);
+        const slashThresh = Math.max(0.5, Math.min(areaW, areaH) * 0.002);
 
         // ---- Swipe lifecycle ----
         if (slashSpeed > slashThresh) {
@@ -5909,7 +5909,7 @@ class FruitNinjaGame {
                 this.swipeActive = true;
                 this.swipeGen++;
                 this.swipeGenSliced = 0;
-                this.swipeSlashSlot = -1;
+        
             }
         } else {
             this.swipeActive = false;
@@ -6455,27 +6455,15 @@ class FruitNinjaGame {
             const idxStart = Math.max(0, Math.min(entryLocal, exitLocal) - padVal);
             const idxEnd = Math.min(nTrace - 1, Math.max(entryLocal, exitLocal) + padVal);
 
-            // Multi-cut: expand existing swipe slash or create new
-            const ss = this.swipeSlashSlot;
-            if (ss >= 0 && ss < 6 && this.slashActive[ss]) {
-                // Convert current indices to slash's coordinate system
-                // (buffer shifted by slashAge since slash was created)
-                const age = this.slashAge[ss];
-                this.slashIdxStart[ss] = Math.min(this.slashIdxStart[ss], idxStart + age);
-                this.slashIdxEnd[ss] = Math.max(this.slashIdxEnd[ss], idxEnd + age);
-                this.slashFrames[ss] = 0;  // reset fade
-                this.slashFadeFrames[ss] = 29;
-            } else {
-                const slashSlot = this.findInactiveSlot(this.slashActive, 6);
-                if (slashSlot >= 0) {
-                    this.slashFrames[slashSlot] = 0;
-                    this.slashAge[slashSlot] = 0;
-                    this.slashFadeFrames[slashSlot] = 29;
-                    this.slashIdxStart[slashSlot] = idxStart;
-                    this.slashIdxEnd[slashSlot] = idxEnd;
-                    this.slashActive[slashSlot] = 1;
-                    this.swipeSlashSlot = slashSlot;
-                }
+            // Each fruit gets its own slash slot
+            const slashSlot = this.findInactiveSlot(this.slashActive, 6);
+            if (slashSlot >= 0) {
+                this.slashFrames[slashSlot] = 0;
+                this.slashAge[slashSlot] = 0;
+                this.slashFadeFrames[slashSlot] = 29;
+                this.slashIdxStart[slashSlot] = idxStart;
+                this.slashIdxEnd[slashSlot] = idxEnd;
+                this.slashActive[slashSlot] = 1;
             }
         }
 
