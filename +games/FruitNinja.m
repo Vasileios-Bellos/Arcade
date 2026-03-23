@@ -59,6 +59,13 @@ classdef FruitNinja < engine.GameBase
         SlashIdxStart   (1,6) double = 0
         SlashIdxEnd     (1,6) double = 0
         SlashActive     (1,6) logical = false
+
+        % Slash window — buffers fruits during one swipe motion
+        SlashWinActive  (1,1) logical = false
+        SlashWinTimer   (1,1) double = 0       % DtScale accumulator
+        SlashWinFruits  struct = struct([])     % buffered fruit data
+        SlashWinEntryOnCircle (1,2) double = [0 0]  % first fruit entry-on-circle
+        SlashWinLastExit (1,2) double = [0 0]       % last fruit exit position
     end
 
     % =================================================================
@@ -265,6 +272,14 @@ classdef FruitNinja < engine.GameBase
                 end
             else
                 obj.SwipeActive = false;
+            end
+
+            % --- Slash window — finalize when velocity drops or 1s timeout ---
+            if obj.SlashWinActive
+                obj.SlashWinTimer = obj.SlashWinTimer + ds;
+                if slashSpeed < slashThresh || obj.SlashWinTimer >= 60
+                    obj.finalizeSlash(traceX, traceY, nTrace);
+                end
             end
 
             % --- Spawn fruits ---
@@ -731,10 +746,7 @@ classdef FruitNinja < engine.GameBase
 
         function sliceFruit(obj, fruitSlot, exitPos, slashSpeed, traceX, traceY, nTrace)
             %sliceFruit  Slice fruit into two halves with slash animation.
-            %   Uses entry/exit angles for accurate cut geometry.
-            ax = obj.Ax;
-            if isempty(ax) || ~isvalid(ax); return; end
-
+            %   Buffers fruit data for deferred processing by finalizeSlash.
             fx = obj.FruitX(fruitSlot);
             fy = obj.FruitY(fruitSlot);
             fRadius = obj.FruitRadius(fruitSlot);
@@ -742,138 +754,137 @@ classdef FruitNinja < engine.GameBase
             fvx = obj.FruitVx(fruitSlot);
             fvy = obj.FruitVy(fruitSlot);
 
-            obj.FruitsSliced = obj.FruitsSliced + 1;
-            obj.incrementCombo();
-
-            % Cut direction from the actual finger trajectory through the
-            % fruit. Uses entry and exit POSITIONS relative to the fruit's
-            % CURRENT center — this gives the true slash line regardless of
-            % how much the fruit moved between entry and exit.
+            % Compute cut geometry
             entryPos = obj.FruitEntryPos(fruitSlot, :);
             slashVec = exitPos - entryPos;
-            if norm(slashVec) < 0.1
-                slashVec = [1, 0];  % fallback horizontal
-            end
+            if norm(slashVec) < 0.1; slashVec = [1, 0]; end
             slashVec = slashVec / norm(slashVec);
 
-            % Project entry/exit onto the fruit circle to get cut points.
-            % The slash line passes through or near the fruit center;
-            % intersect it with the circle for the arc split points.
-            % Use the perpendicular from fruit center to the slash line
-            % to find the closest approach, then compute intersection angles.
             toCenter = [fx, fy] - entryPos;
             projLen = dot(toCenter, slashVec);
             closestPt = entryPos + projLen * slashVec;
             perpDist = norm([fx, fy] - closestPt);
 
             if perpDist < fRadius
-                % Line intersects circle — compute exact intersection points
                 halfChord = sqrt(fRadius^2 - perpDist^2);
                 intPt1 = closestPt - halfChord * slashVec;
                 intPt2 = closestPt + halfChord * slashVec;
                 a1 = atan2(intPt1(2) - fy, intPt1(1) - fx);
                 a2 = atan2(intPt2(2) - fy, intPt2(1) - fx);
             else
-                % Line doesn't intersect (edge case) — use angle projection
                 a1 = atan2(entryPos(2) - fy, entryPos(1) - fx);
                 a2 = atan2(exitPos(2) - fy, exitPos(1) - fx);
             end
 
-            % Centrality: how close the chord passes through center.
-            % Smaller arc => chord further from center => lower centrality.
             smallerArc = min(mod(a2 - a1, 2*pi), mod(a1 - a2, 2*pi));
             centrality = 1 - cos(smallerArc / 2);
+            entryOnCircle = [fx + fRadius * cos(a1), fy + fRadius * sin(a1)];
 
-            % Multi-cut: count fruits sliced in the same swipe generation.
-            % The fruit records which swipe it was entered during (FruitSwipeGen).
-            % This works even if the swipe ended before the exit was detected.
-            fruitGen = obj.FruitSwipeGen(fruitSlot);
-            if fruitGen > 0 && fruitGen == obj.SwipeGen
-                obj.SwipeGenSliced = obj.SwipeGenSliced + 1;
+            % Buffer this fruit for deferred processing
+            fd = struct("slot", fruitSlot, "fx", fx, "fy", fy, ...
+                "fRadius", fRadius, "fColor", {fColor}, ...
+                "fvx", fvx, "fvy", fvy, ...
+                "a1", a1, "a2", a2, "slashVec", slashVec, ...
+                "centrality", centrality, "slashSpeed", slashSpeed, ...
+                "entryOnCircle", entryOnCircle, "exitPos", exitPos);
+
+            if ~obj.SlashWinActive
+                obj.SlashWinActive = true;
+                obj.SlashWinTimer = 0;
+                obj.SlashWinFruits = fd;
+                obj.SlashWinEntryOnCircle = entryOnCircle;
+            else
+                obj.SlashWinFruits(end + 1) = fd;
             end
+            obj.SlashWinLastExit = exitPos;
 
-            % Scoring: base x centrality bonus x combo x multi-cut multiplier
-            comboMult = obj.comboMultiplier();
-            centralityBonus = 0.5 + centrality;  % 0.5 (edge) to 1.5 (center)
-            multiCut = obj.SwipeGenSliced;  % 1 = normal, 2+ = multi-cut
-            points = round(100 * centralityBonus * comboMult * multiCut);
-            obj.addScore(points);
+            % Hide fruit immediately (hit but not yet split)
+            obj.deactivateFruit(fruitSlot);
+            obj.FruitSlashing(fruitSlot) = false;
+        end
 
-            % Flash multi-cut text (×2, ×3, ...) at fruit position
-            if multiCut >= 2 && ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
-                obj.MultiCutTextH.String = sprintf("%d%s", multiCut, char(215));
-                obj.MultiCutTextH.Position = [fx, fy - fRadius * 2, 0];
-                obj.MultiCutTextH.Color = [obj.ColorGold, 1];
-                obj.MultiCutTextH.Visible = "on";
-                obj.MultiCutFade = 48;  % frames to display
-            end
+        function finalizeSlash(obj, traceX, traceY, nTrace)
+            %finalizeSlash  Process all buffered fruits at once.
+            if ~obj.SlashWinActive; return; end
+            fruits = obj.SlashWinFruits;
+            nFruit = numel(fruits);
+            obj.SlashWinActive = false;
+            obj.SlashWinTimer = 0;
+            obj.SlashWinFruits = struct([]);
+            if nFruit == 0; return; end
 
-            % Store slice diagnostics
-            slashAngle = atan2(sin(a2 - a1), cos(a2 - a1));
-            obj.SliceHistory(end + 1) = struct("centrality", centrality, ...
-                "speed", slashSpeed, "angle", rad2deg(slashAngle), ...
-                "position", [fx, fy], "time", toc(obj.StartTicLocal));
+            multiCut = nFruit;
 
-            % Split normal: perpendicular to the slash direction.
-            % Halves fly apart along this normal + inherit swipe momentum.
-            splitNorm = [-slashVec(2); slashVec(1)];  % perpendicular to slash
+            % Process each fruit: split halves, score, burst
+            for fi = 1:nFruit
+                fd = fruits(fi);
+                obj.FruitsSliced = obj.FruitsSliced + 1;
+                obj.incrementCombo();
 
-            % Build two half-pieces: arc from a1->a2 and arc from a2->a1+2pi
-            for side = [1, -1]
-                if side == 1
-                    arcSpan = mod(a2 - a1, 2*pi);
-                    arcTheta = linspace(a1, a1 + arcSpan, 20);
-                else
-                    arcSpan = mod(a1 - a2, 2*pi);
-                    arcTheta = linspace(a2, a2 + arcSpan, 20);
+                % Score with multiplier applied to all
+                comboMult = obj.comboMultiplier();
+                centralityBonus = 0.5 + fd.centrality;
+                points = round(100 * centralityBonus * comboMult * multiCut);
+                obj.addScore(points);
+
+                % Diagnostics
+                slashAngle = atan2(sin(fd.a2 - fd.a1), cos(fd.a2 - fd.a1));
+                obj.SliceHistory(end + 1) = struct("centrality", fd.centrality, ...
+                    "speed", fd.slashSpeed, "angle", rad2deg(slashAngle), ...
+                    "position", [fd.fx, fd.fy], "time", toc(obj.StartTicLocal));
+
+                % Split halves
+                splitNorm = [-fd.slashVec(2); fd.slashVec(1)];
+                for side = [1, -1]
+                    if side == 1
+                        arcSpan = mod(fd.a2 - fd.a1, 2*pi);
+                        arcTheta = linspace(fd.a1, fd.a1 + arcSpan, 20);
+                    else
+                        arcSpan = mod(fd.a1 - fd.a2, 2*pi);
+                        arcTheta = linspace(fd.a2, fd.a2 + arcSpan, 20);
+                    end
+                    hx = fd.fx + fd.fRadius * cos(arcTheta);
+                    hy = fd.fy + fd.fRadius * sin(arcTheta);
+
+                    halfSlot = find(~obj.HalfActive, 1);
+                    if isempty(halfSlot); continue; end
+
+                    swipePush = min(fd.slashSpeed * 0.125, 2.083 * obj.Sc);
+                    splitVx = fd.fvx + splitNorm(1) * side * 0.625 * obj.Sc + fd.slashVec(1) * swipePush;
+                    splitVy = fd.fvy + splitNorm(2) * side * 0.625 * obj.Sc + fd.slashVec(2) * swipePush;
+
+                    obj.HalfVerts{halfSlot} = [hx(:), hy(:)];
+                    obj.HalfColor{halfSlot} = fd.fColor;
+                    obj.HalfVx(halfSlot) = splitVx;
+                    obj.HalfVy(halfSlot) = splitVy;
+                    obj.HalfSpin(halfSlot) = side * 0.025;
+                    obj.HalfAlpha(halfSlot) = 1.0;
+                    obj.HalfFrames(halfSlot) = 0;
+                    obj.HalfActive(halfSlot) = true;
+
+                    hpH = obj.HalfPoolPatch{halfSlot};
+                    if ~isempty(hpH) && isvalid(hpH)
+                        hpH.XData = hx(:); hpH.YData = hy(:);
+                        hpH.FaceColor = fd.fColor; hpH.EdgeColor = fd.fColor;
+                        hpH.FaceAlpha = 0.5; hpH.EdgeAlpha = 1.0;
+                        hpH.Visible = "on";
+                    end
                 end
-                hx = fx + fRadius * cos(arcTheta);
-                hy = fy + fRadius * sin(arcTheta);
 
-                % Find inactive half slot
-                halfSlot = find(~obj.HalfActive, 1);
-                if isempty(halfSlot); continue; end  % pool full, skip
-
-                % Halves inherit fruit velocity + fly apart perpendicular
-                % to slash + carry swipe momentum along slash direction
-                swipePush = min(slashSpeed * 0.125, 2.083 * obj.Sc);
-                splitVx = fvx + splitNorm(1) * side * 0.625 * obj.Sc + slashVec(1) * swipePush;
-                splitVy = fvy + splitNorm(2) * side * 0.625 * obj.Sc + slashVec(2) * swipePush;
-
-                obj.HalfVerts{halfSlot} = [hx(:), hy(:)];
-                obj.HalfColor{halfSlot} = fColor;
-                obj.HalfVx(halfSlot) = splitVx;
-                obj.HalfVy(halfSlot) = splitVy;
-                obj.HalfSpin(halfSlot) = side * 0.025;
-                obj.HalfAlpha(halfSlot) = 1.0;
-                obj.HalfFrames(halfSlot) = 0;
-                obj.HalfActive(halfSlot) = true;
-
-                hpH = obj.HalfPoolPatch{halfSlot};
-                if ~isempty(hpH) && isvalid(hpH)
-                    hpH.XData = hx(:);
-                    hpH.YData = hy(:);
-                    hpH.FaceColor = fColor;
-                    hpH.EdgeColor = fColor;
-                    hpH.FaceAlpha = 0.5;
-                    hpH.EdgeAlpha = 1.0;
-                    hpH.Visible = "on";
-                end
+                % Burst effect at fruit center
+                obj.spawnHitEffect([fd.fx, fd.fy], fd.fColor, points, fd.fRadius);
             end
 
-            % Slash animation — find entry/exit in RECENT trace only
-            % (searching full buffer matches old positions, creating huge spans)
-            searchLen = min(40, nTrace);
+            % One slash line from first entry to last exit
+            entryPos = obj.SlashWinEntryOnCircle;
+            lastExit = obj.SlashWinLastExit;
+            searchLen = min(120, nTrace);
             searchStart = nTrace - searchLen + 1;
             recentX = traceX(searchStart:end);
             recentY = traceY(searchStart:end);
-            entryOnCircle = [fx + fRadius * cos(a1), ...
-                             fy + fRadius * sin(a1)];
-            entryDists = (recentX - entryOnCircle(1)).^2 + ...
-                         (recentY - entryOnCircle(2)).^2;
+            entryDists = (recentX - entryPos(1)).^2 + (recentY - entryPos(2)).^2;
             [~, entryLocal] = min(entryDists);
-            exitDists = (recentX - exitPos(1)).^2 + ...
-                        (recentY - exitPos(2)).^2;
+            exitDists = (recentX - lastExit(1)).^2 + (recentY - lastExit(2)).^2;
             [~, exitLocal] = min(exitDists);
             entryIdx = searchStart + entryLocal - 1;
             exitIdx = searchStart + exitLocal - 1;
@@ -883,38 +894,39 @@ classdef FruitNinja < engine.GameBase
             sx = traceX(idxStart:idxEnd);
             sy = traceY(idxStart:idxEnd);
 
-            % Find inactive slash slot
             slashSlot = find(~obj.SlashActive, 1);
             if ~isempty(slashSlot)
-                fadeFrames = 29;
                 obj.SlashFrames(slashSlot) = 0;
                 obj.SlashAge(slashSlot) = 0;
-                obj.SlashFadeFrames(slashSlot) = fadeFrames;
+                obj.SlashFadeFrames(slashSlot) = 29;
                 obj.SlashIdxStart(slashSlot) = idxStart;
                 obj.SlashIdxEnd(slashSlot) = idxEnd;
                 obj.SlashActive(slashSlot) = true;
 
                 glowH = obj.SlashPoolGlow{slashSlot};
                 if ~isempty(glowH) && isvalid(glowH)
-                    glowH.XData = sx;
-                    glowH.YData = sy;
+                    glowH.XData = sx; glowH.YData = sy;
                     glowH.Color = [obj.ColorCyan, 0.5];
                     glowH.Visible = "on";
                 end
                 coreH = obj.SlashPoolCore{slashSlot};
                 if ~isempty(coreH) && isvalid(coreH)
-                    coreH.XData = sx;
-                    coreH.YData = sy;
+                    coreH.XData = sx; coreH.YData = sy;
                     coreH.Color = [obj.ColorWhite, 0.9];
                     coreH.Visible = "on";
                 end
             end
 
-            % Spawn burst effect at fruit center
-            obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
-
-            % Deactivate original fruit (hide, not delete)
-            obj.deactivateFruit(fruitSlot);
+            % Multi-cut text
+            if multiCut >= 2 && ~isempty(obj.MultiCutTextH) && isvalid(obj.MultiCutTextH)
+                midX = (entryPos(1) + lastExit(1)) / 2;
+                midY = (entryPos(2) + lastExit(2)) / 2;
+                obj.MultiCutTextH.String = sprintf("%d%s", multiCut, char(215));
+                obj.MultiCutTextH.Position = [midX, midY - 15, 0];
+                obj.MultiCutTextH.Color = [obj.ColorGold, 1];
+                obj.MultiCutTextH.Visible = "on";
+                obj.MultiCutFade = 48;
+            end
         end
     end
 end
