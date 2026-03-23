@@ -808,6 +808,7 @@ classdef FruitNinja < engine.GameBase
                 obj.MultiCutTextH.Color = [obj.ColorGold, 1];
                 obj.MultiCutTextH.Visible = "on";
                 obj.MultiCutFade = 48;  % frames to display
+                obj.SwipeSlashSlot = 0;  % seal the slash — no more expansion
             end
 
             % Store slice diagnostics
