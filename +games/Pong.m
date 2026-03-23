@@ -487,18 +487,8 @@ classdef Pong < engine.GameBase
                 obj.PlayerScore = obj.PlayerScore + 1;
                 pointBonus = 100 + obj.RallyHits * 10;
                 obj.addScore(pointBonus);
-                if ~isempty(obj.ServeTextH) && isvalid(obj.ServeTextH)
-                    obj.ServeTextH.String = "PLAYER SCORES!";
-                    obj.ServeTextH.Color = [obj.ColorGreen, 0.9];
-                    obj.ServeTextH.Visible = "on";
-                end
             else
                 obj.OpponentScore = obj.OpponentScore + 1;
-                if ~isempty(obj.ServeTextH) && isvalid(obj.ServeTextH)
-                    obj.ServeTextH.String = "CPU SCORES!";
-                    obj.ServeTextH.Color = [obj.ColorRed, 0.9];
-                    obj.ServeTextH.Visible = "on";
-                end
             end
 
             % Update score display

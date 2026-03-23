@@ -1346,14 +1346,9 @@ class PongGame {
             this.playerScore++;
             const pointBonus = 100 + this.rallyHits * 10;       // line 488
             this.addScore(pointBonus);
-            this.scoreFlashText = "PLAYER SCORES!";
-            this.scoreFlashColor = Colors.green;
         } else {
             this.opponentScore++;
-            this.scoreFlashText = "CPU SCORES!";
-            this.scoreFlashColor = Colors.red;
         }
-        this.scoreFlashFrames = 60; // show for ~1 second
 
         this.totalRallies++;
         this.rallyHits = 0;
@@ -1637,16 +1632,6 @@ class PongGame {
         ctx.textBaseline = 'top';
         ctx.fillText(`CPU  ${this.opponentScore} - ${this.playerScore}  YOU`, cx, dy[0] + 5);
 
-        // --- Score flash text ("PLAYER SCORES!" / "CPU SCORES!") ---
-        if (this.scoreFlashFrames > 0) {
-            this.scoreFlashFrames -= ds;
-            const flashAlpha = Math.min(1, this.scoreFlashFrames / 30);
-            ctx.fillStyle = rgb(this.scoreFlashColor, flashAlpha * 0.9);
-            ctx.font = `bold ${12}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(this.scoreFlashText, cx, dy[0] + areaH * 0.25);
-        }
 
         // --- Serve text (lines 254-263) ---
         if (this.serving) {
