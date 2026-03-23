@@ -10173,7 +10173,7 @@ class RailShooterGame {
 
         // Outer ring — fixed size, no breathing
         // MATLAB: scatter SizeData=6000 pts². radius = sqrt(6000/pi) * 96/72
-        const ringR = Math.sqrt(6000 / Math.PI) * (96 / 72);
+        const ringR = crLen + 2;
         ctx.beginPath();
         ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
         ctx.strokeStyle = 'red';
