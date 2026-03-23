@@ -2620,8 +2620,18 @@ class BreakoutGame {
                 }
             }
             if (tx.length > 1) {
-                ctx.strokeStyle = rgb(ebColor, 0.3);
-                ctx.lineWidth = 1;
+                const ebTrailAlpha = Math.min(0.5, 0.15 + ebMapped * 0.03);
+                const ebTrailWidth = Math.min(3.5, 1.5 + ebMapped * 0.1);
+                // Trail glow
+                ctx.strokeStyle = rgb(ebColor, ebTrailAlpha * 0.25);
+                ctx.lineWidth = ebTrailWidth * 3;
+                ctx.beginPath();
+                ctx.moveTo(tx[0], ty[0]);
+                for (let i = 1; i < tx.length; i++) ctx.lineTo(tx[i], ty[i]);
+                ctx.stroke();
+                // Trail line
+                ctx.strokeStyle = rgb(ebColor, ebTrailAlpha);
+                ctx.lineWidth = ebTrailWidth;
                 ctx.beginPath();
                 ctx.moveTo(tx[0], ty[0]);
                 for (let i = 1; i < tx.length; i++) ctx.lineTo(tx[i], ty[i]);
@@ -2672,16 +2682,19 @@ class BreakoutGame {
             const ebMapped = 3 + (ebRatio - 1) * 12;
             const ebColor = isFireball ? Colors.Red : flickSpeedColor(ebMapped);
 
+            // Aura (behind, opaque — same as main ball)
+            ctx.beginPath();
+            ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
+            ctx.fillStyle = rgb(ebColor);
+            ctx.fill();
+
+            // Glow (on top of aura)
             ctx.beginPath();
             ctx.arc(bx, by, r * 1.53, 0, Math.PI * 2);
             ctx.fillStyle = rgb(ebColor, 0.4);
             ctx.fill();
 
-            ctx.beginPath();
-            ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
-            ctx.fillStyle = rgb(ebColor, 0.12);
-            ctx.fill();
-
+            // Core
             ctx.beginPath();
             ctx.arc(bx, by, r * 0.43, 0, Math.PI * 2);
             ctx.fillStyle = rgb(Colors.White, 1);
