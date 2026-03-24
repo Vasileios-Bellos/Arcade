@@ -2245,7 +2245,6 @@ class BreakoutGame {
             }
             if (this.levelTransFrames <= 0) {
                 this.levelPhase = 'play';
-                this.serveBall();
             }
             this.render(ds);
             this.hitEffects.update(this.ctx, ds);
