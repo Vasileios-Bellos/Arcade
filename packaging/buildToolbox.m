@@ -40,7 +40,7 @@ fprintf("Output file  : %s\n", outputFile);
 if verLessThan("matlab", "23.2")  %#ok<VERLESSMATLAB> - R2023b = 23.2
     error("buildToolbox:UnsupportedRelease", ...
         "matlab.addons.toolbox.ToolboxOptions requires R2023b or newer.\n" + ...
-        "You are running %s. See README_PACKAGING.md for alternatives.", version);
+        "You are running %s. See packaging/README.md for alternatives.", version);
 end
 
 % =========================================================================
@@ -98,24 +98,7 @@ for k = 1:numel(packages)
     end
 end
 
-% 4d. web/ folder - HTML5 port
-webDir = fullfile(projectRoot, "web");
-if isfolder(webDir)
-    webFiles = dir(fullfile(webDir, "**", "*.*"));
-    for j = 1:numel(webFiles)
-        if webFiles(j).isdir; continue; end
-        includeFiles{end+1, 1} = fullfile(webFiles(j).folder, webFiles(j).name); %#ok<SAGROW>
-    end
-end
-
-% 4e. dev/ folder - include README.md (developer docs), exclude TODO.md
-devDir = fullfile(projectRoot, "dev");
-if isfolder(devDir)
-    devReadme = fullfile(devDir, "README.md");
-    if isfile(devReadme)
-        includeFiles{end+1, 1} = devReadme; %#ok<SAGROW>
-    end
-end
+% Toolbox is MATLAB-only: no web/, dev/, or misc/ folders
 
 % Convert to string array for ToolboxOptions.
 includeFiles = string(includeFiles);
