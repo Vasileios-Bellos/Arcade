@@ -80,7 +80,10 @@ Working checklist extracted from CLAUDE.md. The master reference remains CLAUDE.
 - [x] Breakout multiball — identical appearance/trails, seamless handle adoption on promotion
 - [x] Breakout brick collision — two-pass earliest-tMin (MATLAB + HTML)
 - [x] Breakout hit effects — render after game graphics, fixed NaN corruption
-- [x] Breakout serve timing — removed duplicate serveBall call
+- [x] Breakout serve timing — serveBall only at announce->play and loseLife (MATLAB + HTML matched)
+- [x] Breakout serve trail bug — trail recorded paddle movement during serve wait, creating horizontal line on launch. Gated accumulator with !Serving
+- [x] Breakout dead transition phase — removed unreachable 96-frame brick fade (bricks already destroyed at trigger point)
+- [x] Checkcode — zero warnings across all 19 source files
 - [x] FireflyChase snitch trail — DtScale accumulator, buffer 10
 - [x] TargetPractice timeout — wall-clock is correct
 - [x] Tetris NextCell — isprop guard for GraphicsPlaceholder
