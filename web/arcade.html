@@ -2030,8 +2030,6 @@ class BreakoutGame {
 
     // === destroyBrick — Breakout.m lines 910-942 ===
     destroyBrick(brickIdx) {
-        // TEMP: spawn multiball on first brick for testing
-        if (this.extraBalls.length === 0) this.spawnExtraBalls();
         const brk = this.bricks[brickIdx];
         const brickCenter = [brk.rawX + brk.rawW / 2, brk.rawY + brk.rawH / 2];
 
@@ -2380,8 +2378,6 @@ class BreakoutGame {
                 this.trailBufY = eb.trailBufY;
                 this.trailIdx = eb.trailIdx;
                 this.trailAccum = eb.trailAccum || 0;
-                console.log('PROMOTE: trailIdx=', this.trailIdx, 'nonNaN=', Array.from(this.trailBufX).filter(v => !isNaN(v)).length, 'bufLen=', this.trailBufX.length);
-                this._logTrail = 120; // log next 120 frames
             } else {
                 this.loseLife();
                 this.render(ds);
@@ -2602,7 +2598,6 @@ class BreakoutGame {
         let ballColor = flickSpeedColor(mappedSpeed);
         let trailColor = isFireball ? Colors.Red : ballColor;
 
-        if (this._logTrail) { this._logTrail--; console.log('TRAIL: idx=', this.trailIdx, 'nonNaN=', Array.from(this.trailBufX).filter(v => !isNaN(v)).length, 'bufLen=', this.trailBufX.length); }
         if (spd > 0.5 && this.trailIdx > 0) {
             const trailX = [];
             const trailY = [];
