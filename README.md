@@ -280,19 +280,26 @@ MATLAB graphics creation costs 0.2-1ms per object (handle registration, renderer
 
 ---
 
-## Download
+## Installation
 
-| | |
-|---|---|
-| **Source** | Clone or download from [GitHub](https://github.com/) |
-| **Toolbox** | `Arcade.mltbx` in [`packaging/`](packaging/) - double-click to install in MATLAB Add-On Manager |
-| **Windows Installer** | `ArcadeInstaller.exe` in [`packaging/installer/`](packaging/installer/) - downloads MATLAB Runtime automatically |
-| **Browser** | Open [`web/arcade.html`](web/arcade.html) directly - no installation needed |
+### MATLAB Toolbox
 
-Pre-built toolbox and installer are also available from [GitHub Releases](https://github.com/).
+The easiest way to install. Download [`Arcade.mltbx`](packaging/Arcade.mltbx) and double-click it - MATLAB registers the toolbox in the Add-On Manager, adds everything to the path, and you're ready to go. Uninstall anytime from Home > Add-Ons. See the [packaging guide](packaging/) for build instructions.
+
+### Standalone Executable (Windows)
+
+No MATLAB license needed. Download [`ArcadeInstaller.exe`](packaging/installer/ArcadeInstaller.exe) and run it - the installer downloads the free [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) (~800 MB, one-time) automatically and sets up a desktop shortcut. See the [packaging guide](packaging/) for details.
+
+### Browser
+
+Open [`index.html`](index.html) in any modern browser. All 15 games in a single self-contained HTML5 Canvas file - no installation, no server, no dependencies.
+
+### From Source
+
+Clone the repository and run `Arcade()` directly - no toolbox dependencies, works out of the box on MATLAB R2022b+.
 
 <details>
-<summary>Build from source</summary>
+<summary>Build distributable packages from source</summary>
 
 ```matlab
 cd packaging
@@ -301,7 +308,7 @@ buildExecutable    % creates Arcade.exe + ArcadeInstaller.exe
 generateIcon       % creates icon.png, splash.png
 ```
 
-Requires MATLAB Compiler for the executable. No additional toolboxes needed for the toolbox.
+The toolbox requires MATLAB R2023b+ to build. The executable requires MATLAB Compiler. See [`packaging/`](packaging/) for full instructions.
 
 </details>
 
