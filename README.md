@@ -288,11 +288,11 @@ MATLAB graphics creation costs 0.2-1ms per object (handle registration, renderer
 
 ### MATLAB Toolbox
 
-The easiest way to install. Download [`Arcade.mltbx`](packaging/Arcade.mltbx) and double-click it - MATLAB registers the toolbox in the Add-On Manager, adds everything to the path, and you're ready to go. Uninstall anytime from Home > Add-Ons. See the [packaging guide](packaging/) for build instructions.
+Download [`Arcade.mltbx`](packaging/Arcade.mltbx) and install it via MATLAB's Add-On Manager. All packages are added to the path automatically. See the [packaging guide](packaging/) for build instructions.
 
 ### Standalone Executable (Windows)
 
-No MATLAB license needed. Download [`ArcadeInstaller.exe`](packaging/installer/ArcadeInstaller.exe) and run it - the installer downloads the free [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) (~800 MB, one-time) automatically and sets up a desktop shortcut. See the [packaging guide](packaging/) for details.
+No MATLAB license required. [`ArcadeInstaller.exe`](packaging/installer/ArcadeInstaller.exe) bundles a web installer that downloads the free [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) (~800 MB, one-time). See the [packaging guide](packaging/) for details.
 
 ### Browser
 
