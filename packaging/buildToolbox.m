@@ -108,20 +108,12 @@ if isfolder(webDir)
     end
 end
 
-% 4e. docs/ folder - include everything EXCEPT TODO.md
-docsDir = fullfile(projectRoot, "docs");
-if isfolder(docsDir)
-    docsFiles = dir(fullfile(docsDir, "**", "*.*"));
-    for j = 1:numel(docsFiles)
-        if docsFiles(j).isdir
-            continue
-        end
-        % Exclude TODO.md and scores.mat (auto-generated user data)
-        [~, name, ext] = fileparts(docsFiles(j).name);
-        if strcmpi(string(name) + string(ext), "TODO.md") || strcmpi(ext, ".mat")
-            continue
-        end
-        includeFiles{end+1, 1} = fullfile(docsFiles(j).folder, docsFiles(j).name); %#ok<SAGROW>
+% 4e. dev/ folder - include README.md (developer docs), exclude TODO.md
+devDir = fullfile(projectRoot, "dev");
+if isfolder(devDir)
+    devReadme = fullfile(devDir, "README.md");
+    if isfile(devReadme)
+        includeFiles{end+1, 1} = devReadme; %#ok<SAGROW>
     end
 end
 

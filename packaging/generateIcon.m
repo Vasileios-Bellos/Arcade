@@ -231,15 +231,12 @@ text(ax, pw/2, ph * 0.05, "Built Using MATLAB MCP Core Server", ...
 
 hold(ax, "off");
 
-previewPath = fullfile(scriptDir, "preview.png");
 splashPath = fullfile(scriptDir, "splash.png");
-exportgraphics(fig, previewPath, "Resolution", 300);
 exportgraphics(fig, splashPath, "Resolution", 300);
 close(fig);
-fprintf("  Saved: %s\n", previewPath);
 fprintf("  Saved: %s\n\n", splashPath);
 
-fprintf("=== Icon, splash, and preview generation complete ===\n");
+fprintf("=== Icon and splash generation complete ===\n");
 fprintf("\nTo convert icon.png to icon.ico for Windows:\n");
 fprintf("  Option 1: https://convertio.co/png-ico/\n");
 fprintf("  Option 2: magick convert icon.png -define icon:auto-resize icon.ico\n");

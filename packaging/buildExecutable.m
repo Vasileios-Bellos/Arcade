@@ -89,14 +89,8 @@ else
     fprintf("  Splash screen   : none - run generateIcon.m first\n");
 end
 
-% Preview/logo - used for installer branding
-previewFile = fullfile(scriptDir, "preview.png");
-if isfile(previewFile)
-    installerLogo = previewFile;
-    fprintf("  Installer logo  : %s\n", previewFile);
-else
-    installerLogo = "";
-end
+% Installer logo - same splash image
+installerLogo = exeSplash;
 
 fprintf("\n");
 

@@ -67,7 +67,7 @@ Wireframe polygons with random vertices that split on impact - large asteroids b
 
 ### 6. Space Invaders
 
-3 alien types across 5 hand-crafted wave formations - from a 2-row scout party to a 4-row onslaught of armored elites. Destructible shields absorb fire from both sides. Power-up drops (laser for double fire rate, shield dome, extra life) and escalating enemy fire rates scaled by DtScale.
+3 alien types across 5 hand-crafted wave formations - from a 2-row scout party to a 4-row onslaught of armored elites. Destructible shields absorb fire from both sides. Power-up drops (laser for double fire rate, shield dome, extra life) and escalating enemy fire rates.
 
 <p align="center"><img src="assets/spaceinvaders.gif" alt="Space Invaders" width="60%"></p>
 
@@ -87,7 +87,7 @@ Slash fruit as they fly across the screen. Cut multiple fruits in quick successi
 
 ## The Originals
 
-Seven original games - physics toys, reflex challenges, and shooters designed to push MATLAB's real-time graphics.
+Seven original games - physics toys, speed challenges, and shooters designed to push your reflexes.
 
 ### 9. Target Practice
 
@@ -109,7 +109,7 @@ Flick a physics orb off walls with your mouse. The ball shifts from cyan to red 
 
 ### 12. Juggler
 
-Keep balls airborne with flick physics and gravity - no bottom wall, so a missed catch means a lost ball. Drop one and the combo resets. Extra balls spawn every 10 combo. All balls share identical 3-layer rendering and seamlessly promote when the leader is lost, trail and all.
+Keep balls airborne with juggle physics and gravity - no bottom wall, so a missed catch means a lost ball. Drop one and the combo resets. Extra balls spawn every 10 combo. All balls share identical 3-layer rendering and seamlessly promote when the leader is lost.
 
 <p align="center"><img src="assets/juggler.gif" alt="Juggler" width="60%"></p>
 
@@ -120,7 +120,7 @@ Defend a hex base from asteroid waves across 3 tiers (large, medium, small). Lau
 <p align="center"><img src="assets/orbitaldefense.gif" alt="Orbital Defense" width="60%"></p>
 
 ### 14. Shield Guardian
-
+1
 Rotate a 180-degree shield arc to deflect incoming projectiles and protect your core. Three projectile types (fast/normal/heavy) with swept quadratic line-circle collision for frame-perfect deflections. Deflected projectiles can chain-hit other incoming shots. Waves escalate in speed and density.
 
 <p align="center"><img src="assets/shieldguardian.gif" alt="Shield Guardian" width="60%"></p>
@@ -207,15 +207,15 @@ Arcade.m                 entry point
 web/
     arcade.html          HTML5 Canvas port (all 15 games, single file)
     technical.html       technical documentation page
-docs/
-    DEVELOPER.md         architecture and technical details
+dev/
+    README.md            architecture and technical details
     TODO.md              development roadmap
 recording/               GIF/video capture scripts
 packaging/               toolbox, executable, and icon generation
 assets/                  demo GIFs and screenshots
 ```
 
-For architecture details, FPS scaling internals, and per-game technical breakdowns, see [docs/DEVELOPER.md](docs/DEVELOPER.md).
+For architecture details, FPS scaling internals, and per-game technical breakdowns, see [dev/README.md](dev/README.md).
 
 ---
 
