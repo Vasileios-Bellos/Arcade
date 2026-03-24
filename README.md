@@ -174,7 +174,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types -- fight
 
 ## High Scores
 
-Scores persist in `ScoreManager_scores.mat` (auto-created on first play, not tracked in git). Each record stores high score, max combo, total plays, and cumulative session time.
+Scores persist in `data/scores.mat` (auto-created on first play, not tracked in git). Each record stores high score, max combo, total plays, and cumulative session time.
 
 ```matlab
 services.ScoreManager.get("Pong")          % view a game's record

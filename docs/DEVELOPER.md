@@ -35,7 +35,7 @@ Arcade.m (handle class)
 
 **`GameMenu.m`** (1,292 lines) -- Sealed handle class. Neon-styled scrollable menu with twinkling starfield (20 pulsing stars at 0.56 Hz + ~90 static dots), 2-slot patch-based comet trails (40 vertices each, `EdgeAlpha = "interp"`, 1.2-2.0s flight time), pill-shaped item slots (rounded rectangles with 64-vertex corners) with key badges and high-score display. Two selection modes: `"click"` (mouse) and `"dwell"` (3s hover auto-select with cyan-to-green color ramp). Up to 5 visible slots with wrap-around scrolling and proportional scroll thumb. `scaleFonts()` provides deterministic font sizing: Title 29\*ps, Subtitle 13\*ps, Names 12\*ps, Keys/Scores 10\*ps. Keyboard mode suppresses mouse hover highlighting -- exited on >15 data unit mouse movement.
 
-**`ScoreManager.m`** (178 lines) -- Static utility class for persistent high scores. Storage in `ScoreManager_scores.mat` (auto-created on first play, not tracked in git). Stores high score, max combo, total plays, and cumulative session time per game.
+**`ScoreManager.m`** (178 lines) -- Static utility class for persistent high scores. Storage in `data/scores.mat` (auto-created on first play, not tracked in git). Stores high score, max combo, total plays, and cumulative session time per game.
 
 ---
 
@@ -845,7 +845,7 @@ The regex `^GT_(?!arc)` matches all `GT_`-prefixed tags except `GT_arc*` (the ar
 
 ### Storage
 
-Scores persist in `ScoreManager_scores.mat` (auto-created in the project root on first play, excluded from git). The MAT-file contains a single `scores` struct where each field is a game ID (e.g., `Pong`, `Breakout`) mapping to a record struct:
+Scores persist in `data/scores.mat` (auto-created in the project root on first play, excluded from git). The MAT-file contains a single `scores` struct where each field is a game ID (e.g., `Pong`, `Breakout`) mapping to a record struct:
 
 ```matlab
 record.highScore    % highest score achieved
