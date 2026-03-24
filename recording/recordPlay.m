@@ -179,7 +179,7 @@ start(tmr);
 
         framesBuf = framesBuf(1:capturedCount);
 
-        fprintf("Captured %d frames over %.1fs (%.0f fps)\n", ...
+        fprintf("Captured %d frames over %.1f s (%.0f fps)\n", ...
             capturedCount, totalElapsed, actualFps);
         reply = input("Save recording? [y/n]: ", "s");
         if ~strcmpi(reply, "y")
@@ -201,7 +201,7 @@ start(tmr);
             writeVideo(vw, framesBuf{i}.cdata);
         end
         close(vw);
-        fprintf("  MP4: %s (%.0f fps)\n", mp4File, round(actualFps));
+        fprintf("  MP4: %s (%.0f fps)\n", mp4File, actualFps);
 
         % --- GIF (same FPS as MP4) ---
         gifFile = fullfile(outputDir, baseName + ".gif");
@@ -226,7 +226,7 @@ start(tmr);
                 imwrite(imind, globalMap, gifFile, "gif", "WriteMode", "append", "DelayTime", gifDelay);
             end
         end
-        fprintf("  GIF: %s (%.0ffps, %dx%d)\n", gifFile, gifFps, size(framesBuf{1}.cdata, 2), size(framesBuf{1}.cdata, 1));
+        fprintf("  GIF: %s (%.0f fps, %d x %d)\n", gifFile, gifFps, size(framesBuf{1}.cdata, 2), size(framesBuf{1}.cdata, 1));
         fprintf("=== SAVED ===\n");
     end
 end
