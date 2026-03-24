@@ -495,11 +495,6 @@ classdef Pong < engine.GameBase
                 end
             end
 
-            % Clear trail on direction change
-            obj.TrailBufX(:) = NaN;
-            obj.TrailBufY(:) = NaN;
-            obj.TrailIdx = 0;
-            obj.TrailAccum = 0;
         end
 
         function onGoal(obj, who)

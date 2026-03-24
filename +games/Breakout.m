@@ -1422,13 +1422,15 @@ classdef Breakout < engine.GameBase
                 else
                     trailColor = ebColor;
                 end
+                ebTrailAlpha = min(0.5, 0.15 + ebSpeed * 0.03);
+                ebTrailWidth = min(3.5, 1.5 + ebSpeed * 0.1) * obj.FontScale;
                 if ~isempty(eb.trailH) && isvalid(eb.trailH)
                     set(eb.trailH, "XData", tx, "YData", ty, ...
-                        "Color", [trailColor, 0.3]);
+                        "Color", [trailColor, ebTrailAlpha], "LineWidth", ebTrailWidth);
                 end
                 if ~isempty(eb.trailGlowH) && isvalid(eb.trailGlowH)
                     set(eb.trailGlowH, "XData", tx, "YData", ty, ...
-                        "Color", [trailColor, 0.08]);
+                        "Color", [trailColor, ebTrailAlpha * 0.25], "LineWidth", ebTrailWidth * 3);
                 end
 
                 obj.ExtraBalls(k) = eb;
