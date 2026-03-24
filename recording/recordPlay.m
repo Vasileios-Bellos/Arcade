@@ -196,11 +196,11 @@ start(tmr);
         close(vw);
         fprintf("  MP4: %s (%.0f fps)\n", mp4File, round(actualFps));
 
-        % --- GIF (full resolution, high quality) ---
+        % --- GIF (same FPS as MP4) ---
         gifFile = fullfile(outputDir, baseName + ".gif");
-        gifFps = min(20, round(actualFps / 2)); % half capture rate, capped at 20
+        gifFps = round(actualFps);
         gifDelay = 1 / gifFps;
-        skip = max(1, round(actualFps / gifFps));
+        skip = 1;
         % Build a global colormap from sampled frames for consistency
         sampleIdx = round(linspace(1, capturedCount, min(20, capturedCount)));
         samplePixels = [];
@@ -219,7 +219,7 @@ start(tmr);
                 imwrite(imind, globalMap, gifFile, "gif", "WriteMode", "append", "DelayTime", gifDelay);
             end
         end
-        fprintf("  GIF: %s (15fps, %dx%d)\n", gifFile, size(framesBuf{1}.cdata, 2), size(framesBuf{1}.cdata, 1));
+        fprintf("  GIF: %s (%.0ffps, %dx%d)\n", gifFile, gifFps, size(framesBuf{1}.cdata, 2), size(framesBuf{1}.cdata, 1));
         fprintf("=== SAVED ===\n");
     end
 end
