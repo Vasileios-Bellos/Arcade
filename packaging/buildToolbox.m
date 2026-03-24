@@ -75,10 +75,14 @@ opts.MinimumMatlabRelease  = "R2022b";
 rootFiles = dir(fullfile(projectRoot, "*.m"));
 includeFiles = fullfile(projectRoot, {rootFiles.name}');
 
-% 4b. README.md
+% 4b. README.md and LICENSE
 readmePath = fullfile(projectRoot, "README.md");
 if isfile(readmePath)
     includeFiles{end+1, 1} = readmePath;
+end
+licensePath = fullfile(projectRoot, "LICENSE");
+if isfile(licensePath)
+    includeFiles{end+1, 1} = licensePath;
 end
 
 % 4c. Package folders: +engine, +games, +services, +ui
