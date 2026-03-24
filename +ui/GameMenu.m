@@ -26,25 +26,25 @@ classdef (Sealed) GameMenu < handle
     % MENU GRAPHICS HANDLES
     % =================================================================
     properties (SetAccess = private)
-        TitleGlowH                                  % text — glow shadow
-        TitleMainH                                  % text — bright neon title
-        SubtitleTextH                               % text — "SELECT GAME"
-        DecoLineGlowH                              % line — accent glow
-        DecoLineCoreH                               % line — accent core
-        FooterTextH                                 % text — instructions
-        StarfieldH                                  % scatter — background dots
+        TitleGlowH                                  % text - glow shadow
+        TitleMainH                                  % text - bright neon title
+        SubtitleTextH                               % text - "SELECT GAME"
+        DecoLineGlowH                              % line - accent glow
+        DecoLineCoreH                               % line - accent core
+        FooterTextH                                 % text - instructions
+        StarfieldH                                  % scatter - background dots
     end
 
     % =================================================================
     % GAME LIST SLOT HANDLES
     % =================================================================
     properties (SetAccess = private)
-        MenuItemBg                                  % cell of patch — pill backgrounds
-        MenuItemGlow                                % cell of patch — outer glow
-        MenuItemKeyBg                               % cell of patch — key badge pill
-        MenuItemKeyText                             % cell of text — key labels
-        MenuItemNameText                            % cell of text — game names
-        MenuItemScoreText                           % cell of text — high scores
+        MenuItemBg                                  % cell of patch - pill backgrounds
+        MenuItemGlow                                % cell of patch - outer glow
+        MenuItemKeyBg                               % cell of patch - key badge pill
+        MenuItemKeyText                             % cell of text - key labels
+        MenuItemNameText                            % cell of text - game names
+        MenuItemScoreText                           % cell of text - high scores
         NumSlots        (1,1) double = 0            % created slot count
     end
 
@@ -54,8 +54,8 @@ classdef (Sealed) GameMenu < handle
     properties (SetAccess = private)
         SelectedIdx     (1,1) double = 1            % absolute game index (1-based)
         ScrollOffset    (1,1) double = 0            % first visible game index (0-based)
-        ScrollTrackH                                % line — scroll track
-        ScrollThumbH                                % patch — scroll thumb
+        ScrollTrackH                                % line - scroll track
+        ScrollThumbH                                % patch - scroll thumb
 
         % Scroll drag
         ScrollDragging  (1,1) logical = false
@@ -491,7 +491,7 @@ classdef (Sealed) GameMenu < handle
     end
 
     % =================================================================
-    % PRIVATE — Graphics Creation
+    % PRIVATE - Graphics Creation
     % =================================================================
     methods (Access = private)
 
@@ -753,7 +753,7 @@ classdef (Sealed) GameMenu < handle
     end
 
     % =================================================================
-    % PRIVATE — Slot Management
+    % PRIVATE - Slot Management
     % =================================================================
     methods (Access = private)
 
@@ -925,7 +925,7 @@ classdef (Sealed) GameMenu < handle
                 end
             end
 
-            % Comets: only hide — show is controlled by spawn logic
+            % Comets: only hide - show is controlled by spawn logic
             if vis == "off"
                 for k = 1:numel(obj.CometH)
                     if ~isempty(obj.CometH) && isvalid(obj.CometH(k))
@@ -954,7 +954,7 @@ classdef (Sealed) GameMenu < handle
     end
 
     % =================================================================
-    % PRIVATE — Hover & Dwell
+    % PRIVATE - Hover & Dwell
     % =================================================================
     methods (Access = private)
 
@@ -1051,7 +1051,7 @@ classdef (Sealed) GameMenu < handle
     end
 
     % =================================================================
-    % PRIVATE — Animations
+    % PRIVATE - Animations
     % =================================================================
     methods (Access = private)
 
@@ -1060,7 +1060,7 @@ classdef (Sealed) GameMenu < handle
             if isempty(obj.AnimStartTic); return; end
             t = toc(obj.AnimStartTic);
 
-            % Selected glow pulse (skip in dwell mode — dwell ramp overrides)
+            % Selected glow pulse (skip in dwell mode - dwell ramp overrides)
             if obj.SelectionMode ~= "dwell" || obj.DwellIdx == 0
                 slotIdx = obj.SelectedIdx - obj.ScrollOffset;
                 if slotIdx >= 1 && slotIdx <= obj.NumSlots
@@ -1174,7 +1174,7 @@ classdef (Sealed) GameMenu < handle
 
         function spawnComet(obj, k, t, dx, dy, rangeW, rangeH)
             %spawnComet  Diagonal meteor shower from both sides.
-            %   Comets travel diagonally across the screen — roughly half
+            %   Comets travel diagonally across the screen - roughly half
             %   from upper-left to lower-right, half from upper-right to
             %   lower-left.  No vertical rain.
 
@@ -1219,7 +1219,7 @@ classdef (Sealed) GameMenu < handle
     end
 
     % =================================================================
-    % PRIVATE — Utility
+    % PRIVATE - Utility
     % =================================================================
     methods (Access = private)
 
@@ -1232,7 +1232,7 @@ classdef (Sealed) GameMenu < handle
     end
 
     % =================================================================
-    % STATIC — Graphics Utilities
+    % STATIC - Graphics Utilities
     % =================================================================
     methods (Static, Access = private)
 

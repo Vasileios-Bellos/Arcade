@@ -302,7 +302,7 @@ classdef SpaceInvaders < engine.GameBase
                     bGlowH.XData = [bx, bx];
                 end
 
-                % Off screen — deactivate
+                % Off screen - deactivate
                 if by < dy(1) - 10
                     obj.deactivateBullet(k);
                     continue;
@@ -374,7 +374,7 @@ classdef SpaceInvaders < engine.GameBase
                 end
             end
 
-            % Enemy fire (random alien shoots) — use pool
+            % Enemy fire (random alien shoots) - use pool
             if ~isempty(obj.Aliens) && rand < 0.0083 * (1 + obj.Wave * 0.3) * ds
                 shooter = obj.Aliens(randi(numel(obj.Aliens)));
                 obj.activateEBullet(shooter.x, shooter.y);
@@ -450,7 +450,7 @@ classdef SpaceInvaders < engine.GameBase
                 obj.showWaveName(obj.Wave);
             end
 
-            % Update power-ups (falling) — pool-based
+            % Update power-ups (falling) - pool-based
             capR = round(5 * obj.Sc);
             thetaCap = obj.ThetaCircle24;
             for k = 1:obj.PUPoolSize

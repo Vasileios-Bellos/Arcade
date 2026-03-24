@@ -12,8 +12,8 @@
 %       buildExecutable
 %
 %   Output:
-%       packaging/build/Arcade/  — standalone executable
-%       packaging/installer/           — installer with web runtime download
+%       packaging/build/Arcade/  - standalone executable
+%       packaging/installer/           - installer with web runtime download
 %
 %   See also compiler.build.standaloneWindowsApplication,
 %            compiler.package.installer, generateIcon, buildToolbox
@@ -24,7 +24,7 @@ projectDir = fileparts(scriptDir);
 buildDir = fullfile(scriptDir, "build");
 installerDir = fullfile(scriptDir, "installer");
 
-fprintf("=== Arcade — Standalone Build ===\n\n");
+fprintf("=== Arcade - Standalone Build ===\n\n");
 fprintf("Project root  : %s\n", projectDir);
 fprintf("Build output  : %s\n", buildDir);
 fprintf("Installer out : %s\n\n", installerDir);
@@ -62,7 +62,7 @@ end
 fprintf("\n");
 
 %% Resolve icon and splash assets
-% Icon — .png for executable build (compiler converts to .ico internally),
+% Icon - .png for executable build (compiler converts to .ico internally),
 %         .ico for installer branding (Add/Remove Programs, shortcut)
 icoFile = fullfile(scriptDir, "icon.ico");
 pngFile = fullfile(scriptDir, "icon.png");
@@ -73,23 +73,23 @@ if isfile(pngFile)
     fprintf("  Executable icon : %s\n", pngFile);
 else
     exeIcon = "";
-    fprintf("  Executable icon : none — run generateIcon.m first\n");
+    fprintf("  Executable icon : none - run generateIcon.m first\n");
 end
 
 % Installer also requires PNG (compiler converts internally)
 installerIcon = exeIcon;  % same .png
 
-% Splash screen — shown while the executable loads
+% Splash screen - shown while the executable loads
 splashFile = fullfile(scriptDir, "splash.png");
 if isfile(splashFile)
     exeSplash = splashFile;
     fprintf("  Splash screen   : %s\n", splashFile);
 else
     exeSplash = "";
-    fprintf("  Splash screen   : none — run generateIcon.m first\n");
+    fprintf("  Splash screen   : none - run generateIcon.m first\n");
 end
 
-% Preview/logo — used for installer branding
+% Preview/logo - used for installer branding
 previewFile = fullfile(scriptDir, "preview.png");
 if isfile(previewFile)
     installerLogo = previewFile;
@@ -176,20 +176,20 @@ try
         fullfile("C:", "Program Files", "Arcade")}];
     instOpts = [instOpts, {"Verbose", "on"}];
 
-    % Installer icon — for Add/Remove Programs and installer exe thumbnail
+    % Installer icon - for Add/Remove Programs and installer exe thumbnail
     if strlength(installerIcon) > 0
         instOpts = [instOpts, {"InstallerIcon", installerIcon}];
         instOpts = [instOpts, {"AddRemoveProgramsIcon", installerIcon}];
         fprintf("  Installer icon         : %s\n", installerIcon);
     end
 
-    % Installer splash — shown while installer initializes
+    % Installer splash - shown while installer initializes
     if strlength(exeSplash) > 0
         instOpts = [instOpts, {"InstallerSplash", exeSplash}];
         fprintf("  Installer splash       : %s\n", exeSplash);
     end
 
-    % Installer logo — displayed during installation wizard pages
+    % Installer logo - displayed during installation wizard pages
     if strlength(installerLogo) > 0
         instOpts = [instOpts, {"InstallerLogo", installerLogo}];
         fprintf("  Installer logo         : %s\n", installerLogo);

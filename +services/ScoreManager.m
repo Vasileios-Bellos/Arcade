@@ -111,7 +111,7 @@ classdef (Sealed) ScoreManager
     end
 
     % =================================================================
-    % PRIVATE — Storage
+    % PRIVATE - Storage
     % =================================================================
     methods (Static, Access = private)
 
@@ -129,7 +129,7 @@ classdef (Sealed) ScoreManager
                         data.Games = raw.Games;
                         return;
                     end
-                    % Version mismatch or unexpected format — start fresh
+                    % Version mismatch or unexpected format - start fresh
                     warning("ScoreManager:VersionMismatch", ...
                         "Score file version mismatch. Resetting scores.");
                 catch ME

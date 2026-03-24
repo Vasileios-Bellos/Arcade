@@ -35,7 +35,7 @@ classdef FireflyChase < engine.GameBase
     end
 
     % =================================================================
-    % FIREFLY GRAPHICS POOL (4 slots — max 3 on screen + 1 spare)
+    % FIREFLY GRAPHICS POOL (4 slots - max 3 on screen + 1 spare)
     % =================================================================
     properties (Access = private)
         FFPoolDotH      cell               % {1x4} scatter handles (core dot)
@@ -49,7 +49,7 @@ classdef FireflyChase < engine.GameBase
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
-        ComboTextH                               % text — combo multiplier display
+        ComboTextH                               % text - combo multiplier display
     end
 
     % =================================================================
@@ -114,7 +114,7 @@ classdef FireflyChase < engine.GameBase
                     "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_fireflies");
             end
 
-            % Mouse input needs larger catch radius — finger tracking has
+            % Mouse input needs larger catch radius - finger tracking has
             % a natural ~30px "fat finger" zone from scatter marker + wobble
             obj.CatchRadiusBonus = 0;
 
@@ -146,7 +146,7 @@ classdef FireflyChase < engine.GameBase
                     baseX = cx + ampX * sin(ff.theta * ff.freqX + ff.phaseX);
                     baseY = cy + ampY * sin(ff.theta * ff.freqY + ff.phaseY);
 
-                    % Evasion offset — push away from finger
+                    % Evasion offset - push away from finger
                     evadeX = 0;
                     evadeY = 0;
                     if ~any(isnan(pos))
@@ -197,7 +197,7 @@ classdef FireflyChase < engine.GameBase
                     % Path-based firefly
                     ff.idx = ff.idx + ff.speed * ds;
 
-                    % Reached end of path — loop or reverse
+                    % Reached end of path - loop or reverse
                     if ff.idx >= numel(ff.pathX)
                         obj.onMiss(i);
                         continue
@@ -217,7 +217,7 @@ classdef FireflyChase < engine.GameBase
                         tx = ff.pathX(idx);
                         ty = ff.pathY(idx);
                     else
-                        % Near start of path — append carry-over from previous loop
+                        % Near start of path - append carry-over from previous loop
                         txFull = [ff.trailCarryX, ff.pathX(1:pidx)];
                         tyFull = [ff.trailCarryY, ff.pathY(1:pidx)];
                         if numel(txFull) > trailSpan
@@ -251,7 +251,7 @@ classdef FireflyChase < engine.GameBase
                 obj.ActiveFF(i) = ff;
             end
 
-            % Combo decay — fade out over 2 seconds, then reset
+            % Combo decay - fade out over 2 seconds, then reset
             if obj.Combo > 0 && ~isempty(obj.LastCatchTic)
                 comboAge = toc(obj.LastCatchTic);
                 if comboAge > 2
@@ -340,28 +340,28 @@ classdef FireflyChase < engine.GameBase
             slot = find(~obj.FFPoolActive, 1);
             if isempty(slot); return; end
 
-            % Tier selection (weighted random — 5 tiers, rarer = more points)
+            % Tier selection (weighted random - 5 tiers, rarer = more points)
             bs = obj.BaseSpeed;
             sc = obj.Sc;
             tierRoll = rand;
             if tierRoll < 0.35
-                % Cyan — common, large, slow (35%)
+                % Cyan - common, large, slow (35%)
                 clr = obj.ColorCyan;
                 pts = 100; radius = round(14 * sc); spd = bs * 1.5;
             elseif tierRoll < 0.65
-                % Green — common (30%)
+                % Green - common (30%)
                 clr = obj.ColorGreen;
                 pts = 200; radius = round(13 * sc); spd = bs * 2.7;
             elseif tierRoll < 0.85
-                % Magenta — medium (20%)
+                % Magenta - medium (20%)
                 clr = obj.ColorMagenta;
                 pts = 300; radius = round(12 * sc); spd = bs * 3.75;
             elseif tierRoll < 0.95
-                % Purple — uncommon (10%)
+                % Purple - uncommon (10%)
                 clr = obj.ColorPurple;
                 pts = 400; radius = round(11 * sc); spd = bs * 4.8;
             else
-                % Gold — legendary, small and fast (5%)
+                % Gold - legendary, small and fast (5%)
                 clr = obj.ColorGold;
                 pts = 500; radius = round(10 * sc); spd = bs * 3;
             end
@@ -404,7 +404,7 @@ classdef FireflyChase < engine.GameBase
                 ff.trailCarryX = []; ff.trailCarryY = [];
                 startX = ff.posX; startY = ff.posY;
             else
-                % Path-based firefly — closed orbits only (loop, figure8)
+                % Path-based firefly - closed orbits only (loop, figure8)
                 corridorW = round(10 * obj.Sc);
                 for attempt = 1:50 
                     p = games.FireflyChase.generatePath(3, drx, dry, corridorW, true);
@@ -428,14 +428,14 @@ classdef FireflyChase < engine.GameBase
                 startX = p.X(1); startY = p.Y(1);
             end
 
-            % SizeData is in screen points² — use unscaled base sizes
+            % SizeData is in screen points² - use unscaled base sizes
             % so markers look the same physical size at any display scale.
             % Collision uses data-space radius (scaled); visuals use fixed pts.
             baseRadius = radius / max(obj.Sc, 0.5);  % unscale back to ~10-14
             dotSize = baseRadius;
             auraSize = baseRadius * 3.5;
 
-            % Activate pool slot — update properties, make visible
+            % Activate pool slot - update properties, make visible
             hDot = obj.FFPoolDotH{slot};
             hAura = obj.FFPoolAuraH{slot};
             hTrail = obj.FFPoolTrailH{slot};
@@ -474,7 +474,7 @@ classdef FireflyChase < engine.GameBase
             obj.spawnHitEffect(hitPos, ff.color, totalPoints, ff.radius);
             obj.showComboText(hitPos + [0, 12]);
 
-            % Return pool slot — hide graphics
+            % Return pool slot - hide graphics
             si = ff.poolIdx;
             obj.FFPoolDotH{si}.Visible = "off";
             obj.FFPoolAuraH{si}.Visible = "off";
@@ -490,7 +490,7 @@ classdef FireflyChase < engine.GameBase
         end
 
         function onMiss(obj, idx)
-            %onMiss  Firefly reached end of path — loop or reverse.
+            %onMiss  Firefly reached end of path - loop or reverse.
             ff = obj.ActiveFF(idx);
 
             % Save trail carry-over (last trailSpan points from current path end)
@@ -566,7 +566,7 @@ classdef FireflyChase < engine.GameBase
     end
 
     % =================================================================
-    % STATIC UTILITIES — path generation (from GestureTrainer)
+    % STATIC UTILITIES - path generation (from GestureTrainer)
     % =================================================================
     methods (Static, Access = private)
 

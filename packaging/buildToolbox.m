@@ -37,7 +37,7 @@ fprintf("Output file  : %s\n", outputFile);
 %  2. Verify MATLAB version supports ToolboxOptions (R2023b+)
 % =========================================================================
 
-if verLessThan("matlab", "23.2")  %#ok<VERLESSMATLAB> — R2023b = 23.2
+if verLessThan("matlab", "23.2")  %#ok<VERLESSMATLAB> - R2023b = 23.2
     error("buildToolbox:UnsupportedRelease", ...
         "matlab.addons.toolbox.ToolboxOptions requires R2023b or newer.\n" + ...
         "You are running %s. See README_PACKAGING.md for alternatives.", version);
@@ -98,7 +98,7 @@ for k = 1:numel(packages)
     end
 end
 
-% 4d. web/ folder — HTML5 port
+% 4d. web/ folder - HTML5 port
 webDir = fullfile(projectRoot, "web");
 if isfolder(webDir)
     webFiles = dir(fullfile(webDir, "**", "*.*"));
@@ -108,7 +108,7 @@ if isfolder(webDir)
     end
 end
 
-% 4e. docs/ folder — include everything EXCEPT TODO.md
+% 4e. docs/ folder - include everything EXCEPT TODO.md
 docsDir = fullfile(projectRoot, "docs");
 if isfolder(docsDir)
     docsFiles = dir(fullfile(docsDir, "**", "*.*"));
@@ -138,7 +138,7 @@ for k = 1:numel(includeFiles)
 end
 
 % Assign to options. ToolboxMatlabPath is the folder added to the MATLAB
-% path on install — the project root, so Arcade() and packages work.
+% path on install - the project root, so Arcade() and packages work.
 opts.ToolboxFiles      = includeFiles;
 opts.ToolboxMatlabPath = projectRoot;
 

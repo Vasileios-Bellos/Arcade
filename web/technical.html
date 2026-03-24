@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arcade — Technical Details</title>
+<title>Arcade - Technical Details</title>
 <style>
 :root {
     --bg: #0a0a14;
@@ -187,7 +187,7 @@ footer {
 <h1>Arcade</h1>
 <p class="subtitle">Technical Documentation</p>
 
-<p>This document describes how 15 arcade games — originally developed in MATLAB — were faithfully ported to a single self-contained HTML file that runs in any modern browser. Every game preserves the exact physics, scoring, visual style, and feel of its MATLAB counterpart.</p>
+<p>This document describes how 15 arcade games - originally developed in MATLAB - were faithfully ported to a single self-contained HTML file that runs in any modern browser. Every game preserves the exact physics, scoring, visual style, and feel of its MATLAB counterpart.</p>
 
 <div class="stat-grid">
     <div class="stat-item">
@@ -308,7 +308,7 @@ ctx.fill();</pre>
 
 <p>The game uses a fixed logical coordinate system of <strong>854 × 480</strong> (16:9 aspect ratio), matching the MATLAB display range. The canvas scales to fill the browser window while preserving aspect ratio (letterboxed).</p>
 
-<p>For crisp rendering on high-DPI displays, the canvas backing store is sized to <code>cssSize × devicePixelRatio</code>. A coordinate transform maps all drawing calls from 854×480 logical space to the full physical resolution. Text and lines render at native pixel density — no blurriness at any scale.</p>
+<p>For crisp rendering on high-DPI displays, the canvas backing store is sized to <code>cssSize × devicePixelRatio</code>. A coordinate transform maps all drawing calls from 854×480 logical space to the full physical resolution. Text and lines render at native pixel density - no blurriness at any scale.</p>
 
 <h2>Shared Systems</h2>
 
@@ -329,7 +329,7 @@ ctx.fill();</pre>
 <p>Every physics constant was extracted directly from the MATLAB source and used verbatim in JavaScript. Below is a sample showing the exact correspondence:</p>
 
 <div class="card">
-<h3>Pong — Ball Physics</h3>
+<h3>Pong - Ball Physics</h3>
 <table>
     <tr><th>Constant</th><th>MATLAB (Pong.m)</th><th>JavaScript</th></tr>
     <tr><td>Base Speed</td><td><code>areaW * 0.00833</code></td><td><code>areaW * 0.00833</code></td></tr>
@@ -342,7 +342,7 @@ ctx.fill();</pre>
 </div>
 
 <div class="card">
-<h3>Tetris — SRS Rotation</h3>
+<h3>Tetris - SRS Rotation</h3>
 <p>All 7 piece shapes with 4 rotation states and the full SRS wall kick table (JLSTZ + I-piece) were ported cell-by-cell from <code>games.Tetris.buildPieceCells()</code> and <code>buildKickTables()</code>.</p>
 <table>
     <tr><th>Piece</th><th>Color</th><th>Rotations</th><th>Kick Tests</th></tr>
@@ -359,7 +359,7 @@ ctx.fill();</pre>
 <h2>What Makes This Port Faithful</h2>
 
 <div class="highlight">
-    <strong>Not a reimagination — a translation.</strong> Every numeric constant, every collision formula, every scoring rule, every animation curve was extracted from the MATLAB source and reproduced exactly. The games don't just look similar — they behave identically.
+    <strong>Not a reimagination - a translation.</strong> Every numeric constant, every collision formula, every scoring rule, every animation curve was extracted from the MATLAB source and reproduced exactly. The games don't just look similar - they behave identically.
 </div>
 
 <p>Key aspects of fidelity:</p>
@@ -388,7 +388,7 @@ ctx.fill();</pre>
 </table>
 
 <footer>
-    Arcade — Developed using the <a href="https://github.com/matlab/matlab-mcp-core-server">MATLAB MCP Server</a>
+    Arcade - Developed using the <a href="https://github.com/matlab/matlab-mcp-core-server">MATLAB MCP Server</a>
 </footer>
 
 </div>

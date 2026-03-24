@@ -273,7 +273,7 @@ classdef Juggler < engine.GameBase
                     obj.BallFlicks = obj.ExtraBallFlicks(1);
                     obj.removeExtraBall(1);
                 else
-                    % No balls left — respawn at center top
+                    % No balls left - respawn at center top
                     obj.BallPos = [mean(dx), dy(1) + diff(dy) * 0.3];
                     obj.BallVel = [0, 0];
                     obj.TrailBufX(:) = NaN;
@@ -346,7 +346,7 @@ classdef Juggler < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — MAIN BALL
+    % PRIVATE METHODS - MAIN BALL
     % =================================================================
     methods (Access = private)
 
@@ -354,10 +354,10 @@ classdef Juggler < engine.GameBase
             %flickBall  Apply bounce velocity to main ball from finger contact.
             fingerSpeed = norm(fingerVel);
             if fingerSpeed > 1.0 / obj.SpeedScale
-                % Active flick — finger velocity drives the ball
+                % Active flick - finger velocity drives the ball
                 obj.BallVel = fingerVel * 1.3;
             else
-                % Natural bounce — reflect downward velocity off finger
+                % Natural bounce - reflect downward velocity off finger
                 bounceVy = -abs(obj.BallVel(2)) * obj.Restitution;
                 minBounce = -obj.Gravity * 20;
                 obj.BallVel(2) = min(bounceVy, minBounce);
@@ -484,7 +484,7 @@ classdef Juggler < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — EXTRA BALLS
+    % PRIVATE METHODS - EXTRA BALLS
     % =================================================================
     methods (Access = private)
 
@@ -613,7 +613,7 @@ classdef Juggler < engine.GameBase
                     obj.ExtraBallVel(bi, 1) = -obj.ExtraBallVel(bi, 1) * obj.Restitution;
                 end
 
-                % Bottom drop — remove this extra, reset combo
+                % Bottom drop - remove this extra, reset combo
                 if obj.ExtraBallPos(bi, 2) > dy(2) + r
                     obj.BestStreak = max(obj.BestStreak, obj.ExtraBallFlicks(bi));
                     obj.spawnHitEffect(obj.ExtraBallPos(bi, :), obj.ColorRed, 0);

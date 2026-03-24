@@ -345,7 +345,7 @@ classdef Breakout < engine.GameBase
             stepVel = obj.BallVel * obj.DtScale;
             obj.BallPos = prePos + stepVel;
 
-            % Wall collisions (parametric — same as FlickIt)
+            % Wall collisions (parametric - same as FlickIt)
             bounced = false;
             bouncePos = obj.BallPos;
             bounceNormal = [0, 0];
@@ -466,7 +466,7 @@ classdef Breakout < engine.GameBase
                     obj.TrailIdx = eb.trailIdx;
                     obj.TrailAccum = eb.trailAccum;
 
-                    % Remove from array (don't delete graphics — they're main now)
+                    % Remove from array (don't delete graphics - they're main now)
                     obj.ExtraBalls(1) = [];
                 else
                     obj.loseLife();
@@ -627,7 +627,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — HUD
+    % PRIVATE METHODS - HUD
     % =================================================================
     methods (Access = private)
         function s = buildHudString(obj)
@@ -645,7 +645,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — brick grid
+    % PRIVATE METHODS - brick grid
     % =================================================================
     methods (Access = private)
         function buildBrickGrid(obj, level)
@@ -777,7 +777,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — ball control
+    % PRIVATE METHODS - ball control
     % =================================================================
     methods (Access = private)
         function serveBall(obj)
@@ -901,7 +901,7 @@ classdef Breakout < engine.GameBase
                 obj.addScore(totalPoints);
                 obj.incrementCombo();
             else
-                % Indestructible — bounce even in fireball mode
+                % Indestructible - bounce even in fireball mode
                 if isFireball
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
                         newVel(1) = -newVel(1);
@@ -961,7 +961,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — lives and levels
+    % PRIVATE METHODS - lives and levels
     % =================================================================
     methods (Access = private)
         function loseLife(obj)
@@ -1039,7 +1039,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — power-ups
+    % PRIVATE METHODS - power-ups
     % =================================================================
     methods (Access = private)
         function spawnPowerUp(obj, x, y)
@@ -1216,7 +1216,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — multi-ball
+    % PRIVATE METHODS - multi-ball
     % =================================================================
     methods (Access = private)
         function spawnExtraBalls(obj)
@@ -1462,7 +1462,7 @@ classdef Breakout < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — ball graphics
+    % PRIVATE METHODS - ball graphics
     % =================================================================
     methods (Access = private)
         function updateBallGraphics(obj)
@@ -1495,7 +1495,7 @@ classdef Breakout < engine.GameBase
                     "YData", obj.BallPos(2));
             end
 
-            % Glow ring — red outglow during fireball
+            % Glow ring - red outglow during fireball
             if ~isempty(obj.BallGlowH) && isvalid(obj.BallGlowH)
                 if isFireball
                     glowColor = obj.ColorRed;
@@ -1510,7 +1510,7 @@ classdef Breakout < engine.GameBase
                 obj.BallGlowH.MarkerFaceAlpha = glowAlpha;
             end
 
-            % Aura — larger red aura during fireball
+            % Aura - larger red aura during fireball
             if ~isempty(obj.BallAuraH) && isvalid(obj.BallAuraH)
                 if isFireball
                     auraColor = obj.ColorRed;
@@ -1527,7 +1527,7 @@ classdef Breakout < engine.GameBase
             end
 
             % Trail buffer (DtScale accumulator, fps-independent)
-            % Skip recording while serving — ball is on paddle, not in flight
+            % Skip recording while serving - ball is on paddle, not in flight
             if ~obj.Serving
                 obj.TrailAccum = obj.TrailAccum + obj.DtScale;
                 if obj.TrailAccum >= 2.0

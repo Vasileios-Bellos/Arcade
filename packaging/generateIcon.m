@@ -1,7 +1,7 @@
 %generateIcon  Generate icon and splash screen for Arcade.
 %   Creates:
-%       packaging/icon.png    — 256x256 app icon (neon "A" on dark background)
-%       packaging/splash.png  — 640x480 splash screen ("ARCADE" title)
+%       packaging/icon.png    - 256x256 app icon (neon "A" on dark background)
+%       packaging/splash.png  - 640x480 splash screen ("ARCADE" title)
 %
 %   The .png icon works directly with compiler.build.standaloneApplication.
 %   For a .ico file (Windows shortcut icon), convert icon.png using:
@@ -43,7 +43,7 @@ ax = axes(fig, ...
 hold(ax, "on");
 
 % Draw the Asteroids ship wireframe (triangle/arrow) as the icon
-% Ship vertices — a forward-pointing arrow/chevron, scaled up to fill icon
+% Ship vertices - a forward-pointing arrow/chevron, scaled up to fill icon
 sc = 1.30;  % scale factor from center
 cx = 0.50; cy = 0.529;  % equalize top/bottom margins
 shipX = cx + ([0.50, 0.22, 0.38, 0.50, 0.62, 0.78, 0.50] - cx) * sc;
@@ -64,7 +64,7 @@ plot(ax, shipX, shipY, "-", ...
     "Color", neonCyan, ...
     "LineWidth", 2.5);
 
-% Inner void — rhombus inscribed inside the A via polybuffer inset
+% Inner void - rhombus inscribed inside the A via polybuffer inset
 % Outer quad scaled by same factor
 oqX = cx + ([0.50, 0.70, 0.50, 0.30] - cx) * sc;
 oqY = cy + ([0.85, 0.37, 0.25, 0.37] - cy) * sc;

@@ -4,8 +4,8 @@ classdef FlappyBird < engine.GameBase
     %   increases as combo grows. Collision resets combo (no lives).
     %
     %   Controls (auto-detected):
-    %     Hosted  — bird follows cursor position directly
-    %     Arcade  — gravity pulls bird down, Space/Click to flap upward
+    %     Hosted  - bird follows cursor position directly
+    %     Arcade  - gravity pulls bird down, Space/Click to flap upward
 
     properties (Constant)
         Name = "Flappy Bird"

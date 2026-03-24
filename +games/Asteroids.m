@@ -37,12 +37,12 @@ classdef Asteroids < engine.GameBase
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
-        ShipCoreH                   % scatter — ship core
-        ShipGlowH                   % scatter — ship glow
-        ShipTrailH                  % line — engine trail
-        LivesTextH                  % text — lives (flash on change)
+        ShipCoreH                   % scatter - ship core
+        ShipGlowH                   % scatter - ship glow
+        ShipTrailH                  % line - engine trail
+        LivesTextH                  % text - lives (flash on change)
         LivesFlashTic       = []    % tic for lives flash animation
-        WaveTextH                   % text — wave display
+        WaveTextH                   % text - wave display
         WaveFlashTic        = []    % tic for wave flash animation
     end
 
@@ -82,7 +82,7 @@ classdef Asteroids < engine.GameBase
             obj.Rocks = struct("x", {}, "y", {}, "vx", {}, "vy", {}, ...
                 "radius", {}, "tier", {}, "angle", {}, "spin", {}, "patchH", {});
 
-            % Ship graphics — scatter (SizeData recomputed each frame for resize)
+            % Ship graphics - scatter (SizeData recomputed each frame for resize)
             obj.ShipRadius = max(4, round(min(diff(dx), diff(dy)) * 0.03));
             obj.ShipGlowH = scatter(ax, obj.ShipPos(1), obj.ShipPos(2), ...
                 1, obj.ColorCyan, "filled", "MarkerFaceAlpha", 0.15, ...
@@ -92,7 +92,7 @@ classdef Asteroids < engine.GameBase
             obj.ShipTrailH = line(ax, NaN, NaN, "Color", [obj.ColorCyan, 0.4], ...
                 "LineWidth", 1 * obj.FontScale, "Tag", "GT_asteroids");
 
-            % Lives text — centered, hidden, flash on change
+            % Lives text - centered, hidden, flash on change
             cx = mean(dx);
             obj.LivesTextH = text(ax, cx, mean(dy), "", ...
                 "Color", obj.ColorRed, "FontSize", 26 * obj.FontScale, ...
@@ -101,7 +101,7 @@ classdef Asteroids < engine.GameBase
                 "Tag", "GT_asteroids");
             obj.LivesFlashTic = [];
 
-            % Wave text — centered, hidden, flash on wave change
+            % Wave text - centered, hidden, flash on wave change
             obj.WaveTextH = text(ax, cx, mean(dy) - diff(dy) * 0.15, "", ...
                 "Color", obj.ColorGold, "FontSize", 21 * obj.FontScale, ...
                 "FontWeight", "bold", "HorizontalAlignment", "center", ...
@@ -342,7 +342,7 @@ classdef Asteroids < engine.GameBase
                     bul.glowH.YData = [bul.y, bul.y - bul.vy * 2.0];
                 end
 
-                % Off screen — remove
+                % Off screen - remove
                 if bul.x < dx(1) - 20 || bul.x > dx(2) + 20 || ...
                         bul.y < dy(1) - 20 || bul.y > dy(2) + 20
                     if ~isempty(bul.lineH) && isvalid(bul.lineH); delete(bul.lineH); end

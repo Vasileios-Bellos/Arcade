@@ -29,8 +29,8 @@ classdef (Abstract) GameBase < handle
     % FRAME-RATE INDEPENDENCE
     % =================================================================
     properties
-        DtScale         (1,1) double = 1   % rawDt * RefFPS — set by host each frame
-        FontScale       (1,1) double = 1   % pixel scale for font/marker sizing — set by host on resize
+        DtScale         (1,1) double = 1   % rawDt * RefFPS - set by host each frame
+        FontScale       (1,1) double = 1   % pixel scale for font/marker sizing - set by host on resize
     end
 
     properties
@@ -71,14 +71,14 @@ classdef (Abstract) GameBase < handle
     end
 
     % =================================================================
-    % ABSTRACT METHODS — must be implemented by every game
+    % ABSTRACT METHODS - must be implemented by every game
     % =================================================================
     methods (Abstract)
         onInit(obj, ax, displayRange, caps)
         %onInit  Create graphics, initialize state.
-        %   ax           — axes handle to draw on
-        %   displayRange — struct with .X=[min max], .Y=[min max]
-        %   caps         — struct with optional host capabilities (default empty)
+        %   ax           - axes handle to draw on
+        %   displayRange - struct with .X=[min max], .Y=[min max]
+        %   caps         - struct with optional host capabilities (default empty)
 
         onUpdate(obj, pos)
         %onUpdate  Per-frame update. pos = [x, y] finger/mouse position.
@@ -146,7 +146,7 @@ classdef (Abstract) GameBase < handle
 
         function onScroll(~, ~)
             %onScroll  Called on mouse scroll wheel. Override to handle.
-            %   delta — scroll amount (positive = down, negative = up)
+            %   delta - scroll amount (positive = down, negative = up)
         end
 
         function onMouseDown(~)
@@ -192,16 +192,16 @@ classdef (Abstract) GameBase < handle
     end
 
     % =================================================================
-    % HIT EFFECTS — shared visual effects system
+    % HIT EFFECTS - shared visual effects system
     % =================================================================
     methods (Access = protected)
         function spawnBounceEffect(obj, pos, normal, points, speed)
             %spawnBounceEffect  Wall impact spark with points display.
             %   Creates ring + directional rays + points text.
-            %   pos    — [x, y] impact position
-            %   normal — [nx, ny] impact direction (for ray spread)
-            %   points — score to display (0 = no text)
-            %   speed  — ball speed for color/size (optional, default 5)
+            %   pos    - [x, y] impact position
+            %   normal - [nx, ny] impact direction (for ray spread)
+            %   points - score to display (0 = no text)
+            %   speed  - ball speed for color/size (optional, default 5)
             ax = obj.Ax;
             if isempty(ax) || ~isvalid(ax); return; end
 
@@ -314,7 +314,7 @@ classdef (Abstract) GameBase < handle
     end
 
     % =================================================================
-    % HIT EFFECTS — public animation/cleanup (called by GameHost)
+    % HIT EFFECTS - public animation/cleanup (called by GameHost)
     % =================================================================
     methods
         function updateHitEffects(obj)
@@ -473,9 +473,9 @@ classdef (Abstract) GameBase < handle
             %   Adds black bars (letterbox/pillarbox) when figure AR does not
             %   match game AR. XLim/YLim are never changed.
             %
-            %   fig    — figure handle
-            %   ax     — axes handle
-            %   gameAR — target aspect ratio (rangeX / rangeY)
+            %   fig    - figure handle
+            %   ax     - axes handle
+            %   gameAR - target aspect ratio (rangeX / rangeY)
             if isempty(fig) || ~isvalid(fig); return; end
             if isempty(ax) || ~isvalid(ax); return; end
             figPos = fig.Position;
@@ -497,8 +497,8 @@ classdef (Abstract) GameBase < handle
             %   Multiplies FontSize, SizeData, MarkerSize, and LineWidth by
             %   pixelScale (a relative change ratio, e.g., newPs / oldPs).
             %
-            %   ax         — axes handle
-            %   pixelScale — relative change ratio (newSize / oldSize)
+            %   ax         - axes handle
+            %   pixelScale - relative change ratio (newSize / oldSize)
             if isempty(ax) || ~isvalid(ax); return; end
 
             % --- Text: scale FontSize ---

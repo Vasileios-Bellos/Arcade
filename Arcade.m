@@ -48,11 +48,11 @@ classdef Arcade < handle
     % HUD HANDLES (axes-based, during gameplay)
     % =================================================================
     properties (SetAccess = private)
-        ScoreTextH                              % text — top-left score
-        ComboTextH                              % text — combo display
-        StatusTextH                             % text — center (countdown/pause/results)
-        HudTextH                                % text — bottom HUD from game
-        FpsTextH                                % text — top-right FPS counter
+        ScoreTextH                              % text - top-left score
+        ComboTextH                              % text - combo display
+        StatusTextH                             % text - center (countdown/pause/results)
+        HudTextH                                % text - bottom HUD from game
+        FpsTextH                                % text - top-right FPS counter
     end
 
     % =================================================================
@@ -73,7 +73,7 @@ classdef Arcade < handle
         RawDt           (1,1) double = 0.040   % raw dt of current frame (seconds)
         SmoothedDt      (1,1) double = 0.040   % EMA-smoothed dt for physics
         PrevAxPx        (1,2) double = [0, 0]  % previous [width, height] in pixels
-        FontScale       (1,1) double = 1       % min(axPx/[854,480]) — current scale
+        FontScale       (1,1) double = 1       % min(axPx/[854,480]) - current scale
     end
 
     % =================================================================
@@ -201,7 +201,7 @@ classdef Arcade < handle
     end
 
     % =================================================================
-    % PRIVATE — Figure & Timer
+    % PRIVATE - Figure & Timer
     % =================================================================
     methods (Access = private)
 
@@ -332,7 +332,7 @@ classdef Arcade < handle
         end
 
         function onFigResize(obj)
-            %onFigResize  Handle figure resize — letterbox during gameplay.
+            %onFigResize  Handle figure resize - letterbox during gameplay.
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
@@ -371,12 +371,12 @@ classdef Arcade < handle
     end
 
     % =================================================================
-    % PRIVATE — Frame Loop
+    % PRIVATE - Frame Loop
     % =================================================================
     methods (Access = private)
 
         function onFrame(obj)
-            %onFrame  Main frame callback — dispatches to state handler.
+            %onFrame  Main frame callback - dispatches to state handler.
             if isempty(obj.Fig) || ~isvalid(obj.Fig); return; end
             if isempty(obj.Ax) || ~isvalid(obj.Ax); return; end
 
@@ -482,7 +482,7 @@ classdef Arcade < handle
                 obj.PrevSyncedScore = obj.Score;
             end
 
-            % Update combo display — show while active, hide on reset
+            % Update combo display - show while active, hide on reset
             if obj.ActiveGame.ShowHostCombo
                 if obj.Combo >= 2
                     if obj.Combo ~= prevCombo
@@ -519,12 +519,12 @@ classdef Arcade < handle
     end
 
     % =================================================================
-    % PRIVATE — Key Handling
+    % PRIVATE - Key Handling
     % =================================================================
     methods (Access = private)
 
         function onKeyPress(obj, evnt)
-            %onKeyPress  Route key events — exact GestureMouse pattern.
+            %onKeyPress  Route key events - exact GestureMouse pattern.
             %   1. Try modifier+key (shift+X, alt+X)
             %   2. If not handled, try plain key
             key = string(evnt.Key);
@@ -627,7 +627,7 @@ classdef Arcade < handle
     end
 
     % =================================================================
-    % PRIVATE — State Machine
+    % PRIVATE - State Machine
     % =================================================================
     methods (Access = private)
 
@@ -635,7 +635,7 @@ classdef Arcade < handle
             %enterMenu  Return to menu screen.
 
             % Stop timer during transition to prevent mid-transition render
-            % (same pattern as launchGame — avoids partial-state drawnow)
+            % (same pattern as launchGame - avoids partial-state drawnow)
             timerWasRunning = false;
             if ~isempty(obj.RenderTimer) && isvalid(obj.RenderTimer) ...
                     && strcmp(obj.RenderTimer.Running, "on")
@@ -922,7 +922,7 @@ classdef Arcade < handle
     end
 
     % =================================================================
-    % PRIVATE — HUD Management
+    % PRIVATE - HUD Management
     % =================================================================
     methods (Access = private)
 
@@ -1077,7 +1077,7 @@ classdef Arcade < handle
     end
 
     % =================================================================
-    % PROTECTED — Game Registry (override in subclasses)
+    % PROTECTED - Game Registry (override in subclasses)
     % =================================================================
     methods (Access = protected)
 

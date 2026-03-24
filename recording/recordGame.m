@@ -109,7 +109,7 @@ fprintf("  Done: %d frames, %s, %s\n", captureCount, gifFile, mp4File);
 end
 
 % =========================================================================
-% AI CONTROLLER — plays each game as well as possible
+% AI CONTROLLER - plays each game as well as possible
 % =========================================================================
 function [pos, keys, doClick, st] = gameAI(name, prev, ax, frame, range, st)
 keys = string.empty;
@@ -244,7 +244,7 @@ switch name
     case "TargetPractice"
         tp = findScatter(ax, "GT_targetpractice");
         if ~isempty(tp)
-            % Rush directly to target — high speed approach
+            % Rush directly to target - high speed approach
             pos = prev + (tp - prev) * 0.5;
         else
             pos = [cx, cy];
@@ -282,7 +282,7 @@ switch name
 
     % === JUGGLER: gently keep cursor under ball, let it bounce ===
     case "Juggler"
-        % DON'T flick — just track ball from directly below.
+        % DON'T flick - just track ball from directly below.
         % Low velocity = passive bounce (Restitution * 0.75).
         % Small X/Y variations for natural look.
         bp = findScatter(ax, "GT_juggle");
@@ -290,7 +290,7 @@ switch name
         % Stay directly under the ball, slightly below
         targetX = bp(1) + sin(frame*0.02) * 8; % gentle X sway
         targetY = bp(2) + 5; % just below ball center
-        % Smooth tracking — low speed so velocity stays low (passive bounce)
+        % Smooth tracking - low speed so velocity stays low (passive bounce)
         pos = prev + ([targetX, targetY] - prev) * 0.12;
 
     % === ORBITAL DEFENSE: aim at incoming asteroids ===

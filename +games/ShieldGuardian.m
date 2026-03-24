@@ -109,7 +109,7 @@ classdef ShieldGuardian < engine.GameBase
             obj.ProjColor(:) = 0;
             obj.ProjType(:) = "";
 
-            % Data-unit radii (small — ~4% of display for core, ~6% for shield)
+            % Data-unit radii (small - ~4% of display for core, ~6% for shield)
             obj.CoreRadius = max(4, minDim * 0.055);
             obj.ShieldRadius = max(7, minDim * 0.08);
             obj.HitboxRadius = obj.ShieldRadius * 0.9;
@@ -152,7 +152,7 @@ classdef ShieldGuardian < engine.GameBase
                 "Tag", "GT_shieldguardian");
 
             % Pre-allocate projectile pool (20 scatter pairs, all hidden)
-            % Use a small placeholder SizeData — updated dynamically each frame
+            % Use a small placeholder SizeData - updated dynamically each frame
             obj.ProjPoolScatter = cell(1, 20);
             obj.ProjPoolGlow = cell(1, 20);
             placeholderSz = 40;
@@ -394,7 +394,7 @@ classdef ShieldGuardian < engine.GameBase
                 end
 
                 % --- Deflected hitting another projectile (chain) ---
-                % ProjRadius is in data units — compare directly to distance
+                % ProjRadius is in data units - compare directly to distance
                 if obj.ProjType(k) == "deflected"
                     activeJ = find(obj.ProjActive);
                     for jj = numel(activeJ):-1:1
@@ -612,9 +612,9 @@ classdef ShieldGuardian < engine.GameBase
             %   produce correct screen-space sizing that adapts to window resize.
             %
             %   [sz, rPts] = computeSizeData(ax, displayRange, rData)
-            %     rData  — radius in data units
-            %     sz     — SizeData value (points^2)
-            %     rPts   — radius in typographic points
+            %     rData  - radius in data units
+            %     sz     - SizeData value (points^2)
+            %     rPts   - radius in typographic points
             pixPos = getpixelposition(ax);
             pxPerData = pixPos(3) / diff(displayRange.X);
             dpiVal = get(0, "ScreenPixelsPerInch");

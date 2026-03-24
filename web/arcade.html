@@ -20,7 +20,7 @@ canvas {
 <canvas id="gameCanvas"></canvas>
 <script>
 // =========================================================================
-// ARCADE — HTML5 Canvas Port
+// ARCADE - HTML5 Canvas Port
 // Single self-contained file. All 15 games + menu + engine.
 // Display: 854x480 logical, Y increases downward (matches MATLAB YDir=reverse)
 // =========================================================================
@@ -275,8 +275,8 @@ class HitEffectSystem {
 
     spawnBounce(x, y, normalOrNx, pointsOrNy, speedOrPts, speedArg2, scaleArg) {
         // Handle both signatures:
-        // (x, y, [nx,ny], pts, speed)        — array normal
-        // (x, y, nx, ny, pts, speed, scale)  — separate normal components
+        // (x, y, [nx,ny], pts, speed)        - array normal
+        // (x, y, nx, ny, pts, speed, scale)  - separate normal components
         let normal, points, speed;
         if (Array.isArray(normalOrNx)) {
             normal = normalOrNx;
@@ -1067,12 +1067,12 @@ const arcade = {
 
 // =========================================================================
 // GAME IMPLEMENTATIONS
-// Placeholder classes — will be replaced with full implementations
+// Placeholder classes - will be replaced with full implementations
 // =========================================================================
 
 
 // =========================================================================
-// GAME BASE CLASS — shared methods matching MATLAB GameBase
+// GAME BASE CLASS - shared methods matching MATLAB GameBase
 // =========================================================================
 class GameBaseJS {
     constructor() {
@@ -1182,7 +1182,7 @@ class PongGame {
         this.isRunning = true;
     }
 
-    // === beginServe — Pong.m lines 416-428 ===
+    // === beginServe - Pong.m lines 416-428 ===
     beginServe() {
         const cx = (this.dr.x[0] + this.dr.x[1]) / 2;
         const cy = (this.dr.y[0] + this.dr.y[1]) / 2;
@@ -1196,7 +1196,7 @@ class PongGame {
         this.trailIdx = 0;
     }
 
-    // === launchBall — Pong.m lines 430-438 ===
+    // === launchBall - Pong.m lines 430-438 ===
     launchBall() {
         const launchAngle = (Math.random() - 0.5) * Math.PI / 3;   // line 432
         const speed = this.ballBaseSpeed;
@@ -1207,7 +1207,7 @@ class PongGame {
         this.serving = false;
     }
 
-    // === computeDifficulty — Pong.m lines 560-568 ===
+    // === computeDifficulty - Pong.m lines 560-568 ===
     computeDifficulty() {
         const totalPoints = this.playerScore + this.opponentScore;
         let d = Math.min(1.0, totalPoints / (this.winScore * 2 - 2));  // line 563
@@ -1219,7 +1219,7 @@ class PongGame {
         return d;
     }
 
-    // === predictIntercept — Pong.m lines 571-612 ===
+    // === predictIntercept - Pong.m lines 571-612 ===
     predictIntercept() {
         const dx = this.dr.x;
         const dy = this.dr.y;
@@ -1257,7 +1257,7 @@ class PongGame {
         return simY;
     }
 
-    // === updateAIPaddle — Pong.m lines 524-558 ===
+    // === updateAIPaddle - Pong.m lines 524-558 ===
     updateAIPaddle(dtScale) {
         const dy = this.dr.y;
         const d = this.computeDifficulty();
@@ -1284,7 +1284,7 @@ class PongGame {
         const deltaY = this.aiTargetY - this.aiPaddleY;
         // Dead zone: suppress jitter when near target and ball moving away
         if (Math.abs(deltaY) < 2 && this.ballVel[0] > 0) {
-            // Ball heading right (away from AI) — hold position
+            // Ball heading right (away from AI) - hold position
         } else if (Math.abs(deltaY) > scaledSpeed) {
             this.aiPaddleY += Math.sign(deltaY) * scaledSpeed;
         } else {
@@ -1296,7 +1296,7 @@ class PongGame {
             Math.min(dy[1] - this.paddleHalfH, this.aiPaddleY));
     }
 
-    // === paddleHit — Pong.m lines 441-482 ===
+    // === paddleHit - Pong.m lines 441-482 ===
     paddleHit(who, paddleY, paddleX, dtScale) {
         const hitOffset = this.ballPos[1] - paddleY;
         const normalizedOffset = Math.max(-1, Math.min(1, hitOffset / this.paddleHalfH)); // line 444
@@ -1312,7 +1312,7 @@ class PongGame {
             this.ballVel = [newSpeed * -Math.cos(returnAngle), newSpeed * Math.sin(returnAngle)];
             this.ballPos[0] = paddleX - this.ballRadius;        // line 457
         } else {
-            // AI hit — difficulty boost (lines 460-463)
+            // AI hit - difficulty boost (lines 460-463)
             const difficultyVal = this.computeDifficulty();
             const aiBoost = 1 + difficultyVal * 0.3;
             this.ballVel = [
@@ -1342,7 +1342,7 @@ class PongGame {
         this.trailAccum = 0;
     }
 
-    // === onGoal — Pong.m lines 484-522 ===
+    // === onGoal - Pong.m lines 484-522 ===
     onGoal(who) {
         if (who === 'player') {
             this.playerScore++;
@@ -1376,7 +1376,7 @@ class PongGame {
     resetCombo() { this.combo = 0; }
     comboMultiplier() { return Math.max(1, this.combo / 10); }
 
-    // === showCombo — Pong.m lines 616-630 ===
+    // === showCombo - Pong.m lines 616-630 ===
     showCombo(hitPos) {
         if (this.combo < 2) return;
         this.comboText = `${this.combo}x Combo`;
@@ -1387,7 +1387,7 @@ class PongGame {
         this.comboFadeColor = [...Colors.Green];
     }
 
-    // === update — main game loop (Pong.m onUpdate lines 233-354) ===
+    // === update - main game loop (Pong.m onUpdate lines 233-354) ===
     update(mousePos, dt, dtScale) {
         if (!this.isRunning) return;
 
@@ -1583,7 +1583,7 @@ class PongGame {
             }
         }
 
-        // --- Ball rendering (3-layer: aura, glow, core — lines 682-698) ---
+        // --- Ball rendering (3-layer: aura, glow, core - lines 682-698) ---
         if (!isNaN(this.ballPos[0])) {
             const bx = this.ballPos[0];
             const by = this.ballPos[1];
@@ -1612,7 +1612,7 @@ class PongGame {
         const ph = this.paddleHalfH;
         const pw = this.paddleWidth;
 
-        // AI paddle (left, red — lines 735-743)
+        // AI paddle (left, red - lines 735-743)
         const aiPX = dx[0] + this.paddleMargin;
         if (!isNaN(this.aiPaddleY)) {
             // Glow
@@ -1627,7 +1627,7 @@ class PongGame {
             ctx.strokeRect(aiPX - pw / 2, this.aiPaddleY - ph, pw, ph * 2);
         }
 
-        // Player paddle (right, cyan — lines 746-755)
+        // Player paddle (right, cyan - lines 746-755)
         const plPX = dx[1] - this.paddleMargin;
         if (!isNaN(this.playerPaddleY)) {
             ctx.shadowColor = rgb(Colors.Cyan, 0.5);
@@ -1691,7 +1691,7 @@ class PongGame {
         }
 
         // --- Goal flash text ---
-        // (rendered in onGoal state — serve text handles it)
+        // (rendered in onGoal state - serve text handles it)
     }
 
     // Combo fade logic (Pong.m lines 632-665)
@@ -1735,7 +1735,7 @@ class PongGame {
 
 // #############################################################################
 //
-//  BREAKOUT — Breakout.m, exact port
+//  BREAKOUT - Breakout.m, exact port
 //
 // #############################################################################
 class BreakoutGame {
@@ -1824,7 +1824,7 @@ class BreakoutGame {
         this.isRunning = true;
     }
 
-    // === buildBrickGrid — Breakout.m lines 641-766 ===
+    // === buildBrickGrid - Breakout.m lines 641-766 ===
     buildBrickGrid(level) {
         const dx = this.dr.x;
         const dy = this.dr.y;
@@ -1903,7 +1903,7 @@ class BreakoutGame {
         }
     }
 
-    // === serveBall — Breakout.m lines 773-783 ===
+    // === serveBall - Breakout.m lines 773-783 ===
     serveBall() {
         this.serving = true;
         this.serveCountdown = 60;  // line 776: ~1s at 60fps
@@ -1914,7 +1914,7 @@ class BreakoutGame {
         this.trailIdx = 0;
     }
 
-    // === launchBall — Breakout.m lines 785-789 ===
+    // === launchBall - Breakout.m lines 785-789 ===
     launchBall() {
         const serveAngle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI / 3; // line 787
         this.ballVel = [
@@ -1924,7 +1924,7 @@ class BreakoutGame {
         this.serving = false;
     }
 
-    // === brickCollision — Breakout.m lines 792-908 ===
+    // === brickCollision - Breakout.m lines 792-908 ===
     // Two-pass: find earliest collision first, then process it.
     brickCollision(prePos, ballPos, ballVel) {
         const ballR = this.ballRadius;
@@ -2019,7 +2019,7 @@ class BreakoutGame {
             this.addScore(totalPoints);
             this.incrementCombo();
         } else {
-            // Indestructible — bounce even in fireball mode
+            // Indestructible - bounce even in fireball mode
             if (isFireball) {
                 if (Math.abs(dcx / brk.rawW) > Math.abs(dcy / brk.rawH)) {
                     newVel[0] = -newVel[0];
@@ -2047,7 +2047,7 @@ class BreakoutGame {
         return { pos: newPos, vel: newVel };
     }
 
-    // === destroyBrick — Breakout.m lines 910-942 ===
+    // === destroyBrick - Breakout.m lines 910-942 ===
     destroyBrick(brickIdx) {
         const brk = this.bricks[brickIdx];
         const brickCenter = [brk.rawX + brk.rawW / 2, brk.rawY + brk.rawH / 2];
@@ -2073,7 +2073,7 @@ class BreakoutGame {
         }
     }
 
-    // === spawnPowerUp — Breakout.m lines 1027-1067 ===
+    // === spawnPowerUp - Breakout.m lines 1027-1067 ===
     spawnPowerUp(x, y) {
         const types = ['F', 'M', 'S', 'W', 'L'];   // line 1032
         const puColors = [Colors.Red, Colors.Magenta, Colors.Green, Colors.Cyan, Colors.Gold]; // line 1033
@@ -2088,7 +2088,7 @@ class BreakoutGame {
         });
     }
 
-    // === applyPowerUp — Breakout.m lines 1069-1098 ===
+    // === applyPowerUp - Breakout.m lines 1069-1098 ===
     applyPowerUp(pType) {
         switch (pType) {
             case 'W':
@@ -2122,7 +2122,7 @@ class BreakoutGame {
         this.addScore(50);  // line 1098
     }
 
-    // === spawnExtraBalls — Breakout.m lines 1204-1258 ===
+    // === spawnExtraBalls - Breakout.m lines 1204-1258 ===
     spawnExtraBalls() {
         const splitAngles = [-Math.PI / 4, Math.PI / 4];  // line 1214
         const sources = [];
@@ -2168,7 +2168,7 @@ class BreakoutGame {
         }
     }
 
-    // === loseLife — Breakout.m lines 949-971 ===
+    // === loseLife - Breakout.m lines 949-971 ===
     loseLife() {
         this.lives--;
         this.showLivesFlash(Colors.Red);
@@ -2188,7 +2188,7 @@ class BreakoutGame {
         }
     }
 
-    // === nextLevel — Breakout.m lines 989-1020 ===
+    // === nextLevel - Breakout.m lines 989-1020 ===
     nextLevel() {
         this.level++;
         if (this.level > this.maxLevel) {
@@ -2231,7 +2231,7 @@ class BreakoutGame {
     resetCombo() { this.combo = 0; }
     comboMultiplier() { return Math.max(1, this.combo / 10); }
 
-    // === update — main game loop (Breakout.m onUpdate lines 254-524) ===
+    // === update - main game loop (Breakout.m onUpdate lines 254-524) ===
     update(mousePos, dt, dtScale) {
         if (!this.isRunning) return;
 
@@ -2399,7 +2399,7 @@ class BreakoutGame {
         // --- Bottom edge: lose life (lines 457-474) ---
         if (this.ballPos[1] > dy[1] + this.ballRadius * 2) {
             if (this.extraBalls.length > 0) {
-                // Promote first extra ball — assign references, keep trail
+                // Promote first extra ball - assign references, keep trail
                 const eb = this.extraBalls.shift();
                 this.ballPos = eb.pos;
                 this.ballVel = eb.vel;
@@ -2461,7 +2461,7 @@ class BreakoutGame {
         this.hitEffects.update(this.ctx, ds);
     }
 
-    // === updateExtraBalls — Breakout.m lines 1276-1393 ===
+    // === updateExtraBalls - Breakout.m lines 1276-1393 ===
     updateExtraBalls(dx, dy, px, pw, py, ph, ds) {
         for (let k = this.extraBalls.length - 1; k >= 0; k--) {
             const eb = this.extraBalls[k];
@@ -2538,7 +2538,7 @@ class BreakoutGame {
         }
     }
 
-    // === updatePowerUps — Breakout.m lines 1101-1185 ===
+    // === updatePowerUps - Breakout.m lines 1101-1185 ===
     updatePowerUps(ds) {
         const dy = this.dr.y;
 
@@ -2755,7 +2755,7 @@ class BreakoutGame {
             const ebMapped = 3 + (ebRatio - 1) * 12;
             const ebColor = isFireball ? Colors.Red : flickSpeedColor(ebMapped);
 
-            // Aura (behind, opaque — same as main ball)
+            // Aura (behind, opaque - same as main ball)
             ctx.beginPath();
             ctx.arc(bx, by, r * 1.14, 0, Math.PI * 2);
             ctx.fillStyle = rgb(ebColor);
@@ -2885,7 +2885,7 @@ class BreakoutGame {
 
 // #############################################################################
 //
-//  SNAKE — Snake.m, exact port
+//  SNAKE - Snake.m, exact port
 //
 // #############################################################################
 class SnakeGame {
@@ -2949,7 +2949,7 @@ class SnakeGame {
         this.isRunning = true;
     }
 
-    // === buildColormap — Snake.m lines 514-541 ===
+    // === buildColormap - Snake.m lines 514-541 ===
     // Default: cyan * (1 - t*0.6) + green * (t*0.6) for 256 rows
     buildColormap() {
         const nRows = 256;
@@ -2965,7 +2965,7 @@ class SnakeGame {
         return cmap;
     }
 
-    // === gridToData — Snake.m lines 356-363 ===
+    // === gridToData - Snake.m lines 356-363 ===
     gridToData(gridPos) {
         const dx = this.dr.x;
         const dy = this.dr.y;
@@ -2975,7 +2975,7 @@ class SnakeGame {
         ];
     }
 
-    // === spawnFood — Snake.m lines 400-439 ===
+    // === spawnFood - Snake.m lines 400-439 ===
     spawnFood() {
         const nC = this.gridCols;
         const nR = this.gridRows;
@@ -3021,7 +3021,7 @@ class SnakeGame {
     resetCombo() { this.combo = 0; }
     comboMultiplier() { return Math.max(1, this.combo / 10); }
 
-    // === update — Snake.m onUpdate lines 193-291 ===
+    // === update - Snake.m onUpdate lines 193-291 ===
     update(mousePos, dt, dtScale) {
         if (this.gameOver) return;
         if (this.body.length === 0) return;
@@ -3227,7 +3227,7 @@ class SnakeGame {
         this.hitEffects.draw(ctx);
     }
 
-    // === onKeyPress — Snake.m lines 318-338 ===
+    // === onKeyPress - Snake.m lines 318-338 ===
     onKeyPress(key) {
         switch (key) {
             case 'ArrowUp':
@@ -3260,7 +3260,7 @@ class SnakeGame {
         this.hitEffects.cleanup();
     }
 
-    // === getResults — Snake.m lines 341-348 ===
+    // === getResults - Snake.m lines 341-348 ===
     getResults() {
         return {
             title: 'SNAKE',
@@ -3279,34 +3279,34 @@ class TetrisGame {
         this.maxCombo = 0;
         this.isRunning = false;
 
-        // Grid constants — Tetris.m lines 23-25
+        // Grid constants - Tetris.m lines 23-25
         this.NCOLS = 10;
         this.NROWS = 22;   // 20 visible + 2 hidden buffer at top
         this.NVISIBLE = 20; // rows 3..22 are visible (1-indexed: row 3 = first visible)
 
-        // Piece colors (neon palette) — Tetris.m lines 28-34, 48-49
+        // Piece colors (neon palette) - Tetris.m lines 28-34, 48-49
         // Indexed by pieceId 0-6 (I=0, O=1, T=2, S=3, Z=4, J=5, L=6)
         this.pieceColors = [
-            [0, 235, 255],    // I — cyan
-            [255, 217, 51],   // O — gold
-            [179, 77, 255],   // T — neon purple [0.7, 0.3, 1]
-            [51, 255, 102],   // S — green
-            [255, 77, 51],    // Z — red
-            [77, 128, 255],   // J — neon blue [0.3, 0.5, 1]
-            [255, 153, 38],   // L — orange [1, 0.6, 0.15]
+            [0, 235, 255],    // I - cyan
+            [255, 217, 51],   // O - gold
+            [179, 77, 255],   // T - neon purple [0.7, 0.3, 1]
+            [51, 255, 102],   // S - green
+            [255, 77, 51],    // Z - red
+            [77, 128, 255],   // J - neon blue [0.3, 0.5, 1]
+            [255, 153, 38],   // L - orange [1, 0.6, 0.15]
         ];
 
-        // SRS piece data — built from Tetris.m buildPieceCells() lines 1156-1284
+        // SRS piece data - built from Tetris.m buildPieceCells() lines 1156-1284
         // Each piece: [rotation0, rotation1, rotation2, rotation3]
         // Each rotation: array of 4 [drow, dcol] offsets from pivot
         // drow positive = down, dcol positive = right
         this.pieceCells = this._buildPieceCells();
 
-        // SRS wall kick tables — Tetris.m buildKickTables() lines 1286-1334
+        // SRS wall kick tables - Tetris.m buildKickTables() lines 1286-1334
         this.kickJLSTZ = this._buildKickJLSTZ();
         this.kickI = this._buildKickI();
 
-        // Game state — Tetris.m lines 60-132
+        // Game state - Tetris.m lines 60-132
         this.board = null;
         this.curPiece = -1;  // -1 = none, 0-6 = piece ID
         this.curRot = 0;
@@ -3314,24 +3314,24 @@ class TetrisGame {
         this.curCol = 0;
         this.ghostRow = 0;
 
-        // 7-bag randomizer — Tetris.m lines 73-76
+        // 7-bag randomizer - Tetris.m lines 73-76
         this.bag = [];
         this.bagIdx = 0;
         this.nextQueue = [];
 
-        // Gravity — Tetris.m lines 78-82
+        // Gravity - Tetris.m lines 78-82
         this.gravAccum = 0;
         this.gravInterval = 48;   // DtScale units per row drop
         this.isSoftDrop = false;
         this.softDropTimer = 0;
 
-        // Lock delay — Tetris.m lines 85-88
+        // Lock delay - Tetris.m lines 85-88
         this.lockActive = false;
         this.lockTimer = 0;
         this.lockMoveCount = 0;
         this.lockDelay = 30;      // 0.5s at 60 fps
 
-        // DAS — Tetris.m lines 91-97
+        // DAS - Tetris.m lines 91-97
         this.dasDir = 0;
         this.dasTimer = 0;
         this.arrTimer = 0;
@@ -3340,18 +3340,18 @@ class TetrisGame {
         this.dasAge = 0;
         this.dasTimeout = 6;
 
-        // Scoring — Tetris.m lines 100-103
+        // Scoring - Tetris.m lines 100-103
         this.level = 1;
         this.totalLines = 0;
         this.comboCount = -1;   // -1 = no active combo
         this.isBackToBack = false;
 
-        // Line clear animation — Tetris.m lines 106-108
+        // Line clear animation - Tetris.m lines 106-108
         this.clearRows = [];
         this.clearTimer = 0;
         this.clearDuration = 12;  // frames for flash
 
-        // Mouse control — Tetris.m lines 112-115
+        // Mouse control - Tetris.m lines 112-115
         this.mouseTargetCol = 5;
         this.mouseActive = true;
         this.keyboardMode = false;
@@ -3387,7 +3387,7 @@ class TetrisGame {
         const areaW = dx[1] - dx[0];
         const areaH = dy[1] - dy[0];
 
-        // Cell size — Tetris.m lines 186-192
+        // Cell size - Tetris.m lines 186-192
         let cellSz = areaW * 0.035;
         let fieldH = cellSz * this.NVISIBLE;
         if (fieldH > areaH * 0.90) {
@@ -3399,11 +3399,11 @@ class TetrisGame {
         const fieldW = this.cellW * this.NCOLS;
         fieldH = this.cellH * this.NVISIBLE;
 
-        // Center playfield — Tetris.m lines 198-199
+        // Center playfield - Tetris.m lines 198-199
         this.fieldX = dx[0] + (areaW - fieldW) / 2;
         this.fieldY = dy[0] + (areaH - fieldH) / 2;
 
-        // Next preview box — Tetris.m lines 246-253
+        // Next preview box - Tetris.m lines 246-253
         this.nextBoxW = this.cellW * 5;
         this.nextBoxH = this.cellH * 13;
         this.nextBoxX = this.fieldX + fieldW + this.cellW * 1.5;
@@ -3412,7 +3412,7 @@ class TetrisGame {
         // Initialize board
         this.board = Array.from({length: this.NROWS}, () => new Int8Array(this.NCOLS));
 
-        // Reset state — Tetris.m lines 276-298
+        // Reset state - Tetris.m lines 276-298
         this.bag = [];
         this.bagIdx = 0;
         this.nextQueue = [];
@@ -3438,12 +3438,12 @@ class TetrisGame {
 
         this._recalcGravity();
 
-        // Fill next queue (3 preview + 1 to spawn) — Tetris.m lines 303-305
+        // Fill next queue (3 preview + 1 to spawn) - Tetris.m lines 303-305
         for (let k = 0; k < 4; k++) {
             this.nextQueue.push(this._pullFromBag());
         }
 
-        // Spawn first piece — Tetris.m lines 308-310
+        // Spawn first piece - Tetris.m lines 308-310
         this._spawnPiece(this.nextQueue.shift());
         this.nextQueue.push(this._pullFromBag());
 
@@ -3481,7 +3481,7 @@ class TetrisGame {
             targetCol = Math.max(1, Math.min(this.NCOLS, targetCol));
             this.mouseTargetCol = targetCol;
 
-            // Shift toward target — Tetris.m lines 375-383
+            // Shift toward target - Tetris.m lines 375-383
             const offsets = this._activeOffsets();
             const cols = offsets.map(o => this.curCol + o[1]);
             const pieceCenter = (Math.min(...cols) + Math.max(...cols)) / 2;
@@ -3550,7 +3550,7 @@ class TetrisGame {
         const dx = this.displayRange.X;
         const dy = this.displayRange.Y;
 
-        // Grid lines — Tetris.m drawGrid() lines 1114-1148
+        // Grid lines - Tetris.m drawGrid() lines 1114-1148
         ctx.strokeStyle = 'rgba(30,30,30,1)';
         ctx.lineWidth = 0.5;
         for (let c = 0; c <= this.NCOLS; c++) {
@@ -3568,14 +3568,14 @@ class TetrisGame {
             ctx.stroke();
         }
 
-        // Field border — Tetris.m lines 220-225
+        // Field border - Tetris.m lines 220-225
         const fieldW = this.cellW * this.NCOLS;
         const fieldH = this.cellH * this.NVISIBLE;
         ctx.strokeStyle = 'rgba(0,179,217,0.6)';  // [0, 0.7, 0.85, 0.6]
         ctx.lineWidth = 1.1;
         ctx.strokeRect(this.fieldX, this.fieldY, fieldW, fieldH);
 
-        // Board cells — locked pieces (Tetris.m syncBoard lines 1090-1112)
+        // Board cells - locked pieces (Tetris.m syncBoard lines 1090-1112)
         for (let r = 2; r < this.NROWS; r++) {  // rows 2..21 (0-indexed) = visible rows 3..22
             for (let c = 0; c < this.NCOLS; c++) {
                 const pid = this.board[r][c];
@@ -3587,7 +3587,7 @@ class TetrisGame {
             }
         }
 
-        // Line clear animation flash — Tetris.m lines 337-351
+        // Line clear animation flash - Tetris.m lines 337-351
         if (this.clearRows.length > 0) {
             const progress = 1 - this.clearTimer / this.clearDuration;
             const alpha = 0.9 * (1 - progress);
@@ -3599,7 +3599,7 @@ class TetrisGame {
             }
         }
 
-        // Ghost piece — Tetris.m renderGhost lines 991-1021
+        // Ghost piece - Tetris.m renderGhost lines 991-1021
         if (this.curPiece >= 0 && this.ghostRow !== this.curRow) {
             const offsets = this._activeOffsets();
             const clr = this.pieceColors[this.curPiece];
@@ -3613,7 +3613,7 @@ class TetrisGame {
             }
         }
 
-        // Active piece — Tetris.m renderActive lines 958-989
+        // Active piece - Tetris.m renderActive lines 958-989
         if (this.curPiece >= 0) {
             const offsets = this._activeOffsets();
             const clr = this.pieceColors[this.curPiece];
@@ -3627,7 +3627,7 @@ class TetrisGame {
             }
         }
 
-        // Next preview box — Tetris.m lines 255-263
+        // Next preview box - Tetris.m lines 255-263
         ctx.strokeStyle = 'rgba(0,153,179,0.4)';  // [0, 0.6, 0.7, 0.4]
         ctx.lineWidth = 0.54;
         ctx.strokeRect(this.nextBoxX, this.nextBoxY, this.nextBoxW, this.nextBoxH);
@@ -3638,7 +3638,7 @@ class TetrisGame {
         ctx.textBaseline = 'bottom';
         ctx.fillText('NEXT', this.nextBoxX + this.nextBoxW / 2, this.nextBoxY - this.cellH * 0.3);
 
-        // Next preview pieces — Tetris.m renderNext lines 1023-1088
+        // Next preview pieces - Tetris.m renderNext lines 1023-1088
         this._renderNext();
 
         // Level/Lines HUD
@@ -3700,7 +3700,7 @@ class TetrisGame {
             pieceMinR.push(Math.min(...rows));
         }
 
-        // Equal gap — Tetris.m line 1046
+        // Equal gap - Tetris.m line 1046
         const totalShapeH = pieceH.reduce((a, b) => a + b, 0) * this.cellH;
         const gapH = (this.nextBoxH - totalShapeH) / (nPreview + 1);
 
@@ -3711,7 +3711,7 @@ class TetrisGame {
             const clr = this.pieceColors[this.nextQueue[p]];
             const brightClr = clr.map(v => Math.min(255, v * 1.4));
 
-            // Even-width shift — Tetris.m lines 1057-1059
+            // Even-width shift - Tetris.m lines 1057-1059
             let cx = baseCenterX;
             if (pieceW[p] % 2 === 0) {
                 cx -= this.cellW / 2;
@@ -3927,7 +3927,7 @@ class TetrisGame {
         this.softDropTimer = 0;
         this.gravAccum = 0;
 
-        // Check for full rows — Tetris.m lines 767-773
+        // Check for full rows - Tetris.m lines 767-773
         const fullRows = this._findFullRows();
         if (fullRows.length > 0) {
             this._beginClear(fullRows);
@@ -3958,7 +3958,7 @@ class TetrisGame {
         let rows = [...this.clearRows].sort((a, b) => a - b);
         const numLines = rows.length;
 
-        // Remove rows: shift above down — Tetris.m lines 799-812
+        // Remove rows: shift above down - Tetris.m lines 799-812
         for (let ri = rows.length - 1; ri >= 0; ri--) {
             let r = rows[ri];
             if (r > 0) {
@@ -3974,7 +3974,7 @@ class TetrisGame {
             }
         }
 
-        // Scoring — Tetris.m lines 815-839
+        // Scoring - Tetris.m lines 815-839
         this.comboCount++;
         let baseScore;
         switch (numLines) {
@@ -3985,7 +3985,7 @@ class TetrisGame {
             default: baseScore = 100 * numLines;
         }
 
-        // Back-to-back Tetris bonus — Tetris.m lines 825-832
+        // Back-to-back Tetris bonus - Tetris.m lines 825-832
         if (numLines === 4) {
             if (this.isBackToBack) {
                 baseScore = Math.round(baseScore * 1.5);
@@ -3997,7 +3997,7 @@ class TetrisGame {
 
         let pts = baseScore * this.level;
 
-        // Combo bonus — Tetris.m lines 837-839
+        // Combo bonus - Tetris.m lines 837-839
         if (this.comboCount > 0) {
             pts += 50 * this.comboCount * this.level;
         }
@@ -4005,7 +4005,7 @@ class TetrisGame {
         this.score += pts;
         this.totalLines += numLines;
 
-        // Level up every 10 lines — Tetris.m lines 845-849
+        // Level up every 10 lines - Tetris.m lines 845-849
         const newLevel = Math.floor(this.totalLines / 10) + 1;
         if (newLevel > this.level) {
             this.level = newLevel;
@@ -4176,7 +4176,7 @@ class TetrisGame {
 
 
 // =============================================================================
-// ASTEROIDS — from +games/Asteroids.m (507 lines)
+// ASTEROIDS - from +games/Asteroids.m (507 lines)
 // =============================================================================
 class AsteroidsGame {
     constructor() {
@@ -4186,7 +4186,7 @@ class AsteroidsGame {
         this.maxCombo = 0;
         this.isRunning = false;
 
-        // Game state — Asteroids.m lines 22-34
+        // Game state - Asteroids.m lines 22-34
         this.tierRadii = [15, 10, 5];  // scaled in init
         this.shipPos = [NaN, NaN];
         this.rocks = [];
@@ -4226,11 +4226,11 @@ class AsteroidsGame {
         this.fireCooldown = 0;
         this.invulnFrames = 0;
 
-        // Scale asteroid radii — Asteroids.m lines 77-78
+        // Scale asteroid radii - Asteroids.m lines 77-78
         const sc = Math.min(areaW, areaH) / 180;
         this.tierRadii = [15, 10, 5].map(r => Math.round(r * sc));
 
-        // Ship radius — Asteroids.m line 86
+        // Ship radius - Asteroids.m line 86
         this.shipRadius = Math.max(4, Math.round(Math.min(areaW, areaH) * 0.03));
 
         this.bullets = [];
@@ -4248,28 +4248,28 @@ class AsteroidsGame {
         const areaW = dx[1] - dx[0];
         const areaH = dy[1] - dy[0];
 
-        // Move ship to cursor — Asteroids.m lines 128-145
+        // Move ship to cursor - Asteroids.m lines 128-145
         if (mousePos && !isNaN(mousePos[0])) {
             this.shipPos = [mousePos[0], mousePos[1]];
         }
 
-        // Auto-fire toward nearest asteroid — Asteroids.m lines 148-151
+        // Auto-fire toward nearest asteroid - Asteroids.m lines 148-151
         this.fireCooldown += ds;
         if (this.fireCooldown >= 24 && this.rocks.length > 0) {  // 24 frame cooldown
             this.fireCooldown = 0;
             this._fireAtNearest();
         }
 
-        // Move bullets and check collisions — Asteroids.m updateBullets lines 326-403
+        // Move bullets and check collisions - Asteroids.m updateBullets lines 326-403
         this._updateBullets(ds);
 
-        // Move asteroids + wrap — Asteroids.m updateRocks lines 406-431
+        // Move asteroids + wrap - Asteroids.m updateRocks lines 406-431
         this._updateRocks(ds);
 
-        // Ship collision — Asteroids.m checkShipCollision lines 434-470
+        // Ship collision - Asteroids.m checkShipCollision lines 434-470
         this._checkShipCollision(ds);
 
-        // Wave cleared? — Asteroids.m lines 170-175
+        // Wave cleared? - Asteroids.m lines 170-175
         if (this.rocks.length === 0) {
             this.wave++;
             this.score += 500 * this.wave;  // Asteroids.m line 172
@@ -4287,9 +4287,9 @@ class AsteroidsGame {
         const ctx = this.ctx;
         const now = performance.now();
 
-        // Draw asteroids — wireframe polygons
+        // Draw asteroids - wireframe polygons
         for (const rock of this.rocks) {
-            // Tier colors — Asteroids.m line 270
+            // Tier colors - Asteroids.m line 270
             const tierColors = [GB_COLORS.silver, GB_COLORS.gold, GB_COLORS.red];
             const clr = tierColors[Math.min(rock.tier, 2)];
 
@@ -4297,7 +4297,7 @@ class AsteroidsGame {
             ctx.shadowColor = rgba(clr, 0.3);
             ctx.shadowBlur = 6;
 
-            // Filled with low alpha + edge — Asteroids.m lines 273-275
+            // Filled with low alpha + edge - Asteroids.m lines 273-275
             ctx.beginPath();
             for (let i = 0; i < rock.verts.length; i++) {
                 const vx = rock.x + rock.verts[i][0] * Math.cos(rock.angle) -
@@ -4315,12 +4315,12 @@ class AsteroidsGame {
             ctx.restore();
         }
 
-        // Draw bullets — beam lines
+        // Draw bullets - beam lines
         for (const bul of this.bullets) {
             const aimX = bul.vx / Math.sqrt(bul.vx * bul.vx + bul.vy * bul.vy);
             const aimY = bul.vy / Math.sqrt(bul.vx * bul.vx + bul.vy * bul.vy);
 
-            // Glow line — Asteroids.m lines 317-318
+            // Glow line - Asteroids.m lines 317-318
             ctx.save();
             ctx.shadowColor = rgba(GB_COLORS.cyan, 0.5);
             ctx.shadowBlur = 8;
@@ -4331,7 +4331,7 @@ class AsteroidsGame {
             ctx.lineTo(bul.x - bul.vx * 2.0, bul.y - bul.vy * 2.0);
             ctx.stroke();
 
-            // Core line — Asteroids.m lines 319-320
+            // Core line - Asteroids.m lines 319-320
             ctx.strokeStyle = rgba(GB_COLORS.cyan, 1);
             ctx.lineWidth = 0.8;
             ctx.beginPath();
@@ -4341,9 +4341,9 @@ class AsteroidsGame {
             ctx.restore();
         }
 
-        // Draw ship — Asteroids.m lines 87-93
+        // Draw ship - Asteroids.m lines 87-93
         if (this.invulnFrames > 0) {
-            // Blink — Asteroids.m lines 438-439
+            // Blink - Asteroids.m lines 438-439
             if (Math.floor(this.invulnFrames) % 8 >= 4) {
                 this._drawShip(ctx);
             }
@@ -4351,7 +4351,7 @@ class AsteroidsGame {
             this._drawShip(ctx);
         }
 
-        // Lives flash — Asteroids.m animateLivesFlash lines 473-488
+        // Lives flash - Asteroids.m animateLivesFlash lines 473-488
         if (this.livesFlashStart !== null) {
             const el = (now - this.livesFlashStart) / 1000;
             if (el < 0.6) {
@@ -4371,7 +4371,7 @@ class AsteroidsGame {
             }
         }
 
-        // Wave flash — Asteroids.m animateWaveFlash lines 490-505
+        // Wave flash - Asteroids.m animateWaveFlash lines 490-505
         if (this.waveFlashStart !== null) {
             const wEl = (now - this.waveFlashStart) / 1000;
             if (wEl < 1.2) {
@@ -4397,7 +4397,7 @@ class AsteroidsGame {
         const [sx, sy] = this.shipPos;
         const r = this.shipRadius;
 
-        // Glow — Asteroids.m lines 87-89 (scatter, MarkerFaceAlpha=0.15, no shadow)
+        // Glow - Asteroids.m lines 87-89 (scatter, MarkerFaceAlpha=0.15, no shadow)
         ctx.save();
         ctx.fillStyle = rgba(GB_COLORS.cyan, 0.15);
         ctx.beginPath();
@@ -4405,7 +4405,7 @@ class AsteroidsGame {
         ctx.fill();
         ctx.restore();
 
-        // Core — Asteroids.m lines 90-91 (scatter, fully opaque)
+        // Core - Asteroids.m lines 90-91 (scatter, fully opaque)
         ctx.save();
         ctx.fillStyle = rgb(GB_COLORS.cyan);
         ctx.beginPath();
@@ -4423,7 +4423,7 @@ class AsteroidsGame {
 
         const nAst = 3 + waveNum;  // Asteroids.m line 242
         for (let i = 0; i < nAst; i++) {
-            // Spawn at edges — Asteroids.m lines 246-251
+            // Spawn at edges - Asteroids.m lines 246-251
             const side = Math.floor(Math.random() * 4);
             let x, y;
             switch (side) {
@@ -4432,7 +4432,7 @@ class AsteroidsGame {
                 case 2: x = dx[0] + Math.random() * areaW; y = dy[0] - 15; break;
                 default: x = dx[0] + Math.random() * areaW; y = dy[1] + 15; break;
             }
-            // Speed — Asteroids.m line 252
+            // Speed - Asteroids.m line 252
             const spd = Math.max(0.125, Math.min(areaW, areaH) * 0.00167) * (0.5 + Math.random());
             const theta = Math.random() * 2 * Math.PI;
             const vx = spd * Math.cos(theta);
@@ -4481,7 +4481,7 @@ class AsteroidsGame {
         const aimLen = Math.hypot(aimX, aimY);
         if (aimLen > 0) { aimX /= aimLen; aimY /= aimLen; }
 
-        // Bullet speed — Asteroids.m line 309
+        // Bullet speed - Asteroids.m line 309
         const bSpeed = Math.max(2.5, Math.min(areaW, areaH) * 0.025);
 
         this.bullets.push({
@@ -4500,20 +4500,20 @@ class AsteroidsGame {
             bul.x += bul.vx * ds;
             bul.y += bul.vy * ds;
 
-            // Off screen — Asteroids.m lines 346-352
+            // Off screen - Asteroids.m lines 346-352
             if (bul.x < dx[0] - 20 || bul.x > dx[1] + 20 ||
                 bul.y < dy[0] - 20 || bul.y > dy[1] + 20) {
                 this.bullets.splice(k, 1);
                 continue;
             }
 
-            // Bullet-asteroid collision (sweep test) — Asteroids.m lines 355-395
+            // Bullet-asteroid collision (sweep test) - Asteroids.m lines 355-395
             let hitDetected = false;
             const stepX = bul.vx * ds;
             const stepY = bul.vy * ds;
             for (let a = this.rocks.length - 1; a >= 0; a--) {
                 const rock = this.rocks[a];
-                // Closest point on bullet segment — Asteroids.m lines 359-371
+                // Closest point on bullet segment - Asteroids.m lines 359-371
                 const px = bul.x - stepX;
                 const py = bul.y - stepY;
                 const segX = stepX;
@@ -4528,12 +4528,12 @@ class AsteroidsGame {
                 if (Math.hypot(closestX - rock.x, closestY - rock.y) < rock.radius) {
                     hitDetected = true;
                     this.hitEffects.spawnBounceEffect([rock.x, rock.y], [0, -1], 0, 8);
-                    // Score — Asteroids.m line 374
+                    // Score - Asteroids.m line 374
                     this.score += Math.round(300 / rock.radius * 10);
                     this.combo++;
                     this.maxCombo = Math.max(this.maxCombo, this.combo);
 
-                    // Split into next tier — Asteroids.m lines 378-387
+                    // Split into next tier - Asteroids.m lines 378-387
                     const nextTier = rock.tier + 1;
                     if (nextTier < this.tierRadii.length) {
                         for (let s = 0; s < 2; s++) {
@@ -4564,7 +4564,7 @@ class AsteroidsGame {
             rock.y += rock.vy * ds;
             rock.angle += rock.spin * ds;
 
-            // Wrap — Asteroids.m lines 416-420
+            // Wrap - Asteroids.m lines 416-420
             const margin = rock.radius;
             if (rock.x < dx[0] - margin) rock.x = dx[1] + margin;
             if (rock.x > dx[1] + margin) rock.x = dx[0] - margin;
@@ -4625,7 +4625,7 @@ class AsteroidsGame {
 
 
 // =============================================================================
-// SPACE INVADERS — from +games/SpaceInvaders.m (938 lines)
+// SPACE INVADERS - from +games/SpaceInvaders.m (938 lines)
 // =============================================================================
 class SpaceInvadersGame {
     constructor() {
@@ -4635,12 +4635,12 @@ class SpaceInvadersGame {
         this.maxCombo = 0;
         this.isRunning = false;
 
-        // Pool sizes — SpaceInvaders.m lines 13-15
+        // Pool sizes - SpaceInvaders.m lines 13-15
         this.BULLET_POOL_SIZE = 10;
         this.EBULLET_POOL_SIZE = 15;
         this.PU_POOL_SIZE = 4;
 
-        // Game state — SpaceInvaders.m lines 22-83
+        // Game state - SpaceInvaders.m lines 22-83
         this.shipX = NaN;
         this.shipW = 16;
         this.shipH = 10;
@@ -4661,11 +4661,11 @@ class SpaceInvadersGame {
         this.eBulletY = [];
         this.eBulletActive = [];
 
-        // Auto-fire — SpaceInvaders.m lines 51-52
+        // Auto-fire - SpaceInvaders.m lines 51-52
         this.fireCD = 0;
         this.fireRate = 12;  // SpaceInvaders.m line 138 (adjusted from 29 in properties)
 
-        // Combo timeout — SpaceInvaders.m lines 55-56
+        // Combo timeout - SpaceInvaders.m lines 55-56
         this.lastHitTime = null;
         this.comboTimeout = 2.4;
 
@@ -4713,10 +4713,10 @@ class SpaceInvadersGame {
         const areaW = dx[1] - dx[0];
         const areaH = dy[1] - dy[0];
 
-        // Display scale — SpaceInvaders.m line 123
+        // Display scale - SpaceInvaders.m line 123
         this.sc = Math.min(areaW, areaH) / 180;
 
-        // Ship setup — SpaceInvaders.m lines 130-133
+        // Ship setup - SpaceInvaders.m lines 130-133
         this.shipW = Math.max(12, Math.round(areaW * 0.06));
         this.shipH = Math.max(6, Math.round(areaH * 0.06));
         this.shipY = dy[1] - Math.round(areaH * 0.1);
@@ -4727,9 +4727,9 @@ class SpaceInvadersGame {
         this.fireCD = 0;
         this.fireRate = 12;  // SpaceInvaders.m line 138
         this.alienDir = 1;
-        // Speed — SpaceInvaders.m line 140
+        // Speed - SpaceInvaders.m line 140
         this.alienSpeed = Math.max(0.083, areaW * 0.000833);
-        // Drop distance — SpaceInvaders.m line 141
+        // Drop distance - SpaceInvaders.m line 141
         this.alienDropDist = Math.max(3, areaH * 0.04);
         this.invulnFrames = 0;
         this.laserActive = false;
@@ -4767,13 +4767,13 @@ class SpaceInvadersGame {
         const areaH = dy[1] - dy[0];
         const now = performance.now();
 
-        // Move ship — SpaceInvaders.m lines 260-273
+        // Move ship - SpaceInvaders.m lines 260-273
         if (mousePos && !isNaN(mousePos[0])) {
             const targetX = Math.max(dx[0] + this.shipW / 2, Math.min(dx[1] - this.shipW / 2, mousePos[0]));
             this.shipX = targetX;
         }
 
-        // Auto-fire — SpaceInvaders.m lines 276-282
+        // Auto-fire - SpaceInvaders.m lines 276-282
         this.fireCD += ds;
         let currentFireRate = this.fireRate;
         if (this.laserActive) currentFireRate = Math.max(10, currentFireRate / 2);
@@ -4782,26 +4782,26 @@ class SpaceInvadersGame {
             this._fireBullet();
         }
 
-        // Move player bullets — SpaceInvaders.m lines 285-346
+        // Move player bullets - SpaceInvaders.m lines 285-346
         const bulletSpeed = Math.max(0.833, (dy[1] - dy[0]) * 0.0104);
         const bLen = Math.max(3, (dy[1] - dy[0]) * 0.02);
         for (let k = 0; k < this.BULLET_POOL_SIZE; k++) {
             if (!this.bulletActive[k]) continue;
             this.bulletY[k] -= bulletSpeed * ds;
 
-            // Off screen — SpaceInvaders.m lines 306-309
+            // Off screen - SpaceInvaders.m lines 306-309
             if (this.bulletY[k] < dy[0] - 10) {
                 this.bulletActive[k] = false;
                 continue;
             }
 
-            // Bullet-alien collision — SpaceInvaders.m lines 312-345
+            // Bullet-alien collision - SpaceInvaders.m lines 312-345
             const bx = this.bulletX[k];
             const by = this.bulletY[k];
             let hitAlien = false;
             for (let a = this.aliens.length - 1; a >= 0; a--) {
                 const al = this.aliens[a];
-                // Hit box — SpaceInvaders.m line 315
+                // Hit box - SpaceInvaders.m line 315
                 if (Math.abs(bx - al.x) < this.shipW * 0.7 && Math.abs(by - al.y) < this.shipH * 0.8) {
                     al.hp--;
                     if (al.hp <= 0) {
@@ -4811,7 +4811,7 @@ class SpaceInvadersGame {
                         this.combo++;
                         this.maxCombo = Math.max(this.maxCombo, this.combo);
                         this.lastHitTime = now;
-                        // Power-up drop chance — SpaceInvaders.m lines 326-328
+                        // Power-up drop chance - SpaceInvaders.m lines 326-328
                         if (Math.random() < 0.08) {
                             this._spawnPowerUp(al.x, al.y);
                         }
@@ -4831,7 +4831,7 @@ class SpaceInvadersGame {
             this.lastHitTime = null;
         }
 
-        // Move aliens — SpaceInvaders.m lines 349-375
+        // Move aliens - SpaceInvaders.m lines 349-375
         let edgeHit = false;
         for (const al of this.aliens) {
             al.x += this.alienDir * this.alienSpeed * ds;
@@ -4844,13 +4844,13 @@ class SpaceInvadersGame {
             }
         }
 
-        // Enemy fire — SpaceInvaders.m lines 378-381
+        // Enemy fire - SpaceInvaders.m lines 378-381
         if (this.aliens.length > 0 && Math.random() < 0.0083 * (1 + this.wave * 0.3) * ds) {
             const shooter = this.aliens[Math.floor(Math.random() * this.aliens.length)];
             this._activateEBullet(shooter.x, shooter.y);
         }
 
-        // Move enemy bullets — SpaceInvaders.m lines 384-416
+        // Move enemy bullets - SpaceInvaders.m lines 384-416
         const eBulletSpeed = Math.max(0.625, (dy[1] - dy[0]) * 0.00625);
         for (let k = 0; k < this.EBULLET_POOL_SIZE; k++) {
             if (!this.eBulletActive[k]) continue;
@@ -4864,7 +4864,7 @@ class SpaceInvadersGame {
             const ebx = this.eBulletX[k];
             const eby = this.eBulletY[k];
 
-            // Shield intercept — SpaceInvaders.m lines 399-407
+            // Shield intercept - SpaceInvaders.m lines 399-407
             if (this.shieldActive) {
                 const sr = this.shipW * 0.8;
                 if ((ebx - this.shipX) ** 2 + (eby - this.shipY) ** 2 < sr * sr) {
@@ -4874,7 +4874,7 @@ class SpaceInvadersGame {
                 }
             }
 
-            // Hit player — SpaceInvaders.m lines 409-415
+            // Hit player - SpaceInvaders.m lines 409-415
             if (this.invulnFrames <= 0 &&
                 Math.abs(ebx - this.shipX) < this.shipW / 2 &&
                 Math.abs(eby - this.shipY) < this.shipH) {
@@ -4884,12 +4884,12 @@ class SpaceInvadersGame {
             }
         }
 
-        // Invulnerability blink — SpaceInvaders.m lines 419-429
+        // Invulnerability blink - SpaceInvaders.m lines 419-429
         if (this.invulnFrames > 0) {
             this.invulnFrames -= ds;
         }
 
-        // Check alien reaching bottom — SpaceInvaders.m lines 432-438
+        // Check alien reaching bottom - SpaceInvaders.m lines 432-438
         for (const al of this.aliens) {
             if (al.y > this.shipY - 5) {
                 this.lives = 0;
@@ -4898,7 +4898,7 @@ class SpaceInvadersGame {
             }
         }
 
-        // Wave cleared? — SpaceInvaders.m lines 441-451
+        // Wave cleared? - SpaceInvaders.m lines 441-451
         if (this.aliens.length === 0) {
             this.score += 500 * this.wave;
             if (this.wave >= 5) {
@@ -4910,13 +4910,13 @@ class SpaceInvadersGame {
             this._showWaveName(this.wave);
         }
 
-        // Power-ups falling — SpaceInvaders.m lines 453-490
+        // Power-ups falling - SpaceInvaders.m lines 453-490
         const capR = Math.round(5 * this.sc);
         for (let k = 0; k < this.PU_POOL_SIZE; k++) {
             if (!this.puActive[k]) continue;
             this.puY[k] += 0.4167 * ds;  // SpaceInvaders.m line 458
 
-            // Catch by ship — SpaceInvaders.m lines 481-486
+            // Catch by ship - SpaceInvaders.m lines 481-486
             if (Math.abs(this.puX[k] - this.shipX) < this.shipW &&
                 Math.abs(this.puY[k] - this.shipY) < this.shipH) {
                 this._applyPowerUp(this.puType[k]);
@@ -4928,7 +4928,7 @@ class SpaceInvadersGame {
             }
         }
 
-        // Expire power-ups — SpaceInvaders.m lines 493-501
+        // Expire power-ups - SpaceInvaders.m lines 493-501
         if (this.laserActive && (now - this.laserExpiry) / 1000 > 8) {
             this.laserActive = false;
         }
@@ -4946,7 +4946,7 @@ class SpaceInvadersGame {
         const dx = this.displayRange.X;
         const dy = this.displayRange.Y;
 
-        // Draw aliens — SpaceInvaders.m lines 362-375
+        // Draw aliens - SpaceInvaders.m lines 362-375
         const alienColors = [GB_COLORS.green, GB_COLORS.magenta, GB_COLORS.red];  // type 1,2,3
         for (const al of this.aliens) {
             const clr = alienColors[al.type - 1];
@@ -4957,7 +4957,7 @@ class SpaceInvadersGame {
             const ah2 = aw2;
             const [sx, sy] = this._alienShapeVertices(al.type, aw2, ah2);
 
-            // Glow (low alpha) — SpaceInvaders.m lines 698-700
+            // Glow (low alpha) - SpaceInvaders.m lines 698-700
             ctx.save();
             ctx.shadowColor = rgba(clr, 0.3);
             ctx.shadowBlur = 6;
@@ -4976,7 +4976,7 @@ class SpaceInvadersGame {
             ctx.restore();
         }
 
-        // Draw ship — arrow shape — SpaceInvaders.m lines 148-159
+        // Draw ship - arrow shape - SpaceInvaders.m lines 148-159
         const shipVisible = this.invulnFrames <= 0 || (Math.floor(this.invulnFrames) % 8 < 4);
         if (shipVisible) {
             const sw = this.shipW;
@@ -4991,7 +4991,7 @@ class SpaceInvadersGame {
             ctx.shadowColor = rgba(GB_COLORS.cyan, 0.5);
             ctx.shadowBlur = 8;
 
-            // Glow patch — SpaceInvaders.m lines 154-156
+            // Glow patch - SpaceInvaders.m lines 154-156
             ctx.beginPath();
             ctx.moveTo(shipXCoords[0], shipYCoords[0]);
             for (let i = 1; i < shipXCoords.length; i++) {
@@ -5001,7 +5001,7 @@ class SpaceInvadersGame {
             ctx.fillStyle = rgba(GB_COLORS.cyan, 0.1);
             ctx.fill();
 
-            // Core patch — SpaceInvaders.m lines 157-159
+            // Core patch - SpaceInvaders.m lines 157-159
             ctx.fillStyle = rgba(GB_COLORS.cyan, 0.3);
             ctx.fill();
             ctx.strokeStyle = rgba(GB_COLORS.cyan, 1);
@@ -5010,7 +5010,7 @@ class SpaceInvadersGame {
             ctx.restore();
         }
 
-        // Shield circle — SpaceInvaders.m lines 232-240
+        // Shield circle - SpaceInvaders.m lines 232-240
         if (this.shieldActive) {
             const sr = this.shipW * 0.8;
             ctx.save();
@@ -5024,7 +5024,7 @@ class SpaceInvadersGame {
             ctx.restore();
         }
 
-        // Player bullets — cyan lines
+        // Player bullets - cyan lines
         const bLen = Math.max(3, (dy[1] - dy[0]) * 0.02);
         const bulletColor = this.laserActive ? GB_COLORS.red : GB_COLORS.cyan;
         for (let k = 0; k < this.BULLET_POOL_SIZE; k++) {
@@ -5052,7 +5052,7 @@ class SpaceInvadersGame {
             ctx.restore();
         }
 
-        // Enemy bullets — red lines
+        // Enemy bullets - red lines
         for (let k = 0; k < this.EBULLET_POOL_SIZE; k++) {
             if (!this.eBulletActive[k]) continue;
             const ebx = this.eBulletX[k];
@@ -5067,7 +5067,7 @@ class SpaceInvadersGame {
             ctx.stroke();
         }
 
-        // Power-ups — SpaceInvaders.m lines 453-490
+        // Power-ups - SpaceInvaders.m lines 453-490
         const capR = Math.round(5 * this.sc);
         const puColors = { 'L': GB_COLORS.red, 'S': GB_COLORS.cyan, '+': GB_COLORS.gold };
         for (let k = 0; k < this.PU_POOL_SIZE; k++) {
@@ -5096,7 +5096,7 @@ class SpaceInvadersGame {
             ctx.restore();
         }
 
-        // Lives flash — SpaceInvaders.m lines 503-515
+        // Lives flash - SpaceInvaders.m lines 503-515
         if (this.livesFlashStart !== null) {
             const el = (now - this.livesFlashStart) / 1000;
             const showDur = 0.6;
@@ -5114,7 +5114,7 @@ class SpaceInvadersGame {
             }
         }
 
-        // Wave name flash — SpaceInvaders.m lines 517-529
+        // Wave name flash - SpaceInvaders.m lines 517-529
         if (this.waveFlashStart !== null) {
             const wEl = (now - this.waveFlashStart) / 1000;
             const wShowDur = 1.2;
@@ -5146,7 +5146,7 @@ class SpaceInvadersGame {
         const areaW = dx[1] - dx[0];
         const areaH = dy[1] - dy[0];
 
-        // Wave formations — SpaceInvaders.m lines 648-659
+        // Wave formations - SpaceInvaders.m lines 648-659
         let cols, rows, rowTypes;
         switch (wave) {
             case 1: cols = 8;  rows = 2; rowTypes = [2, 1]; break;               // Scouts
@@ -5156,7 +5156,7 @@ class SpaceInvadersGame {
             default: cols = 10; rows = 4; rowTypes = [3, 3, 3, 3]; break;        // Onslaught
         }
 
-        // Alien dimensions — SpaceInvaders.m lines 661-666
+        // Alien dimensions - SpaceInvaders.m lines 661-666
         const alienW = Math.max(6, Math.round(areaW * 0.04));
         const alienH = alienW;
         const gapX = alienW * 1.8;
@@ -5169,7 +5169,7 @@ class SpaceInvadersGame {
 
         for (let rowIdx = 0; rowIdx < rows; rowIdx++) {
             const aType = rowTypes[rowIdx];
-            const hp = aType;  // HP equals type — SpaceInvaders.m line 685
+            const hp = aType;  // HP equals type - SpaceInvaders.m line 685
             for (let colIdx = 0; colIdx < cols; colIdx++) {
                 const alienX = startX + colIdx * gapX;
                 const alienY = startY + rowIdx * gapY;
@@ -5186,7 +5186,7 @@ class SpaceInvadersGame {
             }
         }
 
-        // Speed scales with wave — SpaceInvaders.m line 712
+        // Speed scales with wave - SpaceInvaders.m line 712
         this.alienSpeed = Math.max(0.083, (dx[1] - dx[0]) * 0.000833) * (1 + 0.15 * (wave - 1));
     }
 
@@ -5269,23 +5269,23 @@ class SpaceInvadersGame {
         this.score += 50;  // SpaceInvaders.m line 905
     }
 
-    // Alien shape vertices — SpaceInvaders.m alienShapeVertices lines 913-936
+    // Alien shape vertices - SpaceInvaders.m alienShapeVertices lines 913-936
     _alienShapeVertices(aType, aw2, ah2) {
         let sx, sy;
         if (aType === 1) {
-            // Crab — SpaceInvaders.m lines 918-922
+            // Crab - SpaceInvaders.m lines 918-922
             sx = [-0.2, -0.5, -0.35, -0.9, -0.9, -0.5, -0.8, -0.35, 0,
                    0.35,  0.8,  0.5,  0.9,  0.9,  0.35,  0.5,  0.2].map(v => v * aw2);
             sy = [-1, -0.4, -0.4, -0.15, 0.3, 0.25, 1, 0.55, 0.9,
                    0.55, 1, 0.25, 0.3, -0.15, -0.4, -0.4, -1].map(v => v * ah2);
         } else if (aType === 2) {
-            // Squid — SpaceInvaders.m lines 924-928
+            // Squid - SpaceInvaders.m lines 924-928
             sx = [0, -0.4, -0.95, -0.85, -0.6, -0.25, -0.45, 0,
                   0.45,  0.25,  0.6,  0.85,  0.95,  0.4].map(v => v * aw2);
             sy = [-1, -0.35, -0.1, 0.4, 1, 0.5, 1, 0.65,
                    1, 0.5, 1, 0.4, -0.1, -0.35].map(v => v * ah2);
         } else {
-            // UFO dome — SpaceInvaders.m lines 930-935
+            // UFO dome - SpaceInvaders.m lines 930-935
             sx = [-0.3, -0.7, -1, -1, -0.65, -0.45, -0.7, -0.3, 0,
                    0.3,  0.7,  0.45,  0.65,  1,  1,  0.7,  0.3].map(v => v * aw2);
             sy = [-1, -0.8, -0.25, 0.2, 0.4, 0.3, 1, 0.55, 0.9,
@@ -5356,7 +5356,7 @@ class FlappyBirdGame {
         this.pipesCleared = 0;
         this.invulnFrames = 0;
 
-        // Bird (gravity/flap mode — always in web version)
+        // Bird (gravity/flap mode - always in web version)
         this.birdY = 0;
         this.birdVelY = 0;
         this.birdFixedX = 0;
@@ -5571,7 +5571,7 @@ class FlappyBirdGame {
                         this.pipeGapH = Math.max(this.collisionR * 8,
                             this.pipeBaseGapH * Math.max(0.25, 1 - 0.05 * this.combo));
 
-                        // Flash scored pipe gold (no hit effect — MATLAB only flashes edge)
+                        // Flash scored pipe gold (no hit effect - MATLAB only flashes edge)
                         this.pipeEdgeColor[s] = [...ColorGold];
                     }
                 }
@@ -6030,7 +6030,7 @@ class FruitNinjaGame {
             let fvx = this.fruitVx[kk];
             const fRadius = this.fruitRadius[kk];
 
-            // Wall collision (bounce off top, left, right — not bottom)
+            // Wall collision (bounce off top, left, right - not bottom)
             if (fx - fRadius < dx[0]) {
                 fx = dx[0] + fRadius;
                 fvx = Math.abs(fvx) * 0.8;
@@ -6052,7 +6052,7 @@ class FruitNinjaGame {
             if (!isNaN(mousePos[0]) && !isNaN(mousePos[1])) {
                 const distToFruit = norm2(mousePos[0] - fx, mousePos[1] - fy);
                 if (this.fruitSlashing[kk]) {
-                    // Finger was inside — check if exited
+                    // Finger was inside - check if exited
                     if (distToFruit > fRadius + 3) {
                         this.sliceFruit(kk, mousePos, slashSpeed, traceX, traceY, nTrace);
                         continue;
@@ -6296,7 +6296,7 @@ class FruitNinjaGame {
         if (!isNaN(pos[0]) && !isNaN(pos[1])) {
             this.traceBufferIdx = Math.min(this.traceBufferIdx + 1, this.traceBufferMax);
             if (this.traceBufferIdx === this.traceBufferMax) {
-                // Buffer full — shift left by 1
+                // Buffer full - shift left by 1
                 this.traceBufferX.copyWithin(0, 1);
                 this.traceBufferY.copyWithin(0, 1);
             }
@@ -6529,7 +6529,7 @@ class FruitNinjaGame {
             this.halfActive[halfSlot] = 1;
         }
 
-        // Slash animation — find entry/exit in recent trace
+        // Slash animation - find entry/exit in recent trace
         if (nTrace > 0) {
             const searchLen = Math.min(40, nTrace);
             const searchStart = nTrace - searchLen;
@@ -6566,7 +6566,7 @@ class FruitNinjaGame {
             const firstSlot = this.swipeFirstEntry[1];
             const firstAlive = firstSlot >= 0 && firstSlot < 6 && this.slashActive[firstSlot];
             if (multiCut === 1 || !firstAlive) {
-                // First fruit or previous slash faded — start fresh
+                // First fruit or previous slash faded - start fresh
                 this.swipeFirstEntry = [idxStart, slashSlot];
                 this.swipeGenSliced = 1;
             } else if (multiCut >= 2 && firstAlive) {
@@ -7003,7 +7003,7 @@ class TargetPracticeGame {
             idealDist = this.pathSinceSpawn;
         }
 
-        // Score — raw multiplier (no floor) matches original
+        // Score - raw multiplier (no floor) matches original
         this.incrementCombo();
         const comboMult = this.combo * 0.1;
         const totalPoints = Math.round(100 * comboMult);
@@ -7251,7 +7251,7 @@ class FireflyChaseGame {
                 ffPosX = ff.posX;
                 ffPosY = ff.posY;
 
-                // Trail (DtScale accumulator — FPS-independent, matches MATLAB)
+                // Trail (DtScale accumulator - FPS-independent, matches MATLAB)
                 ff.trailAccum = (ff.trailAccum || 0) + dtScale;
                 if (ff.trailAccum >= 2.0) {
                     ff.trailAccum -= 2.0;
@@ -7321,7 +7321,7 @@ class FireflyChaseGame {
                     ff._tEnd = pidx + 1;
                     ff._tStep = ff._trailStep;
                 } else {
-                    // Near start — need carry-over
+                    // Near start - need carry-over
                     const cx = ff.trailCarryX || [];
                     const cy = ff.trailCarryY || [];
                     // Pre-allocate once and reuse
@@ -7361,7 +7361,7 @@ class FireflyChaseGame {
             this.renderFirefly(ctx, ffPosX, ffPosY, ff, tx, ty);
         }
 
-        // Combo decay — fade out after 2 seconds
+        // Combo decay - fade out after 2 seconds
         if (this.combo > 0) {
             const comboAge = now - this.lastCatchTime;
             if (comboAge > 2) {
@@ -7431,7 +7431,7 @@ class FireflyChaseGame {
             ctx.restore();
         }
 
-        // Aura (MATLAB: scatter, MarkerFaceAlpha 0.35, FIXED — no breathing)
+        // Aura (MATLAB: scatter, MarkerFaceAlpha 0.35, FIXED - no breathing)
         ctx.save();
         ctx.fillStyle = rgba(clr, 0.35);
         ctx.beginPath();
@@ -7607,7 +7607,7 @@ class FireflyChaseGame {
             ff.trailBufY = new Array(10).fill(NaN);
             ff.trailIdx = 0;
         } else {
-            // Path-based firefly — closed orbits only (loop, figure8)
+            // Path-based firefly - closed orbits only (loop, figure8)
             const corridorW = Math.round(10 * this.sc);
             let p;
             for (let attempt = 0; attempt < 50; attempt++) {
@@ -7623,7 +7623,7 @@ class FireflyChaseGame {
     }
 
     // -----------------------------------------------------------------------
-    // Static: generatePath — full MATLAB port
+    // Static: generatePath - full MATLAB port
     // -----------------------------------------------------------------------
     static generatePath(tier, displayRangeX, displayRangeY, corridorWidth, applyRotation) {
         if (corridorWidth === undefined) corridorWidth = 20;
@@ -8181,7 +8181,7 @@ class FlickItGame {
         this.ballVel[0] *= frictionFactor;
         this.ballVel[1] *= frictionFactor;
 
-        // Wall collision — parametric intersection
+        // Wall collision - parametric intersection
         const xLim = this.displayRange.X;
         const yLim = this.displayRange.Y;
         let bounced = false;
@@ -8705,7 +8705,7 @@ class JugglerGame {
                 this.ballFlicks = eb.flicks;
                 this.extraBalls.splice(0, 1);
             } else {
-                // No balls left — respawn at center top
+                // No balls left - respawn at center top
                 this.ballPos = [(dx[0] + dx[1]) / 2, dy[0] + (dy[1] - dy[0]) * 0.3];
                 this.ballVel = [0, 0];
                 this.trailBufX.fill(NaN);
@@ -8961,7 +8961,7 @@ class JugglerGame {
         ctx.fill();
         ctx.restore();
 
-        // Core (0.23*r, static — no breathing in MATLAB Juggler)
+        // Core (0.23*r, static - no breathing in MATLAB Juggler)
         const coreSize = r * 0.23;
         ctx.save();
         ctx.fillStyle = rgba(Colors.White, 1);
@@ -10256,7 +10256,7 @@ class RailShooterGame {
             crossGlowA = 0.25;
         }
 
-        // Glow cross (no shadow — MATLAB line has none)
+        // Glow cross (no shadow - MATLAB line has none)
         ctx.save();
         ctx.strokeStyle = rgb(crossCol, crossGlowA);
         ctx.lineWidth = 2.7;
@@ -10284,7 +10284,7 @@ class RailShooterGame {
         ctx.fillStyle = `rgba(255,38,26,0.95)`;
         ctx.fill();
 
-        // Outer ring — fixed size, no breathing
+        // Outer ring - fixed size, no breathing
         // MATLAB: scatter SizeData=6000 pts². radius = sqrt(6000/pi) * 96/72
         const ringR = crLen + 2;
         ctx.beginPath();

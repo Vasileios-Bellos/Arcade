@@ -32,7 +32,7 @@ classdef Snake < engine.GameBase
     % =================================================================
     properties (Access = private)
         Body            (:,2) double                % [col, row] integer indices, head = row 1
-        Direction       (1,2) double = [1, 0]       % [dcol, drow] — one of [1,0],[-1,0],[0,1],[0,-1]
+        Direction       (1,2) double = [1, 0]       % [dcol, drow] - one of [1,0],[-1,0],[0,1],[0,-1]
         QueuedDir       (1,2) double = [0, 0]       % buffered next direction (prevents missed turns)
         FoodPos         (1,2) double = [NaN, NaN]   % [col, row] integer position
         StepAccum       (1,1) double = 0            % DtScale accumulator for step timing
@@ -65,11 +65,11 @@ classdef Snake < engine.GameBase
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
-        FoodPatchH                      % scatter — food core
-        FoodGlowH                       % scatter — food glow
+        FoodPatchH                      % scatter - food core
+        FoodGlowH                       % scatter - food glow
         BodyPatchH      = {}            % cell array of line handles for body segments
         BodyPoolSize    (1,1) double = 100  % pre-allocated body segment pool
-        HeadPatchH                      % scatter — head glow overlay
+        HeadPatchH                      % scatter - head glow overlay
     end
 
     % =================================================================
@@ -96,7 +96,7 @@ classdef Snake < engine.GameBase
             areaW = diff(dx);
             areaH = diff(dy);
 
-            % Compute grid dimensions — target ~25 columns, aspect-aware
+            % Compute grid dimensions - target ~25 columns, aspect-aware
             obj.GridCols = max(10, round(25 * areaW / max(areaW, areaH)));
             obj.GridRows = max(8, round(25 * areaH / max(areaW, areaH)));
             obj.CellW = areaW / obj.GridCols;
@@ -218,7 +218,7 @@ classdef Snake < engine.GameBase
                     else
                         newDir = [0, sign(delta(2))];
                     end
-                    % Buffer the direction — applied at next step
+                    % Buffer the direction - applied at next step
                     if any(newDir ~= 0)
                         obj.QueuedDir = newDir;
                     end
@@ -227,7 +227,7 @@ classdef Snake < engine.GameBase
             obj.PrevPos = pos;
 
             % ----------------------------------------------------------
-            % Step timing — accumulate DtScale, step when threshold met
+            % Step timing - accumulate DtScale, step when threshold met
             % ----------------------------------------------------------
             ds = obj.DtScale;
             obj.StepAccum = obj.StepAccum + ds;
@@ -252,7 +252,7 @@ classdef Snake < engine.GameBase
             newHead(1) = mod(newHead(1) - 1, obj.GridCols) + 1;
             newHead(2) = mod(newHead(2) - 1, obj.GridRows) + 1;
 
-            % Self collision — integer comparison (skip first 3 neck segments)
+            % Self collision - integer comparison (skip first 3 neck segments)
             nBody = size(obj.Body, 1);
             if nBody > 3
                 bodyCheck = obj.Body(4:end, :);

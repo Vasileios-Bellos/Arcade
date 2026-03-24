@@ -33,7 +33,7 @@ classdef FruitNinja < engine.GameBase
     end
 
     % =================================================================
-    % HALF POOL (16 slots — 2 per fruit max)
+    % HALF POOL (16 slots - 2 per fruit max)
     % =================================================================
     properties (Access = private)
         HalfPoolPatch   cell                % {1x16} patch handles
@@ -257,7 +257,7 @@ classdef FruitNinja < engine.GameBase
             %   A swipe is a single continuous fast finger motion. Starts when
             %   speed exceeds threshold, ends immediately when speed drops
             %   (1 slow frame = swipe over). Two separate fast motions
-            %   are two separate swipes — no false multi-cuts.
+            %   are two separate swipes - no false multi-cuts.
             if slashSpeed > slashThresh
                 if ~obj.SwipeActive
                     obj.SwipeActive = true;
@@ -407,7 +407,7 @@ classdef FruitNinja < engine.GameBase
                     continue;
                 end
 
-                % Re-read from live trace — buffer shifts 1/frame when full
+                % Re-read from live trace - buffer shifts 1/frame when full
                 if obj.TraceBufferIdx >= obj.TraceBufferMax
                     age = obj.SlashAge(kk) - 1;
                 else
@@ -542,7 +542,7 @@ classdef FruitNinja < engine.GameBase
                 if ~any(isnan(pos))
                     obj.TraceBufferIdx = min(obj.TraceBufferIdx + 1, obj.TraceBufferMax);
                     if obj.TraceBufferIdx == obj.TraceBufferMax
-                        % Buffer full — shift left by 1
+                        % Buffer full - shift left by 1
                         obj.TraceBufferX(1:end-1) = obj.TraceBufferX(2:end);
                         obj.TraceBufferY(1:end-1) = obj.TraceBufferY(2:end);
                     end
@@ -746,7 +746,7 @@ classdef FruitNinja < engine.GameBase
 
             % Cut direction from the actual finger trajectory through the
             % fruit. Uses entry and exit POSITIONS relative to the fruit's
-            % CURRENT center — this gives the true slash line regardless of
+            % CURRENT center - this gives the true slash line regardless of
             % how much the fruit moved between entry and exit.
             entryPos = obj.FruitEntryPos(fruitSlot, :);
             slashVec = exitPos - entryPos;
@@ -766,14 +766,14 @@ classdef FruitNinja < engine.GameBase
             perpDist = norm([fx, fy] - closestPt);
 
             if perpDist < fRadius
-                % Line intersects circle — compute exact intersection points
+                % Line intersects circle - compute exact intersection points
                 halfChord = sqrt(fRadius^2 - perpDist^2);
                 intPt1 = closestPt - halfChord * slashVec;
                 intPt2 = closestPt + halfChord * slashVec;
                 a1 = atan2(intPt1(2) - fy, intPt1(1) - fx);
                 a2 = atan2(intPt2(2) - fy, intPt2(1) - fx);
             else
-                % Line doesn't intersect (edge case) — use angle projection
+                % Line doesn't intersect (edge case) - use angle projection
                 a1 = atan2(entryPos(2) - fy, entryPos(1) - fx);
                 a2 = atan2(exitPos(2) - fy, exitPos(1) - fx);
             end
@@ -864,7 +864,7 @@ classdef FruitNinja < engine.GameBase
                 end
             end
 
-            % Slash animation — find entry/exit in RECENT trace only
+            % Slash animation - find entry/exit in RECENT trace only
             % (searching full buffer matches old positions, creating huge spans)
             searchLen = min(40, nTrace);
             searchStart = nTrace - searchLen + 1;
@@ -916,11 +916,11 @@ classdef FruitNinja < engine.GameBase
             % Spawn burst effect at fruit center
             obj.spawnHitEffect([fx, fy], fColor, points, fRadius);
 
-            % Golden multi-cut overlay — same re-read behavior as white slashes
+            % Golden multi-cut overlay - same re-read behavior as white slashes
             firstSlot = obj.SwipeFirstEntry(2);
             firstAlive = firstSlot > 0 && firstSlot <= 6 && obj.SlashActive(firstSlot);
             if multiCut == 1 || ~firstAlive
-                % First fruit or previous slash faded — start fresh
+                % First fruit or previous slash faded - start fresh
                 obj.SwipeFirstEntry = [idxStart, double(slashSlot)];
                 obj.SwipeGenSliced = 1;
             elseif multiCut >= 2

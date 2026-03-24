@@ -53,7 +53,7 @@ classdef Pong < engine.GameBase
 
 
         % Combo fade
-        ComboTextH                                   % text — combo display
+        ComboTextH                                   % text - combo display
         ComboFadeTic    = []                         % tic when fade started
         ComboFadeColor  (1,3) double = [0.2, 1, 0.4]
         ComboShowTic    = []                         % tic when combo was shown
@@ -70,18 +70,18 @@ classdef Pong < engine.GameBase
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
-        BallCoreH               % line — ball core dot
-        BallGlowH               % line — ball glow ring
-        BallAuraH               % line — ball outer aura
-        BallTrailH              % line — ball trail
-        BallTrailGlowH          % line — trail glow
-        AIPaddleH               % patch — AI paddle
-        AIPaddleGlowH           % patch — AI paddle glow
-        PlayerPaddleH           % patch — player paddle
-        PlayerPaddleGlowH       % patch — player paddle glow
-        ScoreTextH              % text — score display
-        CenterLineH             % line — dashed center line
-        ServeTextH              % text — serve/point flash
+        BallCoreH               % line - ball core dot
+        BallGlowH               % line - ball glow ring
+        BallAuraH               % line - ball outer aura
+        BallTrailH              % line - ball trail
+        BallTrailGlowH          % line - trail glow
+        AIPaddleH               % patch - AI paddle
+        AIPaddleGlowH           % patch - AI paddle glow
+        PlayerPaddleH           % patch - player paddle
+        PlayerPaddleGlowH       % patch - player paddle glow
+        ScoreTextH              % text - score display
+        CenterLineH             % line - dashed center line
+        ServeTextH              % text - serve/point flash
     end
 
     % =================================================================
@@ -179,7 +179,7 @@ classdef Pong < engine.GameBase
                 "Color", [1, 1, 1, 1], "Marker", ".", ...
                 "MarkerSize", coreSize, "LineStyle", "none", "Tag", "GT_pong");
 
-            % AI paddle (left, red) — outline only
+            % AI paddle (left, red) - outline only
             aiX = dx(1) + obj.PaddleMargin;
             pw = obj.PaddleWidth;
             ph = obj.PaddleHalfH;
@@ -427,7 +427,7 @@ classdef Pong < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — GAME LOGIC
+    % PRIVATE METHODS - GAME LOGIC
     % =================================================================
     methods (Access = private)
 
@@ -538,7 +538,7 @@ classdef Pong < engine.GameBase
             dy = obj.DisplayRange.Y;
             difficultyVal = obj.computeDifficulty();
 
-            % Derived parameters — AI starts bad, gets good
+            % Derived parameters - AI starts bad, gets good
             paddleSpeed = obj.AIBaseSpeed * (0.4 + difficultyVal * 0.6);
             reactionFrames = round(20 - difficultyVal * 16);
             errorPx = obj.AIErrorPx * (1.5 - difficultyVal * 1.2);
@@ -560,7 +560,7 @@ classdef Pong < engine.GameBase
             deltaY = obj.AITargetY - obj.AIPaddleY;
             % Dead zone: suppress jitter when near target and ball moving away
             if abs(deltaY) < 2 && obj.BallVel(1) > 0
-                % Ball heading right (away from AI) — hold position
+                % Ball heading right (away from AI) - hold position
             elseif abs(deltaY) > scaledSpeed
                 obj.AIPaddleY = obj.AIPaddleY + sign(deltaY) * scaledSpeed;
             else
@@ -681,7 +681,7 @@ classdef Pong < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — RENDERING
+    % PRIVATE METHODS - RENDERING
     % =================================================================
     methods (Access = private)
 
@@ -769,7 +769,7 @@ classdef Pong < engine.GameBase
                 end
             end
 
-            % Score display — only update when changed
+            % Score display - only update when changed
             if obj.PlayerScore ~= obj.PrevPlayerScore || ...
                     obj.OpponentScore ~= obj.PrevOpponentScore
                 obj.refreshScoreText();

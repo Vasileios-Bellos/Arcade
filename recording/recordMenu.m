@@ -1,5 +1,5 @@
 function recordMenu(outputDir)
-%recordMenu  Record the arcade menu — still shot and scrolling animation.
+%recordMenu  Record the arcade menu - still shot and scrolling animation.
 
 if nargin < 1; outputDir = "assets"; end
 if ~isfolder(outputDir); mkdir(outputDir); end

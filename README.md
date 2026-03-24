@@ -40,6 +40,7 @@ AI opponent that adapts as you score - its error shrinks and speed climbs with e
 
 <p align="center"><img src="assets/pong.gif" alt="Pong" width="60%"></p>
 
+
 ### 2. Breakout
 
 5 levels of escalating brick layouts - from single-hit rows to armored sandwiches with indestructible shield bricks. Power-ups drop on 30% of brick breaks: fireball (plows through everything), wide paddle, slow ball, multi-ball (up to 3 on screen), and extra life. Paddle angle controls the ricochet. Swept two-pass collision detection finds the earliest brick along the ball's path for precise hits at any speed.

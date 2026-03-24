@@ -292,7 +292,7 @@ classdef TargetPractice < engine.GameBase
                 pathRatio = obj.PathSinceSpawn / idealDist; %#ok<NASGU>
             end
 
-            % Score — raw multiplier (no floor) matches original Mode 1
+            % Score - raw multiplier (no floor) matches original Mode 1
             obj.incrementCombo();
             comboMult = obj.Combo * 0.1;
             totalPoints = round(100 * comboMult);

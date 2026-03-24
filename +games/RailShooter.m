@@ -693,7 +693,7 @@ classdef RailShooter < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — wave spawning
+    % PRIVATE METHODS - wave spawning
     % =================================================================
     methods (Access = private)
         function buildSpawnWave(obj, waveNum)
@@ -850,7 +850,7 @@ classdef RailShooter < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — combat
+    % PRIVATE METHODS - combat
     % =================================================================
     methods (Access = private)
         function applyDamage(obj, fingerPos)
@@ -917,7 +917,7 @@ classdef RailShooter < engine.GameBase
             defeatPts = basePoints(min(m.type, 4)) * max(1, floor(obj.Combo / 5));
             obj.addScore(defeatPts);
 
-            % Defeat explosion — single big red burst
+            % Defeat explosion - single big red burst
             obj.spawnBounceEffect([m.screenX, m.screenY], [0, -1], defeatPts, 15);
 
             % Start defeat animation
@@ -946,7 +946,7 @@ classdef RailShooter < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — monster graphics management
+    % PRIVATE METHODS - monster graphics management
     % =================================================================
     methods (Access = private)
         function deleteMonsterGraphics(obj, idx)
@@ -1120,7 +1120,7 @@ classdef RailShooter < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — utility
+    % PRIVATE METHODS - utility
     % =================================================================
     methods (Access = private)
         function col = monsterColor(obj, mType)

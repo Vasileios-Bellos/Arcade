@@ -58,13 +58,13 @@ classdef FlickIt < engine.GameBase
     % GRAPHICS HANDLES
     % =================================================================
     properties (Access = private)
-        CoreH                   % line — bright core dot
-        GlowH                   % scatter — neon glow ring
-        AuraH                   % line — outer soft aura
-        TrailH                   % line — comet trail
-        TrailGlowH               % line — trail soft glow
-        SpeedTextH               % text — speed/bounces near ball
-        ModeTextH                % text — bottom-left HUD label
+        CoreH                   % line - bright core dot
+        GlowH                   % scatter - neon glow ring
+        AuraH                   % line - outer soft aura
+        TrailH                   % line - comet trail
+        TrailGlowH               % line - trail soft glow
+        SpeedTextH               % text - speed/bounces near ball
+        ModeTextH                % text - bottom-left HUD label
     end
 
     % =================================================================
@@ -270,7 +270,7 @@ classdef FlickIt < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — PHYSICS
+    % PRIVATE METHODS - PHYSICS
     % =================================================================
     methods (Access = private)
 
@@ -331,7 +331,7 @@ classdef FlickIt < engine.GameBase
             % Apply air friction
             obj.BallVel = obj.BallVel * obj.Friction ^ ds;
 
-            % Wall collision — parametric intersection so both X and Y
+            % Wall collision - parametric intersection so both X and Y
             % are at the exact contact point (preserves approach angle)
             xLim = obj.DisplayRange.X;
             yLim = obj.DisplayRange.Y;
@@ -435,7 +435,7 @@ classdef FlickIt < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — GRAPHICS
+    % PRIVATE METHODS - GRAPHICS
     % =================================================================
     methods (Access = private)
 
@@ -553,7 +553,7 @@ classdef FlickIt < engine.GameBase
     end
 
     % =================================================================
-    % PRIVATE METHODS — COMBO DISPLAY
+    % PRIVATE METHODS - COMBO DISPLAY
     % =================================================================
     methods (Access = private)
 

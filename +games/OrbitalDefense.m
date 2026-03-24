@@ -32,7 +32,7 @@ classdef OrbitalDefense < engine.GameBase
     % PRE-COMPUTED CONSTANTS
     % =================================================================
     properties (Access = private)
-        ThetaCircle24   (1,24) double   % linspace(0, 2*pi, 24) — computed once
+        ThetaCircle24   (1,24) double   % linspace(0, 2*pi, 24) - computed once
     end
 
     % =================================================================
