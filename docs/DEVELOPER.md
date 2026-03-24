@@ -870,14 +870,72 @@ Returns `[isNewHigh, record]` where `isNewHigh` is true if the submitted score e
 
 ---
 
+## Color Palette
+
+All games share 6 named color constants defined in `GameBase`:
+
+| Name | RGB | Usage |
+|------|-----|-------|
+| `ColorCyan` | `[0, 0.92, 1]` | Primary neon -- balls, trails, menus, targets, shields |
+| `ColorGreen` | `[0.2, 1, 0.4]` | Scoring events, combo text, life gain flash |
+| `ColorGold` | `[1, 0.85, 0.2]` | High score, multi-cut slash, boss highlights |
+| `ColorRed` | `[1, 0.3, 0.2]` | Damage, life loss flash, high-speed ball, enemies |
+| `ColorWhite` | `[1, 1, 1]` | Ball core, text, UI chrome |
+| `ColorMagenta` | `[1, 0.3, 0.85]` | Tier 3 enemies, mid-tier fireflies |
+
+The background color is `[0.015, 0.015, 0.03]` -- near-black with a slight blue tint. The menu title and decorative elements use a muted teal `[0.0, 0.55, 0.65]` with a dark shadow `[0, 0.12, 0.17]`.
+
+---
+
 ## Adding a New Game
 
+### Steps
+
 1. Create `+games/MyGame.m` extending `engine.GameBase`
-2. Set the `Name` constant property
-3. Pre-allocate all graphics in `onInit` (see pool pattern above)
-4. Tag all graphics with `"GT_mygame"` for orphan cleanup
-5. Register in `Arcade.buildRegistry()`
-6. High scores are tracked automatically on first play
+2. Set the `Name` constant property (display name in menu and results)
+3. Implement the 4 required methods: `onInit`, `onUpdate`, `onCleanup`, `onKeyPress`
+4. Pre-allocate all graphics in `onInit` -- no `line()`, `scatter()`, `patch()`, or `text()` in `onUpdate`
+5. Tag all graphics with `"GT_mygame"` for orphan cleanup
+6. Register in `Arcade.buildRegistry()`:
+   ```matlab
+   obj.registerGame("16", @games.MyGame, "My Game");
+   ```
+7. High scores are tracked automatically on first play (no additional setup)
+
+### Minimal Example
+
+```matlab
+classdef MyGame < engine.GameBase
+    properties (Constant)
+        Name = "My Game"
+    end
+    properties (Access = private)
+        DotH    % scatter handle
+    end
+    methods
+        function onInit(obj, ax, ~, ~)
+            ps = obj.FontScale;
+            obj.DotH = scatter(ax, NaN, NaN, 200 * ps^2, ...
+                obj.ColorCyan, "filled", "Tag", "GT_mygame");
+        end
+        function onUpdate(obj, pos)
+            obj.DotH.XData = pos(1);
+            obj.DotH.YData = pos(2);
+            obj.addScore(1);
+        end
+        function onCleanup(obj)
+            if ~isempty(obj.DotH) && isvalid(obj.DotH)
+                delete(obj.DotH);
+            end
+            obj.DotH = [];
+            engine.GameBase.deleteTaggedGraphics(obj.Ax, "^GT_mygame");
+        end
+        function handled = onKeyPress(~, ~)
+            handled = false;
+        end
+    end
+end
+```
 
 ### Checklist
 
@@ -889,3 +947,4 @@ Returns `[isNewHigh, record]` where `isNewHigh` is true if the submitted score e
 - [ ] Trail buffers use DtScale accumulator (if applicable)
 - [ ] `getResults()` returns game-specific stats (host adds score/combo/time)
 - [ ] `onCleanup()` deletes all handles + orphan guard
+- [ ] `ComboAutoFade = false` if combo should persist between events (e.g., Breakout, FruitNinja)
