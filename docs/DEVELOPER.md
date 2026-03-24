@@ -781,7 +781,9 @@ Two-pass dispatch: modifier+key first (e.g., `"shift+2"`), plain key fallback. U
 
 ## HTML5 Canvas Port
 
-The browser port (`web/arcade.html`, 10,723 lines) replicates all 15 games in a single self-contained HTML file with identical physics and scoring. No external dependencies - all rendering, physics, and menu logic is inline.
+The browser port (`web/arcade.html`) replicates all 15 games in a single self-contained HTML file. No external dependencies - all rendering, physics, and menu logic is inline.
+
+All physics constants, scoring formulas, pool sizes, DtScale scaling, trail systems, wave/level progression, and collision detection have been verified identical between the MATLAB and HTML implementations across all 15 games.
 
 ### Architecture
 
