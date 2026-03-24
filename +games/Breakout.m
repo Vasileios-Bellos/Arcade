@@ -1521,7 +1521,7 @@ classdef Breakout < engine.GameBase
 
             % Trail buffer (DtScale accumulator, fps-independent)
             if spd > 0.3
-                obj.TrailAccum = obj.TrailAccum + ds;
+                obj.TrailAccum = obj.TrailAccum + obj.DtScale;
                 if obj.TrailAccum >= 2.0
                     obj.TrailAccum = obj.TrailAccum - 2.0;
                     obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
