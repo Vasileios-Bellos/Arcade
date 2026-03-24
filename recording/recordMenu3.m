@@ -7,7 +7,7 @@ if ~isfolder(outputDir); mkdir(outputDir); end
 fprintf("Recording menu (arrow key navigation)...\n");
 
 fig = figure("Color", [0.015 0.015 0.03], "MenuBar", "none", "ToolBar", "none", ...
-    "NumberTitle", "off", "Name", "MATLAB Arcade", "Resize", "off");
+    "NumberTitle", "off", "Name", "Arcade", "Resize", "off");
 fig.Position = [100, 100, 854, 480];
 drawnow;
 

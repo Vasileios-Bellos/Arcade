@@ -1,6 +1,6 @@
 # Arcade - Packaging Guide
 
-Build and distribute the MATLAB Arcade as a standalone Windows executable or MATLAB Toolbox.
+Build and distribute the Arcade as a standalone Windows executable or MATLAB Toolbox.
 
 ---
 
@@ -96,7 +96,7 @@ The build script:
 2. Locates the entry point (`Arcade.m`) and all `+package` folders
 3. Includes `data/` for score persistence
 4. Uses `icon.ico` or `icon.png` if present
-5. Outputs to `packaging/build/MATLABarcade/`
+5. Outputs to `packaging/build/Arcade/`
 
 Build time: 3-10 minutes on first build (MATLAB Compiler analyzes all dependencies).
 
@@ -104,8 +104,8 @@ Build time: 3-10 minutes on first build (MATLAB Compiler analyzes all dependenci
 
 ```
 packaging/build/
-└── MATLABarcade/
-    ├── MATLABarcade.exe          % Standalone executable
+└── Arcade/
+    ├── Arcade.exe          % Standalone executable
     ├── requiredMCRProducts.txt
     └── readme.txt                % Auto-generated runtime info
 ```
@@ -114,7 +114,7 @@ packaging/build/
 
 #### What to ship
 
-1. **`MATLABarcade.exe`** - the compiled executable
+1. **`Arcade.exe`** - the compiled executable
 2. **MATLAB Runtime installer** - required on machines without MATLAB
 
 #### MATLAB Runtime
@@ -140,12 +140,12 @@ Provide the `.exe` and tell users to install MATLAB Runtime from the link above.
 compiler.build.standaloneApplication("Arcade.m", ...
     "AdditionalFiles", {"+engine", "+games", "+services", "+ui", "data"}, ...
     "OutputDir", "packaging/build", ...
-    "ExecutableName", "MATLABarcade");
+    "ExecutableName", "Arcade");
 
 compiler.package.installer( ...
-    "packaging/build/MATLABarcade", ...
+    "packaging/build/Arcade", ...
     "OutputDir", "packaging/installer", ...
-    "InstallerName", "MATLABarcade_Installer", ...
+    "InstallerName", "Arcade_Installer", ...
     "RuntimeDelivery", "installer");
 ```
 This bundles the Runtime into a single installer (approximately 1.5 GB).
@@ -163,7 +163,7 @@ cd packaging
 buildToolbox
 ```
 
-This produces `packaging/MATLABArcade.mltbx`.
+This produces `packaging/Arcade.mltbx`.
 
 ### What is included
 
@@ -193,7 +193,7 @@ This produces `packaging/MATLABArcade.mltbx`.
 Double-click the `.mltbx` file, or:
 
 ```matlab
-matlab.addons.toolbox.installToolbox("MATLABArcade.mltbx")
+matlab.addons.toolbox.installToolbox("Arcade.mltbx")
 ```
 
 After installation, `Arcade()` and all `games.*` classes are on the path automatically.

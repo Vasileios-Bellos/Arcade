@@ -1,4 +1,4 @@
-%buildExecutable  Build standalone MATLAB Arcade executable and installer.
+%buildExecutable  Build standalone Arcade executable and installer.
 %   Builds a Windows standalone application with custom icon and splash,
 %   then packages it as an installer with web-delivered MATLAB Runtime.
 %
@@ -12,7 +12,7 @@
 %       buildExecutable
 %
 %   Output:
-%       packaging/build/MATLABarcade/  — standalone executable
+%       packaging/build/Arcade/  — standalone executable
 %       packaging/installer/           — installer with web runtime download
 %
 %   See also compiler.build.standaloneWindowsApplication,
@@ -24,7 +24,7 @@ projectDir = fileparts(scriptDir);
 buildDir = fullfile(scriptDir, "build");
 installerDir = fullfile(scriptDir, "installer");
 
-fprintf("=== MATLAB Arcade — Standalone Build ===\n\n");
+fprintf("=== Arcade — Standalone Build ===\n\n");
 fprintf("Project root  : %s\n", projectDir);
 fprintf("Build output  : %s\n", buildDir);
 fprintf("Installer out : %s\n\n", installerDir);
@@ -111,7 +111,7 @@ try
     opts{end + 1} = entryPoint;
     opts = [opts, {"AdditionalFiles", string(additionalFiles)}];
     opts = [opts, {"OutputDir", buildDir}];
-    opts = [opts, {"ExecutableName", "MATLABarcade"}];
+    opts = [opts, {"ExecutableName", "Arcade"}];
     opts = [opts, {"ExecutableVersion", "1.0.0.0"}];
     opts = [opts, {"Verbose", "on"}];
     opts = [opts, {"AutoDetectDataFiles", "on"}];
@@ -161,7 +161,7 @@ try
     installerTic = tic;
 
     instOpts = {};
-    instOpts = [instOpts, {"ApplicationName", "MATLAB Arcade"}];
+    instOpts = [instOpts, {"ApplicationName", "Arcade"}];
     instOpts = [instOpts, {"AuthorName", "Vasileios Bellos"}];
     instOpts = [instOpts, {"Version", "1.0.0"}];
     instOpts = [instOpts, {"Summary", "15 neon-styled arcade games in pure MATLAB"}];
@@ -169,11 +169,11 @@ try
         "A collection of 15 arcade games (8 classics + 7 originals) with a " + ...
         "neon-styled launcher, persistent high scores, frame-rate independence, " + ...
         "and automatic display scaling. No toolboxes required."}];
-    instOpts = [instOpts, {"InstallerName", "MATLABarcadeInstaller"}];
+    instOpts = [instOpts, {"InstallerName", "ArcadeInstaller"}];
     instOpts = [instOpts, {"OutputDir", installerDir}];
     instOpts = [instOpts, {"RuntimeDelivery", "web"}];
     instOpts = [instOpts, {"DefaultInstallationDir", ...
-        fullfile("C:", "Program Files", "MATLAB Arcade")}];
+        fullfile("C:", "Program Files", "Arcade")}];
     instOpts = [instOpts, {"Verbose", "on"}];
 
     % Installer icon — for Add/Remove Programs and installer exe thumbnail

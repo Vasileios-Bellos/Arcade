@@ -7,7 +7,7 @@ A neon-styled launcher with an animated starfield menu, persistent high scores, 
 Also available as a [browser port](web/arcade.html) - a single self-contained HTML5 Canvas file with all 15 games.
 
 <p align="center">
-  <img src="assets/menu_scroll_4.gif" alt="MATLAB Arcade - Main Menu" width="75%">
+  <img src="assets/menu_scroll_4.gif" alt="Arcade - Main Menu" width="75%">
 </p>
 
 > Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) - AI-assisted development from architecture to pixel-level polish.
@@ -297,7 +297,7 @@ A compiled `.exe` with a bundled installer that downloads the [MATLAB Runtime](h
 
 ```matlab
 cd packaging
-buildExecutable    % builds MATLABarcade.exe + MATLABarcadeInstaller.exe
+buildExecutable    % builds Arcade.exe + ArcadeInstaller.exe
 ```
 
 ### Icon, Splash, and Preview

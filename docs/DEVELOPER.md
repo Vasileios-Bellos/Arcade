@@ -882,7 +882,7 @@ Generates `icon.png` (256x256 via `getframe` + `imresize`), `icon.ico` (multi-re
 
 ### buildToolbox.m
 
-Creates `MATLABArcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023b+). Includes `Arcade.m`, all 4 packages (`+engine`, `+games`, `+services`, `+ui`), `web/` folder (HTML port), `README.md`, and `docs/DEVELOPER.md`. Excludes `recording/`, `assets/`, `data/`, `docs/TODO.md`, and `packaging/`. Uses `icon.png` as `ToolboxImageFile`.
+Creates `Arcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023b+). Includes `Arcade.m`, all 4 packages (`+engine`, `+games`, `+services`, `+ui`), `web/` folder (HTML port), `README.md`, and `docs/DEVELOPER.md`. Excludes `recording/`, `assets/`, `data/`, `docs/TODO.md`, and `packaging/`. Uses `icon.png` as `ToolboxImageFile`.
 
 ### buildExecutable.m
 
@@ -891,7 +891,7 @@ Two-phase build:
 1. **Standalone exe**: `compiler.build.standaloneWindowsApplication` with `ExecutableIcon` (icon.png, converted to .ico internally by MATLAB Compiler) and `ExecutableSplashScreen` (splash.png). Includes all 4 package folders as `AdditionalFiles`.
 2. **Installer**: `compiler.package.installer` with `InstallerIcon`, `InstallerSplash`, `InstallerLogo` (preview.png), `RuntimeDelivery = "web"` (downloads MATLAB Runtime during installation), and full metadata (name, author, version, description, default install path).
 
-Output: `build/MATLABarcade.exe` (~1.5 MB) + `installer/MATLABarcadeInstaller.exe` (~2.8 MB).
+Output: `build/Arcade.exe` (~1.5 MB) + `installer/ArcadeInstaller.exe` (~2.8 MB).
 
 ---
 

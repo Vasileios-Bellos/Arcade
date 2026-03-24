@@ -1,9 +1,9 @@
-%buildToolbox  Package the MATLAB Arcade project as a .mltbx toolbox.
+%buildToolbox  Package the Arcade project as a .mltbx toolbox.
 %   Run this script from MATLAB (R2023b+ recommended). It creates a
 %   ToolboxOptions object, sets all metadata and file inclusions, then
 %   calls matlab.addons.toolbox.packageToolbox to produce:
 %
-%       packaging/MATLABArcade.mltbx
+%       packaging/Arcade.mltbx
 %
 %   The script auto-detects the project root (parent of the packaging/
 %   folder) so it works regardless of your current directory.
@@ -28,7 +28,7 @@ scriptDir  = fileparts(mfilename("fullpath"));
 projectRoot = fileparts(scriptDir);
 
 % Output .mltbx location.
-outputFile = fullfile(scriptDir, "MATLABArcade.mltbx");
+outputFile = fullfile(scriptDir, "Arcade.mltbx");
 
 fprintf("Project root : %s\n", projectRoot);
 fprintf("Output file  : %s\n", outputFile);
@@ -52,7 +52,7 @@ end
 opts = matlab.addons.toolbox.ToolboxOptions(projectRoot, ...
     "3f4a7b2c-e8d1-4a6f-9c0e-1b5d8f3a7e9d");  % fixed UUID for reproducibility
 
-opts.ToolboxName           = "MATLAB Arcade";
+opts.ToolboxName           = "Arcade";
 opts.ToolboxVersion        = "1.0.0";
 opts.AuthorName            = "Vasileios Bellos";
 opts.Summary               = "15 neon-styled arcade games in pure MATLAB";

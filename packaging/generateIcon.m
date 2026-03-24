@@ -1,4 +1,4 @@
-%generateIcon  Generate icon and splash screen for MATLAB Arcade.
+%generateIcon  Generate icon and splash screen for Arcade.
 %   Creates:
 %       packaging/icon.png    — 256x256 app icon (neon "A" on dark background)
 %       packaging/splash.png  — 640x480 splash screen ("MATLAB ARCADE" title)
