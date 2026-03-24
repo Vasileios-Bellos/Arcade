@@ -8767,7 +8767,6 @@ class JugglerGame {
         this.trailBufX[tidx] = this.ballPos[0];
         this.trailBufY[tidx] = this.ballPos[1];
         this.trailIdx = tidx + 1;
-        this.trailAccum = 0;
 
         this.ballFlicks++;
         this.scoreFlick(this.ballPos[0], this.ballPos[1], hitSpeed);
@@ -8846,7 +8845,6 @@ class JugglerGame {
                         eb.trailBufX[etidx] = eb.pos[0];
                         eb.trailBufY[etidx] = eb.pos[1];
                         eb.trailIdx = etidx + 1;
-                        eb.trailAccum = 0;
                         eb.locked = true;
                     }
                 } else {

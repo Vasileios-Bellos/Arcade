@@ -370,7 +370,6 @@ classdef Juggler < engine.GameBase
             obj.TrailBufX(tidx) = obj.BallPos(1);
             obj.TrailBufY(tidx) = obj.BallPos(2);
             obj.TrailIdx = tidx;
-            obj.TrailAccum = 0;
 
             obj.BallFlicks = obj.BallFlicks + 1;
             obj.scoreFlick(obj.BallPos, hitSpeed);
@@ -586,7 +585,6 @@ classdef Juggler < engine.GameBase
                             obj.ExtraBallTrailBufX{bi}(etidx) = obj.ExtraBallPos(bi, 1);
                             obj.ExtraBallTrailBufY{bi}(etidx) = obj.ExtraBallPos(bi, 2);
                             obj.ExtraBallTrailIdx(bi) = etidx;
-                            obj.ExtraBallTrailAccum(bi) = 0;
                             obj.ExtraBallLocked(bi) = true;
                         end
                     else
