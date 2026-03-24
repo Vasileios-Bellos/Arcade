@@ -179,8 +179,8 @@ start(tmr);
 
         framesBuf = framesBuf(1:capturedCount);
 
-        fprintf("Captured %d frames (%.1f fps, %.1fs)\n", ...
-            capturedCount, actualFps, totalElapsed);
+        fprintf("Captured %d frames over %.1fs (%.0f fps)\n", ...
+            capturedCount, totalElapsed, actualFps);
         reply = input("Save recording? [y/n]: ", "s");
         if ~strcmpi(reply, "y")
             fprintf("Recording discarded.\n");
