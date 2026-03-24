@@ -1,16 +1,16 @@
 # MATLAB Arcade &nbsp; <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" height="30"></a>&nbsp;<a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" height="30"></a>&nbsp;<a href="web/arcade.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" height="30"></a>
 
-15 arcade games built entirely in MATLAB — eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
+15 arcade games built entirely in MATLAB -- eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
 A neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling ties everything together. Pick up and play with mouse, keyboard, or both.
 
-Also available as a [browser port](web/arcade.html) — a single self-contained HTML5 Canvas file with all 15 games.
+Also available as a [browser port](web/arcade.html) -- a single self-contained HTML5 Canvas file with all 15 games.
 
 <p align="center">
-  <img src="assets/menu_scroll_4.gif" alt="MATLAB Arcade — Main Menu" width="75%">
+  <img src="assets/menu_scroll_4.gif" alt="MATLAB Arcade -- Main Menu" width="75%">
 </p>
 
-> Built with [Claude](https://claude.ai) via the [MATLAB MCP Server](https://github.com/matlab/matlab-mcp-core-server) — AI-assisted development from architecture to pixel-level polish.
+> Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) -- AI-assisted development from architecture to pixel-level polish.
 
 ---
 
@@ -38,97 +38,97 @@ Eight legendary arcade games, recreated from scratch in pure MATLAB.
 
 AI opponent that adapts as you score. Paddle-angle physics with rally escalation and wall bounces. First to 10 wins.
 
-<!-- <p align="center"><img src="assets/pong.gif" alt="Pong" width="60%"></p> -->
+<p align="center"><img src="assets/pong.gif" alt="Pong" width="60%"></p>
 
 ### 2. Breakout
 
-5 levels of bricks with power-ups (fireball, wide paddle, slow, multi-ball, extra life). Paddle angle controls the ricochet. Swept collision detection for precise brick hits at any speed.
+5 levels of bricks with power-ups (fireball, wide paddle, slow, multi-ball, extra life). Paddle angle controls the ricochet. Swept two-pass collision detection for precise brick hits at any speed.
 
-<!-- <p align="center"><img src="assets/breakout.gif" alt="Breakout" width="60%"></p> -->
+<p align="center"><img src="assets/breakout.gif" alt="Breakout" width="60%"></p>
 
 ### 3. Snake
 
 Grid-based with wrap-around walls. Arrow keys or mouse-guided movement. Speed increases as you grow.
 
-<!-- <p align="center"><img src="assets/snake.gif" alt="Snake" width="60%"></p> -->
+<p align="center"><img src="assets/snake.gif" alt="Snake" width="60%"></p>
 
 ### 4. Tetris
 
 Full SRS rotation with wall kicks, ghost piece, 3-piece preview, and instant hard drop. Level progression increases gravity.
 
-<!-- <p align="center"><img src="assets/tetris.gif" alt="Tetris" width="60%"></p> -->
+<p align="center"><img src="assets/tetris.gif" alt="Tetris" width="60%"></p>
 
 ### 5. Asteroids
 
 Wireframe polygons that split on impact. Auto-fire crosshair tracks your cursor. Wave-based with increasing asteroid count and speed.
 
-<!-- <p align="center"><img src="assets/asteroids.gif" alt="Asteroids" width="60%"></p> -->
+<p align="center"><img src="assets/asteroids.gif" alt="Asteroids" width="60%"></p>
 
 ### 6. Space Invaders
 
 3 alien types across 5 wave formations. Destructible shields, power-up drops (laser, shield), and escalating enemy fire rates.
 
-<!-- <p align="center"><img src="assets/space_invaders.gif" alt="Space Invaders" width="60%"></p> -->
+<p align="center"><img src="assets/spaceinvaders.gif" alt="Space Invaders" width="60%"></p>
 
 ### 7. Flappy Bird
 
 Pipe gaps tighten and scroll speed ramps with combo. Space, Up, or click to flap. Gravity and flap impulse scale to display size.
 
-<!-- <p align="center"><img src="assets/flappy_bird.gif" alt="Flappy Bird" width="60%"></p> -->
+<p align="center"><img src="assets/flappybird.gif" alt="Flappy Bird" width="60%"></p>
 
 ### 8. Fruit Ninja
 
-Slash fruit as they fly across the screen. Cut multiple fruits in quick succession for score multipliers — the slash line extends and turns golden on multi-cuts. Centrality scoring rewards cuts through the center.
+Slash fruit as they fly across the screen. Cut multiple fruits in quick succession for score multipliers -- the slash line extends and turns golden on multi-cuts. Centrality scoring rewards cuts through the center.
 
-<!-- <p align="center"><img src="assets/fruit_ninja.gif" alt="Fruit Ninja" width="60%"></p> -->
+<p align="center"><img src="assets/fruitninja.gif" alt="Fruit Ninja" width="60%"></p>
 
 ---
 
 ## The Originals
 
-Seven original games — physics toys, reflex challenges, and shooters designed to push MATLAB's real-time graphics.
+Seven original games -- physics toys, reflex challenges, and shooters designed to push MATLAB's real-time graphics.
 
 ### 9. Target Practice
 
 Glowing targets appear and shrink on a real-time countdown. Hit them before they vanish. Combo tightens the timer. Color shifts from cyan to red as time runs out.
 
-<!-- <p align="center"><img src="assets/target_practice.gif" alt="Target Practice" width="60%"></p> -->
+<p align="center"><img src="assets/targetpractice.gif" alt="Target Practice" width="60%"></p>
 
 ### 10. Firefly Chase
 
-5 tiers of fireflies on orbital paths — cyan, green, magenta, purple, and gold. The "Golden Snitch" firefly traces Lissajous curves and actively evades your cursor. Combo multiplier rewards rapid catches.
+5 tiers of fireflies on orbital paths -- cyan, green, magenta, purple, and gold. The "Golden Snitch" firefly traces Lissajous curves and actively evades your cursor. Combo multiplier rewards rapid catches.
 
-<!-- <p align="center"><img src="assets/firefly_chase.gif" alt="Firefly Chase" width="60%"></p> -->
+<p align="center"><img src="assets/fireflychase.gif" alt="Firefly Chase" width="60%"></p>
 
 ### 11. Flick It!
 
 Flick a physics orb off walls with your mouse. The ball shifts from cyan to red with speed. Three-layer neon rendering (aura, glow, core) with a comet trail that reflects off every surface. Re-flick a moving ball for combo.
 
-<!-- <p align="center"><img src="assets/flick_it.gif" alt="Flick It!" width="60%"></p> -->
+<p align="center"><img src="assets/flickit.gif" alt="Flick It!" width="60%"></p>
 
 ### 12. Juggler
 
 Keep balls airborne with flick physics and gravity. Drop one and the combo resets. Extra balls spawn at score milestones. All balls share identical rendering and seamlessly promote when the leader is lost.
 
-<!-- <p align="center"><img src="assets/juggler.gif" alt="Juggler" width="60%"></p> -->
+<p align="center"><img src="assets/juggler.gif" alt="Juggler" width="60%"></p>
 
 ### 13. Orbital Defense
 
 Defend a hex base from asteroid waves. Launch interceptors with your cursor for chain-reaction explosions. Escalating difficulty with lives system.
 
-<!-- <p align="center"><img src="assets/orbital_defense.gif" alt="Orbital Defense" width="60%"></p> -->
+<p align="center"><img src="assets/orbitaldefense.gif" alt="Orbital Defense" width="60%"></p>
 
 ### 14. Shield Guardian
 
 Rotate a shield arc to deflect projectiles and protect your core. Swept quadratic collision prediction for accurate deflections. Waves escalate in speed and density.
 
-<!-- <p align="center"><img src="assets/shield_guardian.gif" alt="Shield Guardian" width="60%"></p> -->
+<p align="center"><img src="assets/shieldguardian.gif" alt="Shield Guardian" width="60%"></p>
 
 ### 15. Rail Shooter
 
 Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types (grunt, heavy, interceptor, boss) approach from a vanishing point. Breathing crosshair with auto-fire DPS system.
 
-<!-- <p align="center"><img src="assets/rail_shooter.gif" alt="Rail Shooter" width="60%"></p> -->
+<p align="center"><img src="assets/railshooter.gif" alt="Rail Shooter" width="60%"></p>
 
 ---
 
@@ -161,12 +161,12 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types (grunt, 
 | | |
 |---|---|
 | **Persistent High Scores** | Scores, combos, play counts, and session times saved across sessions |
-| **Frame-Rate Independence** | `DtScale = rawDt * RefFPS` — physics runs at consistent speed from 20 to 240+ FPS |
-| **Auto-Scaling Display** | `FontScale = min(axPx/854, axPx/480)` — all text, markers, and line widths resize on window resize |
+| **Frame-Rate Independence** | `DtScale = rawDt * RefFPS` -- physics runs at consistent speed from 20 to 240+ FPS |
+| **Auto-Scaling Display** | `FontScale = min(axPx/854, axPx/480)` -- all text, markers, and line widths resize on window resize |
 | **Combo System** | Shared scoring with multipliers and animated fade-outs across all games |
 | **Neon Visual Style** | Three-layer ball rendering (aura + glow + core), comet trails, particle bursts |
 | **Standalone Mode** | Every game runs independently: `games.Pong().play()` |
-| **HTML5 Port** | All 15 games in a single `arcade.html` — same physics, same visuals, any browser |
+| **HTML5 Port** | All 15 games in a single `arcade.html` -- same physics, same visuals, any browser |
 | **Subclassable** | Override `buildRegistry` and `getMenuTitles` for custom game sets |
 | **Extensible** | Add your own games by subclassing `engine.GameBase` |
 
@@ -174,7 +174,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types (grunt, 
 
 ## High Scores
 
-Scores persist in `data/scores.mat`, auto-created on first play.
+Scores persist in `ScoreManager_scores.mat`, auto-created on first play.
 
 ```matlab
 services.ScoreManager.get("Pong")          % view a game's record
@@ -205,10 +205,12 @@ Arcade.m                 entry point
 +games/                  15 game classes
 web/
     arcade.html          HTML5 Canvas port (all 15 games, single file)
+    technical.html       technical documentation page
 docs/
     DEVELOPER.md         architecture and technical details
     TODO.md              development roadmap
 recording/               GIF/video capture scripts
+packaging/               toolbox, executable, and icon generation
 assets/                  demo GIFs and screenshots
 ```
 
@@ -216,9 +218,100 @@ For architecture details, FPS scaling internals, and per-game technical breakdow
 
 ---
 
+## Technical Highlights
+
+<details>
+<summary>Frame-rate-independent physics</summary>
+
+All game physics scale by a per-frame `DtScale` factor:
+
+```matlab
+DtScale = rawDt * RefFPS    % exactly 1.0 when running at RefFPS (60)
+```
+
+| Pattern | Usage |
+|---------|-------|
+| Velocity | `pos = pos + vel * ds` |
+| Gravity | `vel = vel + gravity * ds` |
+| Friction | `vel = vel * friction ^ ds` |
+| Random events | `rand < probability * ds` |
+
+Ball trails use a DtScale accumulator that records every 2.0 units, ensuring consistent trail length from 30 to 240+ FPS. Bounce contact points are force-recorded to prevent gaps at wall/paddle/brick reflections.
+
+</details>
+
+<details>
+<summary>Swept collision detection</summary>
+
+Breakout uses a two-pass swept collision algorithm:
+
+1. **Pass 1**: Test the ball's path against every brick AABB (expanded by ball radius). Find the brick with the smallest parametric `tMin` -- the earliest collision along the path.
+2. **Pass 2**: Process only that brick -- reflect velocity, apply damage, spawn effects.
+
+This prevents the ball from hitting the wrong brick when multiple bricks overlap the path at high speed. Fireball mode recurses to destroy all bricks along the trajectory.
+
+Pong uses parametric wall collision (`tHit = (wallY - preY) / stepVelY`) for exact contact points at any speed.
+
+</details>
+
+<details>
+<summary>Multi-ball promotion</summary>
+
+When Breakout's main ball exits play, the first extra ball is seamlessly promoted:
+
+- Old main ball's graphics handles are deleted
+- Extra ball's handles, trail buffer, and accumulator state are adopted directly
+- The trail carries over without visual discontinuity
+- The extra ball array is shortened; no handles are destroyed in the process
+
+All balls render identically: same 3-layer glow stack, same speed-dependent trail width and alpha, same DtScale accumulator.
+
+</details>
+
+<details>
+<summary>Graphics pool pattern</summary>
+
+All 15 games pre-allocate every graphics object in `onInit`. No `line()`, `scatter()`, `patch()`, or `text()` calls occur during gameplay -- objects are recycled via `Visible = "on"/"off"` and property updates.
+
+MATLAB graphics creation costs 0.2-1ms per object (handle registration, renderer sync, memory). Property updates on existing handles cost under 0.01ms.
+
+</details>
+
+---
+
+## Distribution
+
+### MATLAB Toolbox
+
+Install via the Add-On Manager or from the [File Exchange listing](https://mathworks.com/matlabcentral/fileexchange/):
+
+```matlab
+% Or build from source:
+cd packaging
+buildToolbox
+```
+
+### Standalone Executable (Windows)
+
+A compiled `.exe` requires the [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) (free, ~800 MB download):
+
+```matlab
+cd packaging
+buildExecutable
+```
+
+### Icon and Splash Screen
+
+```matlab
+cd packaging
+generateIcon    % creates icon.png (256x256) and splash.png (640x480)
+```
+
+---
+
 ## Development
 
-This project was developed entirely through AI-assisted pair programming using [Claude](https://claude.ai) and the [MATLAB MCP Server](https://github.com/matlab/matlab-mcp-core-server). The MCP server enables Claude to inspect, analyze, and execute MATLAB code directly — from initial architecture through pixel-level visual matching between MATLAB and the HTML port.
+This project was developed entirely through AI-assisted pair programming using [Claude](https://claude.ai) and the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server). The MCP server enables Claude to inspect, analyze, and execute MATLAB code directly -- from initial architecture through pixel-level visual matching between MATLAB and the HTML port.
 
 ---
 
