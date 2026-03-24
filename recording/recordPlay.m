@@ -181,31 +181,57 @@ start(tmr);
 
         fprintf("Captured %d frames over %.1f s (%.0f fps)\n", ...
             capturedCount, totalElapsed, actualFps);
-        reply = input("Save recording? [y/n]: ", "s");
-        if ~strcmpi(reply, "y")
+        fprintf("  [y] Save at captured FPS (%.0f)\n", actualFps);
+        fprintf("  [f] Save at custom FPS\n");
+        fprintf("  [s] Save at target duration (auto-adjust FPS)\n");
+        fprintf("  [n] Discard\n");
+        reply = input("Choice: ", "s");
+
+        if strcmpi(reply, "n") || isempty(reply)
             fprintf("Recording discarded.\n");
             return;
         end
+
+        % Determine output FPS and frame selection
+        if strcmpi(reply, "f")
+            outputFps = input("Output FPS: ");
+            if isempty(outputFps) || outputFps <= 0
+                fprintf("Invalid FPS. Discarded.\n");
+                return;
+            end
+        elseif strcmpi(reply, "s")
+            targetDur = input("Target duration (seconds): ");
+            if isempty(targetDur) || targetDur <= 0
+                fprintf("Invalid duration. Discarded.\n");
+                return;
+            end
+            outputFps = capturedCount / targetDur;
+            fprintf("  Auto FPS: %.1f (for %.1f s)\n", outputFps, targetDur);
+        else
+            outputFps = actualFps;
+        end
+
+        outputFps = round(max(1, outputFps));
 
         ts = datestr(now, "yyyymmdd_HHMMss"); %#ok<TNOW1,DATST>
         baseName = lower(gameName) + "_" + ts;
         fprintf("Saving as %s...\n", baseName);
 
-        % --- MP4 (actual FPS so playback matches real time) ---
+        % --- MP4 ---
         mp4File = fullfile(outputDir, baseName + ".mp4");
         vw = VideoWriter(mp4File, "MPEG-4");
-        vw.FrameRate = round(actualFps);
+        vw.FrameRate = outputFps;
         vw.Quality = 95;
         open(vw);
         for i = 1:capturedCount
             writeVideo(vw, framesBuf{i}.cdata);
         end
         close(vw);
-        fprintf("  MP4: %s (%.0f fps)\n", mp4File, actualFps);
+        fprintf("  MP4: %s (%.0f fps, %.1f s)\n", mp4File, outputFps, capturedCount / outputFps);
 
         % --- GIF (same FPS as MP4) ---
         gifFile = fullfile(outputDir, baseName + ".gif");
-        gifFps = round(actualFps);
+        gifFps = outputFps;
         gifDelay = 1 / gifFps;
         skip = 1;
         % Build a global colormap from sampled frames for consistency
