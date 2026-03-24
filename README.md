@@ -9,28 +9,28 @@
 
 A neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling ties everything together. Pick up and play with mouse, keyboard, or both.
 
-Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games.
-
 <p align="center">
   <img src="assets/main_menu.gif" alt="Arcade - Main Menu" width="75%">
 </p>
 
 > Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) - AI-assisted development from architecture to pixel-level polish.
 
+Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games.
+
 ---
 
 ## Quick Start
 
 ```matlab
-Arcade()
+Arcade();
 ```
 
 Or launch any game directly in standalone mode:
 
 ```matlab
-games.Pong().play()
-games.Tetris().play()
-games.Asteroids().play()
+games.Pong().play();
+games.Tetris().play();
+games.Asteroids().play();
 ```
 
 ---
@@ -296,7 +296,7 @@ No MATLAB license needed. Download [`ArcadeInstaller.exe`](packaging/installer/A
 
 ### Browser
 
-Open [`index.html`](index.html) in any modern browser. All 15 games in a single self-contained HTML5 Canvas file - no installation, no server, no dependencies.
+Open [`index.html`](index.html) in any modern browser. All 15 games in a single self-contained HTML5 Canvas file - no installation, no server, no dependencies. See also the [technical documentation](technical.html) for implementation details of the HTML port.
 
 ### From Source
 
