@@ -8767,6 +8767,7 @@ class JugglerGame {
         this.trailBufX[tidx] = this.ballPos[0];
         this.trailBufY[tidx] = this.ballPos[1];
         this.trailIdx = tidx + 1;
+        this.trailAccum = 0;
 
         this.ballFlicks++;
         this.scoreFlick(this.ballPos[0], this.ballPos[1], hitSpeed);
