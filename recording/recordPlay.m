@@ -1,15 +1,17 @@
-function recordPlay(gameName, outputDir)
+function recordPlay(gameName, outputDir, maxRecordFrames)
 %recordPlay  Play a game with real input while recording.
 %   Launch any game in standalone mode. Play with mouse and keyboard.
 %   Press Esc or close the figure to stop. GIF + MP4 auto-saved with
 %   timestamp to the output directory.
 %
-%   recordPlay("Pong")
-%   recordPlay("Tetris", "assets")
+%   recordPlay("Pong")                    % record until Esc
+%   recordPlay("Tetris", "assets")        % record until Esc, save to assets/
+%   recordPlay("Snake", "assets", 600)    % record exactly 600 frames (~10s)
 
 arguments
-    gameName    string
-    outputDir   string = "assets"
+    gameName         string
+    outputDir        string = "assets"
+    maxRecordFrames  double = 0    % 0 = unlimited (record until Esc/close)
 end
 
 if ~isfolder(outputDir); mkdir(outputDir); end
@@ -41,7 +43,11 @@ game.init(ax, range);
 game.beginGame();
 
 % --- Recording state ---
-maxFrames = 60 * 120; % 2 min at 60fps
+if maxRecordFrames > 0
+    maxFrames = maxRecordFrames;
+else
+    maxFrames = 60 * 120; % 2 min buffer at 60fps
+end
 framesBuf = cell(1, maxFrames);
 capturedCount = 0;
 saving = false;
@@ -117,6 +123,10 @@ start(tmr);
             if capturedCount < maxFrames
                 capturedCount = capturedCount + 1;
                 framesBuf{capturedCount} = getframe(fig);
+                if maxRecordFrames > 0 && capturedCount >= maxFrames
+                    stopAndSave();
+                    return;
+                end
             end
         catch me
             fprintf(2, "[recordPlay] %s\n", me.message);
