@@ -1,4 +1,4 @@
-# MATLAB Arcade
+# MATLAB Arcade &nbsp; <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" height="30"></a>&nbsp;<a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" height="30"></a>&nbsp;<a href="web/arcade.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-00ebff?style=flat" height="30"></a>
 
 15 arcade games built entirely in MATLAB — eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 

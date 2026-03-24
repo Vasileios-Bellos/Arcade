@@ -62,10 +62,6 @@ plot(ax, shipX, shipY, "-", ...
     "Color", neonCyan, ...
     "LineWidth", 2.5);
 
-% Engine thrust dots at the rear
-scatter(ax, 0.50, 0.22, 80, neonCyan, "filled", ...
-    "MarkerFaceAlpha", 0.7);
-
 hold(ax, "off");
 
 iconPath = fullfile(scriptDir, "icon.png");
