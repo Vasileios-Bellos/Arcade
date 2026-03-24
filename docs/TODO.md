@@ -73,6 +73,7 @@ Full comparison completed across all 15 games. All physics constants, scoring fo
 - [x] Ball reflection contact - all ball games (Pong, Breakout, FlickIt, Juggler) now use parametric contact point for wall and paddle collisions. Force-record captures exact reflection position into trail buffer (MATLAB + HTML)
 - [x] Breakout extra ball paddle pass-through - extra balls used post-move position check only, missing the paddle at high speed. Now uses swept parametric detection matching main ball (MATLAB + HTML)
 - [x] Asteroids bullet-rock sweep - swept collision segment used unscaled velocity instead of DtScale-scaled step, causing misses on small asteroids at non-60fps (MATLAB + HTML)
+- [x] SpaceInvaders wave/lives text z-order - text rendered behind aliens in MATLAB. Added uistack to bring text to front on show (HTML already correct - drawn last in render)
 
 ### Documentation & Packaging
 - [x] DEVELOPER.md - comprehensive architecture, per-game technical notes, all systems documented
