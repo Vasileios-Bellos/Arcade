@@ -298,7 +298,7 @@ Pre-built toolbox and installer are also available from [GitHub Releases](https:
 cd packaging
 buildToolbox       % creates Arcade.mltbx
 buildExecutable    % creates Arcade.exe + ArcadeInstaller.exe
-generateIcon       % creates icon.png, splash.png, preview.png
+generateIcon       % creates icon.png, splash.png
 ```
 
 Requires MATLAB Compiler for the executable. No additional toolboxes needed for the toolbox.

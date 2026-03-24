@@ -92,8 +92,8 @@ close(fig);
 fprintf("  Saved: %s\n\n", iconPath);
 
 %% ===== SPLASH / PREVIEW IMAGE (800x600, 4:3) =====
-%  Used for: splash.png (exe installer), preview.png (File Exchange), social card.
-fprintf("Generating preview.png (800x600)...\n");
+%  Used for: splash.png (exe installer), File Exchange preview, social card.
+fprintf("Generating splash.png (800x600)...\n");
 
 pw = 800; ph = 600;
 fig = figure("Visible", "off", ...

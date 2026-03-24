@@ -6,10 +6,9 @@ data/
 
 # Packaging build intermediates
 packaging/build/
-packaging/icon_*.png
 
-# Asset videos (GIFs tracked, MP4s too large)
-assets/*.mp4
+# Miscellaneous
+misc/
 
 # Claude Code
 .claude/
