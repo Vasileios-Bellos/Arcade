@@ -178,11 +178,18 @@ start(tmr);
         end
 
         framesBuf = framesBuf(1:capturedCount);
+
+        fprintf("Captured %d frames (%.1f fps, %.1fs)\n", ...
+            capturedCount, actualFps, totalElapsed);
+        reply = input("Save recording? [y/n]: ", "s");
+        if ~strcmpi(reply, "y")
+            fprintf("Recording discarded.\n");
+            return;
+        end
+
         ts = datestr(now, "yyyymmdd_HHMMss"); %#ok<TNOW1,DATST>
         baseName = lower(gameName) + "_" + ts;
-
-        fprintf("Saving %d frames (%.1f fps actual, %.1fs) as %s...\n", ...
-            capturedCount, actualFps, totalElapsed, baseName);
+        fprintf("Saving as %s...\n", baseName);
 
         % --- MP4 (actual FPS so playback matches real time) ---
         mp4File = fullfile(outputDir, baseName + ".mp4");
