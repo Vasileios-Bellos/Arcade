@@ -79,7 +79,7 @@ classdef Breakout < engine.GameBase
         CatchHeld       (1,1) logical = false
         CatchOffset     (1,1) double = 0
 
-        % Level transition
+        % Level phase
         LevelPhase      (1,1) string = "play"
         LevelTransFrames (1,1) double = 0
 
@@ -258,46 +258,6 @@ classdef Breakout < engine.GameBase
             %onUpdate  Per-frame breakout game logic.
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
-
-            % --- Level transition phase ---
-            if obj.LevelPhase == "transition"
-                obj.LevelTransFrames = obj.LevelTransFrames - obj.DtScale;
-                tProgress = 1 - obj.LevelTransFrames / 96;
-
-                % Fade out old bricks
-                if tProgress < 0.5
-                    fadeAlpha = max(0, 1 - tProgress * 4);
-                    for k = 1:numel(obj.Bricks)
-                        brk = obj.Bricks(k);
-                        if ~isempty(brk.patchH) && isvalid(brk.patchH)
-                            brk.patchH.FaceAlpha = fadeAlpha * 0.8;
-                        end
-                    end
-                end
-
-                % Fade level text
-                if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                    textAlpha = 1;
-                    if tProgress > 0.7
-                        textAlpha = max(0, (1 - tProgress) / 0.3);
-                    end
-                    obj.LevelTextH.Color = [obj.ColorGold, textAlpha];
-                end
-
-                if obj.LevelTransFrames <= 0
-                    % Build new grid, then announce new level
-                    obj.buildBrickGrid(obj.Level);
-                    obj.serveBall();
-                    obj.LevelPhase = "announce";
-                    obj.LevelTransFrames = 60;
-                    if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
-                        obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
-                        obj.LevelTextH.Color = [obj.ColorCyan, 1];
-                        obj.LevelTextH.Visible = "on";
-                    end
-                end
-                return;
-            end
 
             % --- Level announce phase ---
             if obj.LevelPhase == "announce"
@@ -1029,7 +989,7 @@ classdef Breakout < engine.GameBase
         end
 
         function nextLevel(obj)
-            %nextLevel  Advance to next level with transition effect.
+            %nextLevel  Advance to next level.
             obj.Level = obj.Level + 1;
             obj.updateHud();
             if obj.Level > obj.MaxLevel
@@ -1038,23 +998,14 @@ classdef Breakout < engine.GameBase
                 return;
             end
 
-            % Level transition (bricks fade, then announce)
-            obj.LevelPhase = "transition";
-            obj.LevelTransFrames = 96;
-
-            % Flash remaining bricks white
-            for k = 1:numel(obj.Bricks)
-                brk = obj.Bricks(k);
-                if ~isempty(brk.patchH) && isvalid(brk.patchH)
-                    brk.patchH.FaceColor = [1, 1, 1];
-                    brk.patchH.FaceAlpha = 0.8;
-                end
-            end
-
-            % Show level text
+            % Build new grid and announce
+            obj.buildBrickGrid(obj.Level);
+            obj.serveBall();
+            obj.LevelPhase = "announce";
+            obj.LevelTransFrames = 60;
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
                 obj.LevelTextH.String = sprintf("LEVEL %d", obj.Level);
-                obj.LevelTextH.Color = [obj.ColorGold, 1];
+                obj.LevelTextH.Color = [obj.ColorCyan, 1];
                 obj.LevelTextH.Visible = "on";
             end
 
