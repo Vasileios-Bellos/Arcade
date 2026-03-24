@@ -41,20 +41,20 @@ Eight legendary arcade games, recreated from scratch in pure MATLAB.
 
 ### 1. Pong
 
-AI opponent that adapts as you score - its error shrinks and speed climbs with every point you land. Paddle-angle physics with rally escalation, parametric wall bounces, and a 10-iteration AI prediction that simulates the ball's path before choosing its target. First to 10 wins.
+AI opponent that adapts as you score - its error shrinks and speed climbs with every point you land. Paddle-angle physics with rally escalation. The AI simulates the ball's path before choosing its target. First to 10 wins.
 
 <p align="center"><img src="assets/pong.gif" alt="Pong" width="60%"></p>
 
 
 ### 2. Breakout
 
-5 levels of escalating brick layouts - from single-hit rows to armored sandwiches with indestructible shield bricks. Power-ups drop on 30% of brick breaks: fireball (plows through everything), wide paddle, slow ball, multi-ball (up to 3 on screen), and extra life. Paddle angle controls the ricochet. Swept two-pass collision detection finds the earliest brick along the ball's path for precise hits at any speed.
+5 levels of escalating brick layouts - from single-hit rows to armored sandwiches with indestructible shield bricks. Power-ups drop on brick breaks: fireball (plows through everything), wide paddle, slow ball, multi-ball (up to 3 on screen), and extra life. Paddle angle controls the ricochet.
 
 <p align="center"><img src="assets/breakout.gif" alt="Breakout" width="60%"></p>
 
 ### 3. Snake
 
-Grid-based with wrap-around walls and a direction queue that never drops your inputs. Arrow keys or mouse-guided movement. Speed increases as you grow - the step interval shrinks from 4 frames down to 1.5 as the body lengthens.
+Grid-based with wrap-around walls. Arrow keys or mouse-guided movement. Speed increases as you grow.
 
 <p align="center"><img src="assets/snake.gif" alt="Snake" width="60%"></p>
 
@@ -78,7 +78,7 @@ Wireframe polygons with random vertices that split on impact - large asteroids b
 
 ### 7. Flappy Bird
 
-Pipe gaps shrink down to 25% of their base size as your combo grows, and scroll speed ramps 6% per pipe cleared. Space, Up, or click to flap. Gravity and flap impulse scale to display size. Collision radius is computed from the bird's scatter SizeData for pixel-accurate hit detection.
+Pipe gaps shrink as your combo grows, and scroll speed ramps with each pipe cleared. Space, Up, or click to flap.
 
 <p align="center"><img src="assets/flappybird.gif" alt="Flappy Bird" width="60%"></p>
 
@@ -96,7 +96,7 @@ Seven original games - physics toys, speed challenges, and shooters designed to 
 
 ### 9. Target Practice
 
-Glowing targets appear and shrink on a real-time countdown. Hit them before they vanish - swept collision lets fast cursor swipes register even at high speed. Combo tightens both the timer and the target radius. Color shifts from cyan to red as time runs out.
+Glowing targets appear and shrink on a real-time countdown. Hit them before they vanish. Combo tightens both the timer and the target radius. Color shifts from cyan to red as time runs out.
 
 <p align="center"><img src="assets/targetpractice.gif" alt="Target Practice" width="60%"></p>
 
@@ -125,14 +125,14 @@ Defend a hex base from asteroid waves across 3 tiers (large, medium, small). Lau
 <p align="center"><img src="assets/orbitaldefense.gif" alt="Orbital Defense" width="60%"></p>
 
 ### 14. Shield Guardian
-1
-Rotate a 180-degree shield arc to deflect incoming projectiles and protect your core. Three projectile types (fast/normal/heavy) with swept quadratic line-circle collision for frame-perfect deflections. Deflected projectiles can chain-hit other incoming shots. Waves escalate in speed and density.
+
+Rotate a shield arc to deflect incoming projectiles and protect your core. Three projectile types (fast, normal, heavy). Deflected projectiles can chain-hit other incoming shots. Waves escalate in speed and density.
 
 <p align="center"><img src="assets/shieldguardian.gif" alt="Shield Guardian" width="60%"></p>
 
 ### 15. Rail Shooter
 
-Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighters, cruisers, interceptors, and dreadnought bosses - approach from a vanishing point with wireframe shapes that scale with depth. Hand-crafted wave compositions through wave 5, then procedural generation. Breathing crosshair with auto-fire DPS system.
+Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighters, cruisers, interceptors, and dreadnought bosses - approach from a vanishing point. Hand-crafted wave compositions through wave 5, then procedural generation. Breathing crosshair with auto-fire.
 
 <p align="center"><img src="assets/railshooter.gif" alt="Rail Shooter" width="60%"></p>
 
@@ -167,11 +167,11 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighte
 | | |
 |---|---|
 | **Persistent High Scores** | Scores, combos, play counts, and session times saved across sessions |
-| **Frame-Rate Independence** | `DtScale = rawDt * RefFPS` - physics runs at consistent speed from 20 to 240+ FPS |
-| **Auto-Scaling Display** | `FontScale = min(axPx/854, axPx/480)` - all text, markers, and line widths resize on window resize |
+| **Frame-Rate Independence** | Physics runs at consistent speed from 20 to 240+ FPS |
+| **Auto-Scaling Display** | All text, markers, and line widths resize automatically on window resize |
 | **Combo System** | Shared scoring with multipliers and animated fade-outs across all games |
 | **Neon Visual Style** | Three-layer ball rendering (aura + glow + core), comet trails, particle bursts |
-| **Standalone Mode** | Every game runs independently: `games.Pong().play()` |
+| **Standalone Mode** | Every game runs independently: `games.Pong().play();` |
 | **HTML5 Port** | All 15 games in a single file - verified identical physics, scoring, and visuals across both platforms |
 | **Subclassable** | Override `buildRegistry` and `getMenuTitles` for custom game sets |
 | **Extensible** | Add your own games by subclassing `engine.GameBase` |
@@ -214,7 +214,6 @@ technical.html           technical documentation page
 dev/
     README.md            architecture and technical details
     TODO.md              development roadmap
-recording/               GIF/video capture scripts
 packaging/               toolbox, executable, and icon generation
 assets/                  demo GIFs and screenshots
 ```
