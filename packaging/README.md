@@ -174,18 +174,16 @@ This produces `packaging/Arcade.mltbx`.
 | UI | `+ui/GameMenu.m` |
 | Services | `+services/ScoreManager.m` |
 | Games (15) | `+games/*.m` |
-| Documentation | `README.md`, `dev/README.md`, `docs/*.gif`, `docs/*.mp4`, `docs/*.png` |
+| Documentation | `README.md`, `LICENSE` |
 
 ### What is excluded
 
 | Excluded | Reason |
 |----------|--------|
-| `recording/` | Build scripts for demo GIFs, not user-facing |
-| `assets/` | Duplicate demo media (same content served from `docs/`) |
+| `index.html`, `technical.html` | Browser port, not needed for MATLAB |
+| `dev/`, `assets/` | Documentation and media |
 | `data/` | Auto-generated at runtime (`scores.mat`) |
-| `docs/TODO.md` | Internal development notes |
-| `.gitignore` | Git metadata |
-| `.claude/` | AI assistant config |
+| `misc/` | Legacy scripts and videos |
 | `packaging/` | This build infrastructure |
 
 ### Install
@@ -210,14 +208,14 @@ Upload the `.mltbx` file to any of:
 
 Edit the `opts.ToolboxVersion` line in `buildToolbox.m` before rebuilding.
 
-### Older MATLAB (pre-R2023b)
+### Older MATLAB (pre-R2023a)
 
-`matlab.addons.toolbox.ToolboxOptions` was introduced in R2023b. On older releases you can package manually:
+`matlab.addons.toolbox.ToolboxOptions` was introduced in R2023a. On older releases you can package manually:
 
 1. Open **MATLAB > HOME > Add-Ons > Package Toolbox**
 2. Add the project root folder
 3. Fill in the metadata (name, version, author, description)
-4. Exclude `recording/`, `assets/`, `data/`, `docs/TODO.md`, `packaging/`
+4. Include only `Arcade.m`, `+engine/`, `+games/`, `+services/`, `+ui/`, `README.md`, `LICENSE`
 5. Click **Package**
 
 ---

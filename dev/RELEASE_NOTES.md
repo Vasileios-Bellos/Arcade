@@ -20,7 +20,7 @@
 
 | File | Description |
 |------|-------------|
-| `Arcade.mltbx` | MATLAB Toolbox - double-click to install in Add-On Manager |
+| `Arcade.mltbx` | MATLAB Toolbox - install via Add-On Manager |
 | `ArcadeInstaller.exe` | Windows installer - downloads MATLAB Runtime automatically |
 | Source code (zip) | Full repository with HTML port, docs, recording scripts |
 
@@ -33,6 +33,6 @@
 ## Quick Start
 
 ```matlab
-Arcade()           % launch the menu
-games.Pong().play()  % or play any game directly
+Arcade();           % launch the menu
+games.Pong().play();  % or play any game directly
 ```
