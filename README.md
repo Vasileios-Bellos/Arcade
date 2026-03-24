@@ -307,7 +307,7 @@ buildExecutable    % creates Arcade.exe + ArcadeInstaller.exe
 generateIcon       % creates icon.png, splash.png
 ```
 
-The toolbox requires MATLAB R2023b+ to build. The executable requires MATLAB Compiler. See [`packaging/`](packaging/) for full instructions.
+The toolbox requires MATLAB R2023a+ to build. The executable requires MATLAB Compiler. See [`packaging/`](packaging/) for full instructions.
 
 </details>
 

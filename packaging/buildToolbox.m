@@ -1,5 +1,5 @@
 %buildToolbox  Package the Arcade project as a .mltbx toolbox.
-%   Run this script from MATLAB (R2023b+ recommended). It creates a
+%   Run this script from MATLAB (R2023a+ recommended). It creates a
 %   ToolboxOptions object, sets all metadata and file inclusions, then
 %   calls matlab.addons.toolbox.packageToolbox to produce:
 %
@@ -9,7 +9,7 @@
 %   folder) so it works regardless of your current directory.
 %
 %   Requirements:
-%       - MATLAB R2023b or newer (for matlab.addons.toolbox.ToolboxOptions)
+%       - MATLAB R2023a or newer (for matlab.addons.toolbox.ToolboxOptions)
 %       - No additional toolboxes
 %
 %   Usage:
@@ -34,12 +34,12 @@ fprintf("Project root : %s\n", projectRoot);
 fprintf("Output file  : %s\n", outputFile);
 
 % =========================================================================
-%  2. Verify MATLAB version supports ToolboxOptions (R2023b+)
+%  2. Verify MATLAB version supports ToolboxOptions (R2023a+)
 % =========================================================================
 
-if verLessThan("matlab", "23.2")  %#ok<VERLESSMATLAB> - R2023b = 23.2
+if verLessThan("matlab", "23.1")  %#ok<VERLESSMATLAB> - R2023a = 23.1
     error("buildToolbox:UnsupportedRelease", ...
-        "matlab.addons.toolbox.ToolboxOptions requires R2023b or newer.\n" + ...
+        "matlab.addons.toolbox.ToolboxOptions requires R2023a or newer.\n" + ...
         "You are running %s. See packaging/README.md for alternatives.", version);
 end
 
