@@ -1917,28 +1917,30 @@ class BreakoutGame {
     }
 
     // === brickCollision — Breakout.m lines 792-908 ===
+    // Two-pass: find earliest collision first, then process it.
     brickCollision(prePos, ballPos, ballVel) {
         const ballR = this.ballRadius;
         let newPos = [ballPos[0], ballPos[1]];
         let newVel = [ballVel[0], ballVel[1]];
         const isFireball = this.activePowers.fireball !== null;
 
+        const ddx = ballPos[0] - prePos[0];
+        const ddy = ballPos[1] - prePos[1];
+
+        // Pass 1: find earliest collision
+        let bestT = Infinity;
+        let bestK = -1;
         for (let k = 0; k < this.bricks.length; k++) {
             const brk = this.bricks[k];
             if (!brk.alive) continue;
 
-            // Expand brick AABB by ball radius (Minkowski sum, line 808-811)
             const bx1 = brk.rawX - ballR;
             const bx2 = brk.rawX + brk.rawW + ballR;
             const by1 = brk.rawY - ballR;
             const by2 = brk.rawY + brk.rawH + ballR;
 
-            // Swept point-vs-expanded-rect (lines 813-840)
-            const ddx = newPos[0] - prePos[0];
-            const ddy = newPos[1] - prePos[1];
             let tMin = 1e-6, tMax = 1;
 
-            // X slab
             if (Math.abs(ddx) < 1e-12) {
                 if (prePos[0] < bx1 || prePos[0] > bx2) continue;
             } else {
@@ -1950,7 +1952,6 @@ class BreakoutGame {
                 if (tMin > tMax) continue;
             }
 
-            // Y slab
             if (Math.abs(ddy) < 1e-12) {
                 if (prePos[1] < by1 || prePos[1] > by2) continue;
             } else {
@@ -1962,67 +1963,77 @@ class BreakoutGame {
                 if (tMin > tMax) continue;
             }
 
-            // Hit — determine which face (lines 843-858)
-            const hitPt = [prePos[0] + tMin * ddx, prePos[1] + tMin * ddy];
-            const bcx = brk.rawX + brk.rawW / 2;
-            const bcy = brk.rawY + brk.rawH / 2;
-            const dcx = hitPt[0] - bcx;
-            const dcy = hitPt[1] - bcy;
+            if (tMin < bestT) {
+                bestT = tMin;
+                bestK = k;
+            }
+        }
 
-            if (!isFireball) {
+        if (bestK < 0) return { pos: newPos, vel: newVel };
+
+        // Pass 2: process earliest hit
+        const brk = this.bricks[bestK];
+        const hitPt = [prePos[0] + bestT * ddx, prePos[1] + bestT * ddy];
+        const bcx = brk.rawX + brk.rawW / 2;
+        const bcy = brk.rawY + brk.rawH / 2;
+        const dcx = hitPt[0] - bcx;
+        const dcy = hitPt[1] - bcy;
+
+        if (!isFireball) {
+            if (Math.abs(dcx / brk.rawW) > Math.abs(dcy / brk.rawH)) {
+                newVel[0] = -newVel[0];
+                newPos[0] = bcx + Math.sign(dcx) * (brk.rawW / 2 + ballR);
+                newPos[1] = hitPt[1];
+            } else {
+                newVel[1] = -newVel[1];
+                newPos[1] = bcy + Math.sign(dcy) * (brk.rawH / 2 + ballR);
+                newPos[0] = hitPt[0];
+            }
+            newVel[0] *= 1.008;
+            newVel[1] *= 1.008;
+        }
+
+        if (brk.hp > 0) {
+            if (isFireball) {
+                brk.hp = 0;
+                this.destroyBrick(bestK);
+            } else {
+                brk.hp--;
+                if (brk.hp === 0) {
+                    this.destroyBrick(bestK);
+                } else {
+                    brk.fAlpha = 0.2 + brk.hp * 0.25;
+                }
+            }
+
+            const basePoints = brk.hp * 100 + 100;
+            const totalPoints = Math.round(basePoints * this.comboMultiplier());
+            this.addScore(totalPoints);
+            this.incrementCombo();
+        } else {
+            // Indestructible — bounce even in fireball mode
+            if (isFireball) {
                 if (Math.abs(dcx / brk.rawW) > Math.abs(dcy / brk.rawH)) {
                     newVel[0] = -newVel[0];
                     newPos[0] = bcx + Math.sign(dcx) * (brk.rawW / 2 + ballR);
-                    newPos[1] = hitPt[1];
                 } else {
                     newVel[1] = -newVel[1];
                     newPos[1] = bcy + Math.sign(dcy) * (brk.rawH / 2 + ballR);
-                    newPos[0] = hitPt[0];
                 }
-                newVel[0] *= 1.008;  // line 859
-                newVel[1] *= 1.008;
             }
+            const spd = Math.hypot(ballVel[0], ballVel[1]);
+            const sRatio = spd / Math.max(this.ballBaseSpeed, 1);
+            const mSpeed = 3 + (sRatio - 1) * 12;
+            this.hitEffects.spawnBounceEffect(
+                [brk.rawX + brk.rawW / 2, brk.rawY + brk.rawH / 2],
+                [0, 1], 0, mSpeed);
+        }
 
-            // Damage brick (lines 863-907)
-            if (brk.hp > 0) {
-                if (isFireball) {
-                    brk.hp = 0;
-                    this.destroyBrick(k);
-                } else {
-                    brk.hp--;
-                    if (brk.hp === 0) {
-                        this.destroyBrick(k);
-                    } else {
-                        // Reduce alpha (line 874)
-                        brk.fAlpha = 0.2 + brk.hp * 0.25;
-                    }
-                }
-
-                // Scoring (lines 882-885)
-                const basePoints = brk.hp * 100 + 100;
-                const totalPoints = Math.round(basePoints * this.comboMultiplier());
-                this.addScore(totalPoints);
-                this.incrementCombo();
-            } else {
-                // Indestructible — bounce even in fireball mode (lines 887-896)
-                if (isFireball) {
-                    if (Math.abs(dcx / brk.rawW) > Math.abs(dcy / brk.rawH)) {
-                        newVel[0] = -newVel[0];
-                        newPos[0] = bcx + Math.sign(dcx) * (brk.rawW / 2 + ballR);
-                    } else {
-                        newVel[1] = -newVel[1];
-                        newPos[1] = bcy + Math.sign(dcy) * (brk.rawH / 2 + ballR);
-                    }
-                }
-                const spd = Math.hypot(ballVel[0], ballVel[1]);
-                const sRatio = spd / Math.max(this.ballBaseSpeed, 1);
-                const mSpeed = 3 + (sRatio - 1) * 12;
-                this.hitEffects.spawnBounceEffect(
-                    [brk.rawX + brk.rawW / 2, brk.rawY + brk.rawH / 2],
-                    [0, 1], 0, mSpeed);
-            }
-
-            if (!isFireball) break;  // one collision per frame unless fireball (line 905)
+        // Fireball: recurse for remaining bricks
+        if (isFireball && brk.hp <= 0) {
+            const result = this.brickCollision(hitPt, ballPos, newVel);
+            newPos = result.pos;
+            newVel = result.vel;
         }
 
         return { pos: newPos, vel: newVel };
