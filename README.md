@@ -42,7 +42,7 @@ AI opponent that adapts as you score -- its error shrinks and speed climbs with 
 
 ### 2. Breakout
 
-5 levels of bricks with power-ups (fireball, wide paddle, slow, multi-ball, extra life). Paddle angle controls the ricochet. Swept two-pass collision detection for precise brick hits at any speed.
+5 levels of escalating brick layouts -- from single-hit rows to armored sandwiches with indestructible shield bricks. Power-ups drop on 30% of brick breaks: fireball (plows through everything), wide paddle, slow ball, multi-ball (up to 3 on screen), and extra life. Paddle angle controls the ricochet. Swept two-pass collision detection finds the earliest brick along the ball's path for precise hits at any speed.
 
 <p align="center"><img src="assets/breakout.gif" alt="Breakout" width="60%"></p>
 
@@ -66,13 +66,13 @@ Wireframe polygons with random vertices that split on impact -- large asteroids 
 
 ### 6. Space Invaders
 
-3 alien types across 5 wave formations. Destructible shields, power-up drops (laser, shield), and escalating enemy fire rates.
+3 alien types across 5 hand-crafted wave formations -- from a 2-row scout party to a 4-row onslaught of armored elites. Destructible shields absorb fire from both sides. Power-up drops (laser for double fire rate, shield dome, extra life) and escalating enemy fire rates scaled by DtScale.
 
 <p align="center"><img src="assets/spaceinvaders.gif" alt="Space Invaders" width="60%"></p>
 
 ### 7. Flappy Bird
 
-Pipe gaps tighten and scroll speed ramps with combo. Space, Up, or click to flap. Gravity and flap impulse scale to display size.
+Pipe gaps shrink down to 25% of their base size as your combo grows, and scroll speed ramps 6% per pipe cleared. Space, Up, or click to flap. Gravity and flap impulse scale to display size. Collision radius is computed from the bird's scatter SizeData for pixel-accurate hit detection.
 
 <p align="center"><img src="assets/flappybird.gif" alt="Flappy Bird" width="60%"></p>
 
@@ -108,7 +108,7 @@ Flick a physics orb off walls with your mouse. The ball shifts from cyan to red 
 
 ### 12. Juggler
 
-Keep balls airborne with flick physics and gravity. Drop one and the combo resets. Extra balls spawn at score milestones. All balls share identical rendering and seamlessly promote when the leader is lost.
+Keep balls airborne with flick physics and gravity -- no bottom wall, so a missed catch means a lost ball. Drop one and the combo resets. Extra balls spawn every 10 combo. All balls share identical 3-layer rendering and seamlessly promote when the leader is lost, trail and all.
 
 <p align="center"><img src="assets/juggler.gif" alt="Juggler" width="60%"></p>
 

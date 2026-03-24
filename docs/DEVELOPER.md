@@ -33,7 +33,7 @@ Arcade.m (handle class)
 
 **`GameBase.init()`** -- Concrete public method called by all hosts before `onInit`. Sets `Ax`, `DisplayRange`, and `FontScale`. When the launcher calls `init()`, it sets `game.FontScale = obj.FontScale` first, so `init()` keeps that value. In standalone mode (`play()`), `init()` computes `FontScale` from the axes via `getPixelScale()` since it starts at the default value of 1.
 
-**`GameMenu.m`** (1,292 lines) -- Sealed handle class. Neon-styled scrollable menu with twinkling starfield, patch-based comet trails (EdgeAlpha interpolation), pill-shaped item slots with key badges and high-score display. Two selection modes: `"click"` (mouse) and `"dwell"` (finger tracking). `scaleFonts()` provides deterministic font sizing computed as `min(axPx / [854, 480])`. Keyboard mode suppresses mouse hover highlighting. `show()` guards against destroyed axes and empty slot arrays to prevent runtime errors during rapid transitions.
+**`GameMenu.m`** (1,292 lines) -- Sealed handle class. Neon-styled scrollable menu with twinkling starfield (20 pulsing stars at 0.56 Hz + ~90 static dots), 2-slot patch-based comet trails (40 vertices each, `EdgeAlpha = "interp"`, 1.2-2.0s flight time), pill-shaped item slots (rounded rectangles with 64-vertex corners) with key badges and high-score display. Two selection modes: `"click"` (mouse) and `"dwell"` (3s hover auto-select with cyan-to-green color ramp). Up to 5 visible slots with wrap-around scrolling and proportional scroll thumb. `scaleFonts()` provides deterministic font sizing: Title 29\*ps, Subtitle 13\*ps, Names 12\*ps, Keys/Scores 10\*ps. Keyboard mode suppresses mouse hover highlighting -- exited on >15 data unit mouse movement.
 
 **`ScoreManager.m`** (178 lines) -- Static utility class for persistent high scores. Storage in `ScoreManager_scores.mat` (auto-created on first play, not tracked in git). Stores high score, max combo, total plays, and cumulative session time per game.
 
@@ -51,6 +51,46 @@ Games launch directly from the menu with no countdown animation. The `enterCount
 | **results** | Stats + score | R/Enter/Space=replay, Esc=menu | -> active (replay), menu |
 
 Note: The `countdown` and `launching` states still exist in the code (switch cases in `onFrame`) but the normal flow bypasses them. `enterCountdown()` does not set `State` to `"countdown"` -- it goes straight from score reset to `launchGame()` which sets `State = "active"`.
+
+### Timer and Frame Loop
+
+The render timer uses `fixedSpacing` mode with `Period = 0.02` (50 Hz target). `fixedSpacing` waits `Period` seconds between the **end** of one callback and the **start** of the next, so actual FPS = `1 / (Period + callbackDuration)`. If the callback takes 20ms, real FPS is ~25 Hz.
+
+Each `onFrame()` call:
+
+1. Guard: return if Fig/Ax invalid
+2. Measure `RawDt = min(toc(FpsLastTic), 0.1)` -- capped at 100ms (10 FPS floor)
+3. Write `RawDt` to 30-frame ring buffer (for FPS display)
+4. Dispatch by State: menu calls `Menu.update()`, active calls `updateActive()`, others are static
+5. Update combo fade animation
+6. Score roll-up: `ScoreDisplayed += max(3, gap * 0.3)` (accelerates for large gains, min speed 3/frame)
+7. FPS text: `1 / mean(validDts)` from ring buffer
+8. `drawnow`
+9. Error handler: suppresses expected "Invalid or deleted" handle errors during transitions, logs others
+
+### Race Condition Prevention
+
+Two critical guards protect against MATLAB's `drawnow` firing during object construction:
+
+- **`launchGame()`**: Stops timer before `entry.ctor()` and `game.init()`, restarts after `beginGame()`. Prevents `onFrame` -> `drawnow` from rendering partially-created scatter objects
+- **`enterMenu()`**: Stops timer before cleanup and menu construction, restarts after `Menu.show()`. Prevents rendering during the swap between game graphics and menu graphics
+
+### Subclass Registry
+
+`Arcade.buildRegistry()` is a protected method designed for override. The default implementation registers all 15 games with numeric keys "1"-"15". Subclasses override it to create custom game sets:
+
+```matlab
+classdef MyLauncher < Arcade
+    methods (Access = protected)
+        function buildRegistry(obj)
+            obj.Registry = dictionary;
+            obj.RegistryOrder = strings(0);
+            obj.registerGame("1", @games.Pong, "Pong");
+            % ... custom selection
+        end
+    end
+end
+```
 
 ---
 
@@ -482,22 +522,34 @@ The result (~3.0 data units) matches the visual core radius. Using `FlpBirdRadiu
 
 ---
 
-## Comet Trails (GameMenu)
+## Menu System (GameMenu)
 
-Patch-based shooting star comets in the menu background. 2 pre-allocated comet slots, each a `patch` object with `EdgeAlpha = "interp"` for smooth per-vertex alpha fading.
+### Slot Rendering
 
-### Structure
-- 40 vertices per trail, connected by 39 separate 2-vertex faces
-- `FaceColor = "none"`, `EdgeColor = "interp"` -- trail rendered as line segments
-- `FaceVertexAlphaData` provides per-vertex transparency (head=1, tail=0)
-- `FaceVertexCData` provides per-vertex color (head bright -> tail dim)
-- Separate `line` handle for the bright head dot (`MarkerSize = 6`)
+Each slot is a pill-shaped rounded rectangle built from 4 circular arc corners (16 points each, 64 total vertices). Three layers per slot:
 
-### Timing
-- Spawned on `toc`-based intervals (1.5-3.5s between spawns)
-- Each comet lasts 1.2-2.0 seconds
-- Diagonal trajectory across the screen (meteor shower pattern)
-- Fade-in at start, fade-out at end via alpha multiplier
+1. **Glow patch** (behind): expanded by 8x6 pixels, alpha 0 normally, 0.10 when selected, ramps to 0.50 during dwell
+2. **Background pill**: dark face `[0.045, 0.048, 0.065]`, dim border `[0.09, 0.10, 0.13]`, border thickens 1.2->1.8px on select
+3. **Key badge**: small circle inside slot with game number text
+
+Selection colors: name text switches from muted `[0.40, 0.42, 0.50]` to white, key badge brightens from 0.25 to 0.50 of teal. Glow pulses at `0.10 + 0.06 * sin(t * 3.5)`.
+
+### Title Rendering
+
+Two-layer text: dark shadow at `[0, 0.12, 0.17]` offset by `(2*scale, 1.5*scale)` pixels, bright teal `[0.0, 0.55, 0.65]` on top. Font size 29\*ps. The decorative line below uses the same teal at two widths: glow (6px, alpha 0.25) and core (1.2px, alpha 0.6), spanning 13% of display width on each side of center.
+
+### Starfield and Twinkle Stars
+
+Static background: ~90 random dot markers at `[0.35, 0.40, 0.55]` alpha 0.4. 20 animated twinkle stars pulse brightness `0.2 + 0.8 * sin(t * speed + phase)` with base color `[0.4, 0.6, 0.9]` and 15% size variation. Speed per star: 1.5-4.0 rad/s.
+
+### Comet Trails
+
+2 pre-allocated `patch` objects with 40 vertices each, connected by 39 two-vertex faces (`FaceColor = "none"`, `EdgeAlpha = "interp"`). Per-vertex alpha gradient: head=1 to tail=0. Per-vertex color: head `[0.85, 0.90, 0.95]` to tail `[0.30, 0.35, 0.50]`. Head dot rendered as a separate `line` marker at `MarkerSize = 6`.
+
+- Spawn interval: 1.5-3.5s (randomized). Flight duration: 1.2-2.0s
+- Trajectory: ~45 degrees, 50/50 left-to-right or right-to-left
+- Trail grows during first 10% of flight, fades in over first 15%
+- Deactivates when head exits bounds (with 15% margin)
 
 ---
 
@@ -544,7 +596,24 @@ Games are input-agnostic. They receive `[x, y]` and draw on the axes they are gi
 
 **`init(ax, displayRange, caps)`**: Concrete public method (not abstract). Sets `Ax`, `DisplayRange`, `FontScale`, then calls `onInit`. If `FontScale` was set by the host before calling `init()`, it is kept. Otherwise (standalone), it is computed from the axes.
 
-**Standalone execution**: `games.FlickIt().play()` creates a maximized figure with its own timer, mouse tracking, HUD (score, combo, FPS), and arrow key cursor fallback.
+**Standalone execution**: `games.FlickIt().play()` creates a maximized figure with its own timer (50 Hz `fixedSpacing`), mouse tracking via closure variables, HUD (score, combo, FPS), arrow key cursor fallback (4% of screen per DtScale unit), and figure resize handling with `letterboxAxes`. The `play()` method uses nested functions as closures to capture the game instance, timer handle, and mouse state. On figure close, it submits the score to `ScoreManager`, stops the timer, calls `onCleanup()`, and deletes the figure.
+
+### Speed-to-Color Mapping
+
+`GameBase.flickSpeedColor(speed)` maps ball speed to an RGB color through 4 linear interpolation zones:
+
+| Speed Range | Color Transition |
+|-------------|-----------------|
+| 0 -- 3 | Cyan `[0, 0.92, 1]` |
+| 3 -- 7 | Cyan -> Green `[0.2, 1, 0.4]` |
+| 7 -- 12 | Green -> Gold `[1, 0.85, 0.2]` |
+| 12+ | Gold -> Red `[1, 0.3, 0.2]` (saturates at ~17) |
+
+Used by FlickIt, Juggler, Pong, and Breakout for ball core color and bounce effect coloring.
+
+### Combo Multiplier
+
+`comboMultiplier()` returns `max(1, Combo / 10)`. Combo 0-9 yields 1x, combo 20 yields 2x, combo 50 yields 5x. Games call `incrementCombo()` on success and `resetCombo()` on failure. The host reads `ActiveGame.Combo` each frame and manages the combo text display (show, fade, reset).
 
 ### getResults() Format
 
@@ -712,19 +781,26 @@ Two-pass dispatch: modifier+key first (e.g., `"shift+2"`), plain key fallback. U
 
 ## HTML5 Canvas Port
 
-The browser port (`web/arcade.html`, 10,723 lines) replicates all 15 games in a single self-contained HTML file with identical physics and scoring.
+The browser port (`web/arcade.html`, 10,723 lines) replicates all 15 games in a single self-contained HTML file with identical physics and scoring. No external dependencies -- all rendering, physics, and menu logic is inline.
+
+### Architecture
+
+A single `<canvas>` element with `requestAnimationFrame` game loop. Each game is a class with `init()`, `update(pos, ds)`, `render(ctx)`, and `cleanup()` methods mirroring the MATLAB `GameBase` interface. The menu is a dedicated render mode with the same starfield, comets, and pill-shaped slots.
 
 ### Key Differences from MATLAB
 
 | Aspect | MATLAB | HTML5 Canvas |
 |--------|--------|--------------|
-| Coordinate origin | Top-left (YDir=reverse) | Top-left (canvas default) |
+| Coordinate origin | Top-left (`YDir = "reverse"`) | Top-left (canvas default) |
 | Marker rendering | Opaque line markers | `fillStyle` with `globalAlpha` |
-| Ball aura | Line marker (opaque) | `arc()` fill (opaque, matching MATLAB) |
+| Ball aura | Line marker (always opaque) | `arc()` fill (opaque, to match MATLAB) |
 | Trail rendering | Line/patch with property updates | `strokeStyle` + `lineWidth` per segment |
-| Text coloring | TeX `\color[rgb]` | `fillStyle` with hex/rgb |
-| Hit effects | Pre-allocated gobjects pool | Array of effect objects |
-| Timer | `fixedSpacing` timer | `requestAnimationFrame` |
+| Text coloring | TeX `\color[rgb]{r g b}` | `ctx.fillStyle` with `rgb()` |
+| Hit effects | Pre-allocated `gobjects` pool | Array of plain JS objects |
+| Timer | `fixedSpacing` at 0.02s | `requestAnimationFrame` (~60 Hz) |
+| Alpha on lines | RGBA 4th element (undocumented) | `globalAlpha` before stroke |
+| Font units | Points (72 per inch) | Pixels (CSS pixels) |
+| Keyboard | `KeyPressFcn` on figure | `addEventListener("keydown")` |
 
 ### Scatter SizeData to Canvas Conversion
 
@@ -737,6 +813,14 @@ radiusPx = radiusPts * (DPI / 72);
 ```
 
 For ball glow effects, a measured correction factor of 1.20x is applied: `glow_radius = sqrt(SizeData / PI) * 1.20`.
+
+### Hit Effects in HTML
+
+A single `hitEffects.update(ctx, ds)` call both advances animation and draws to canvas. An earlier bug had separate `update(ds)` and `draw(ctx)` calls -- but `draw(ctx)` internally called `update(ctx)` again, passing the canvas context as the `ds` number. This caused `frames -= undefined` which produced `NaN`, permanently corrupting all active effects. The fix: one combined call.
+
+### Browser Shortcut Passthrough
+
+F5, F12, and Ctrl+key combinations are not intercepted by the game's `keydown` handler -- they pass through to the browser. Only game-specific keys (arrows, P, R, Esc, Space) are captured with `preventDefault()`.
 
 ---
 
