@@ -70,6 +70,7 @@ Full comparison completed across all 15 games. All physics constants, scoring fo
 - [x] Tetris NextCell - isprop guard for GraphicsPlaceholder
 - [x] Checkcode - zero warnings across all 19 source files
 - [x] Snake food spawn - moved spawnFood after body update so newHead is included in occupied cell check (MATLAB + HTML)
+- [x] Pong + Breakout paddle trail kink - paddle collisions now use parametric contact point (same as wall bounces). Previously only snapped one axis, leaving the other at the post-move overshoot position. Force-record captures exact contact (MATLAB + HTML)
 
 ### Documentation & Packaging
 - [x] DEVELOPER.md - comprehensive architecture, per-game technical notes, all systems documented
