@@ -2427,8 +2427,8 @@ class BreakoutGame {
             this.trailIdx = tidx + 1;
         }
 
-        this.hitEffects.update(ds);
         this.render(ds);
+        this.hitEffects.update(this.ctx, ds);
     }
 
     // === updateExtraBalls — Breakout.m lines 1276-1393 ===
