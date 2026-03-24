@@ -8845,6 +8845,7 @@ class JugglerGame {
                         eb.trailBufX[etidx] = eb.pos[0];
                         eb.trailBufY[etidx] = eb.pos[1];
                         eb.trailIdx = etidx + 1;
+                        eb.trailAccum = 0;
                         eb.locked = true;
                     }
                 } else {
@@ -8887,11 +8888,15 @@ class JugglerGame {
                 continue;
             }
 
-            // Trail buffer
-            const tidx = eb.trailIdx % this.trailLen;
-            eb.trailBufX[tidx] = eb.pos[0];
-            eb.trailBufY[tidx] = eb.pos[1];
-            eb.trailIdx++;
+            // Trail buffer (DtScale accumulator)
+            eb.trailAccum = (eb.trailAccum || 0) + ds;
+            if (eb.trailAccum >= 2.0) {
+                eb.trailAccum -= 2.0;
+                const tidx = eb.trailIdx % this.trailLen;
+                eb.trailBufX[tidx] = eb.pos[0];
+                eb.trailBufY[tidx] = eb.pos[1];
+                eb.trailIdx++;
+            }
         }
     }
 

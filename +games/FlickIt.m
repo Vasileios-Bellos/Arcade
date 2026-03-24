@@ -29,6 +29,7 @@ classdef FlickIt < engine.GameBase
         TrailBufY           (1,:) double                 % trail Y positions
         TrailIdx            (1,1) double = 0             % trail write index
         TrailLen            (1,1) double = 30            % trail buffer capacity
+        TrailAccum          (1,1) double = 0             % DtScale accumulator for fps-independent trail
 
         % Finger velocity tracking
         PrevFingerPos       (1,2) double = [NaN, NaN]   % previous finger position
@@ -123,6 +124,7 @@ classdef FlickIt < engine.GameBase
             obj.TrailBufX = NaN(1, obj.TrailLen);
             obj.TrailBufY = NaN(1, obj.TrailLen);
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
 
             % --- Create graphics (layered for depth) ---
             % Trail glow (wide, soft, behind everything)
@@ -399,11 +401,15 @@ classdef FlickIt < engine.GameBase
             spd = norm(obj.BallVel);
             obj.MaxSpeed = max(obj.MaxSpeed, spd);
 
-            % Update trail buffer (ball center position)
-            tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
-            obj.TrailBufX(tidx) = obj.BallPos(1);
-            obj.TrailBufY(tidx) = obj.BallPos(2);
-            obj.TrailIdx = tidx;
+            % Trail buffer (DtScale accumulator, fps-independent)
+            obj.TrailAccum = obj.TrailAccum + obj.DtScale;
+            if obj.TrailAccum >= 2.0
+                obj.TrailAccum = obj.TrailAccum - 2.0;
+                tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(tidx) = obj.BallPos(1);
+                obj.TrailBufY(tidx) = obj.BallPos(2);
+                obj.TrailIdx = tidx;
+            end
 
             % Check if ball stopped
             if spd < 0.3 / obj.SpeedScale
@@ -415,6 +421,7 @@ classdef FlickIt < engine.GameBase
                 obj.TrailBufX(:) = NaN;
                 obj.TrailBufY(:) = NaN;
                 obj.TrailIdx = 0;
+                obj.TrailAccum = 0;
             end
         end
 
@@ -431,6 +438,7 @@ classdef FlickIt < engine.GameBase
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
             obj.FingerVelBuf(:) = 0;
             obj.FingerVelIdx = 0;
         end

@@ -33,6 +33,7 @@ classdef Juggler < engine.GameBase
         TrailBufY       (1,:) double
         TrailIdx        (1,1) double = 0
         TrailLen        (1,1) double = 30
+        TrailAccum      (1,1) double = 0
 
         % Display scaling
         SpeedScale      (1,1) double = 1               % visual speed normalization: 180/minDim
@@ -54,6 +55,7 @@ classdef Juggler < engine.GameBase
         ExtraBallTrailBufX  cell = {}
         ExtraBallTrailBufY  cell = {}
         ExtraBallTrailIdx   double = zeros(0, 1)
+        ExtraBallTrailAccum double = zeros(0, 1)
     end
 
     % =================================================================
@@ -132,6 +134,7 @@ classdef Juggler < engine.GameBase
             obj.TrailBufX = NaN(1, obj.TrailLen);
             obj.TrailBufY = NaN(1, obj.TrailLen);
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
 
             % --- Graphics ---
             r = obj.BallRadius;
@@ -279,6 +282,7 @@ classdef Juggler < engine.GameBase
                     obj.TrailBufX(:) = NaN;
                     obj.TrailBufY(:) = NaN;
                     obj.TrailIdx = 0;
+                    obj.TrailAccum = 0;
                     obj.FlickLocked = false;
                     obj.BallFlicks = 0;
                 end
@@ -288,11 +292,15 @@ classdef Juggler < engine.GameBase
             ballSpeed = norm(obj.BallVel);
             obj.MaxSpeed = max(obj.MaxSpeed, ballSpeed);
 
-            % --- 10. Trail buffer ---
-            tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
-            obj.TrailBufX(tidx) = obj.BallPos(1);
-            obj.TrailBufY(tidx) = obj.BallPos(2);
-            obj.TrailIdx = tidx;
+            % --- 10. Trail buffer (DtScale accumulator, fps-independent) ---
+            obj.TrailAccum = obj.TrailAccum + ds;
+            if obj.TrailAccum >= 2.0
+                obj.TrailAccum = obj.TrailAccum - 2.0;
+                tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(tidx) = obj.BallPos(1);
+                obj.TrailBufY(tidx) = obj.BallPos(2);
+                obj.TrailIdx = tidx;
+            end
 
             % --- 11. Animation + render ---
             obj.BallPhase = obj.BallPhase + 0.0333 * ds;
@@ -370,6 +378,7 @@ classdef Juggler < engine.GameBase
             obj.TrailBufX(tidx) = obj.BallPos(1);
             obj.TrailBufY(tidx) = obj.BallPos(2);
             obj.TrailIdx = tidx;
+            obj.TrailAccum = 0;
 
             obj.BallFlicks = obj.BallFlicks + 1;
             obj.scoreFlick(obj.BallPos, hitSpeed);
@@ -510,6 +519,7 @@ classdef Juggler < engine.GameBase
             obj.ExtraBallTrailBufX{end+1} = NaN(1, obj.TrailLen);
             obj.ExtraBallTrailBufY{end+1} = NaN(1, obj.TrailLen);
             obj.ExtraBallTrailIdx(end+1) = 0;
+            obj.ExtraBallTrailAccum(end+1) = 0;
 
             r = obj.BallRadius;
             ps = obj.FontScale;
@@ -585,6 +595,7 @@ classdef Juggler < engine.GameBase
                             obj.ExtraBallTrailBufX{bi}(etidx) = obj.ExtraBallPos(bi, 1);
                             obj.ExtraBallTrailBufY{bi}(etidx) = obj.ExtraBallPos(bi, 2);
                             obj.ExtraBallTrailIdx(bi) = etidx;
+                            obj.ExtraBallTrailAccum(bi) = 0;
                             obj.ExtraBallLocked(bi) = true;
                         end
                     else
@@ -625,11 +636,15 @@ classdef Juggler < engine.GameBase
                     continue;
                 end
 
-                % Trail buffer
-                tidx = mod(obj.ExtraBallTrailIdx(bi), n) + 1;
-                obj.ExtraBallTrailBufX{bi}(tidx) = obj.ExtraBallPos(bi, 1);
-                obj.ExtraBallTrailBufY{bi}(tidx) = obj.ExtraBallPos(bi, 2);
-                obj.ExtraBallTrailIdx(bi) = tidx;
+                % Trail buffer (DtScale accumulator)
+                obj.ExtraBallTrailAccum(bi) = obj.ExtraBallTrailAccum(bi) + ds;
+                if obj.ExtraBallTrailAccum(bi) >= 2.0
+                    obj.ExtraBallTrailAccum(bi) = obj.ExtraBallTrailAccum(bi) - 2.0;
+                    tidx = mod(obj.ExtraBallTrailIdx(bi), n) + 1;
+                    obj.ExtraBallTrailBufX{bi}(tidx) = obj.ExtraBallPos(bi, 1);
+                    obj.ExtraBallTrailBufY{bi}(tidx) = obj.ExtraBallPos(bi, 2);
+                    obj.ExtraBallTrailIdx(bi) = tidx;
+                end
 
                 % --- Render extra ball ---
                 bx = obj.ExtraBallPos(bi, 1);
@@ -719,6 +734,7 @@ classdef Juggler < engine.GameBase
             obj.ExtraBallTrailBufX(idx) = [];
             obj.ExtraBallTrailBufY(idx) = [];
             obj.ExtraBallTrailIdx(idx) = [];
+            obj.ExtraBallTrailAccum(idx) = [];
             obj.ExtraBallCoreH(idx) = [];
             obj.ExtraBallGlowH(idx) = [];
             obj.ExtraBallAuraH(idx) = [];
@@ -745,6 +761,7 @@ classdef Juggler < engine.GameBase
             obj.ExtraBallTrailBufX = {};
             obj.ExtraBallTrailBufY = {};
             obj.ExtraBallTrailIdx = zeros(0, 1);
+            obj.ExtraBallTrailAccum = zeros(0, 1);
             obj.ExtraBallCoreH = {};
             obj.ExtraBallGlowH = {};
             obj.ExtraBallAuraH = {};
