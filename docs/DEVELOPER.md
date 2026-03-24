@@ -870,6 +870,43 @@ Returns `[isNewHigh, record]` where `isNewHigh` is true if the submitted score e
 
 ---
 
+## Packaging
+
+Three scripts in `packaging/` produce distributable artifacts:
+
+### generateIcon.m
+
+Generates `icon.png` (256x256 via `getframe` + `imresize`), `icon.ico` (multi-resolution 16/32/48/256 via custom PNG-based ICO writer), `splash.png` and `preview.png` (800x600 4:3 at 300 DPI via `exportgraphics`). The preview features the neon "A" ship with inner polybuffer rhombus, menu-style title with shadow, 4 symmetric comet trails, and starfield.
+
+### buildToolbox.m
+
+Creates `MATLABArcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023b+). Includes `Arcade.m`, all 4 packages (`+engine`, `+games`, `+services`, `+ui`), `web/` folder (HTML port), `README.md`, and `docs/DEVELOPER.md`. Excludes `recording/`, `assets/`, `data/`, `docs/TODO.md`, and `packaging/`. Uses `icon.png` as `ToolboxImageFile`.
+
+### buildExecutable.m
+
+Two-phase build:
+
+1. **Standalone exe**: `compiler.build.standaloneWindowsApplication` with `ExecutableIcon` (icon.png, converted to .ico internally by MATLAB Compiler) and `ExecutableSplashScreen` (splash.png). Includes all 4 package folders as `AdditionalFiles`.
+2. **Installer**: `compiler.package.installer` with `InstallerIcon`, `InstallerSplash`, `InstallerLogo` (preview.png), `RuntimeDelivery = "web"` (downloads MATLAB Runtime during installation), and full metadata (name, author, version, description, default install path).
+
+Output: `build/MATLABarcade.exe` (~1.5 MB) + `installer/MATLABarcadeInstaller.exe` (~2.8 MB).
+
+---
+
+## Recording
+
+Scripts in `recording/` capture gameplay and menu animations for documentation GIFs:
+
+- **`recordGame.m`**: Records a game session to GIF + MP4. Creates a figure, runs the game via `play()`-like loop, captures frames via `getframe`, builds GIF with global colormap via `rgb2ind`
+- **`recordPlay.m`**: Records standalone game playback
+- **`recordMenu*.m`**: 4 variants of menu scroll recording with different navigation speeds
+- **`recordAll.m`**: Batch orchestrator for all recordings
+- **`createHeroGif.m`**: Generates hero GIF from captured frames
+
+All GIFs use `rgb2ind` with a shared global colormap built from sampled frames for consistent palette. MP4s use `VideoWriter` with MPEG-4 at 95% quality.
+
+---
+
 ## Color Palette
 
 All games share 6 named color constants defined in `GameBase`:
