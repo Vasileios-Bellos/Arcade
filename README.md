@@ -36,7 +36,7 @@ Eight legendary arcade games, recreated from scratch in pure MATLAB.
 
 ### 1. Pong
 
-AI opponent that adapts as you score. Paddle-angle physics with rally escalation and wall bounces. First to 10 wins.
+AI opponent that adapts as you score -- its error shrinks and speed climbs with every point you land. Paddle-angle physics with rally escalation, parametric wall bounces, and a 10-iteration AI prediction that simulates the ball's path before choosing its target. First to 10 wins.
 
 <p align="center"><img src="assets/pong.gif" alt="Pong" width="60%"></p>
 
@@ -48,19 +48,19 @@ AI opponent that adapts as you score. Paddle-angle physics with rally escalation
 
 ### 3. Snake
 
-Grid-based with wrap-around walls. Arrow keys or mouse-guided movement. Speed increases as you grow.
+Grid-based with wrap-around walls and a direction queue that never drops your inputs. Arrow keys or mouse-guided movement. Speed increases as you grow -- the step interval shrinks from 4 frames down to 1.5 as the body lengthens.
 
 <p align="center"><img src="assets/snake.gif" alt="Snake" width="60%"></p>
 
 ### 4. Tetris
 
-Full SRS rotation with wall kicks, ghost piece, 3-piece preview, and instant hard drop. Level progression increases gravity.
+Full SRS rotation with wall kicks, ghost piece, 3-piece preview, 7-bag randomizer, and instant hard drop. Gravity follows the Tetris Guideline formula -- level progression makes pieces fall faster with each 10 lines cleared.
 
 <p align="center"><img src="assets/tetris.gif" alt="Tetris" width="60%"></p>
 
 ### 5. Asteroids
 
-Wireframe polygons that split on impact. Auto-fire crosshair tracks your cursor. Wave-based with increasing asteroid count and speed.
+Wireframe polygons with random vertices that split on impact -- large asteroids become two medium, medium become two small, each faster than the last. Auto-fire crosshair tracks your cursor with swept segment collision. Wave-based with increasing asteroid count and speed.
 
 <p align="center"><img src="assets/asteroids.gif" alt="Asteroids" width="60%"></p>
 
@@ -90,7 +90,7 @@ Seven original games -- physics toys, reflex challenges, and shooters designed t
 
 ### 9. Target Practice
 
-Glowing targets appear and shrink on a real-time countdown. Hit them before they vanish. Combo tightens the timer. Color shifts from cyan to red as time runs out.
+Glowing targets appear and shrink on a real-time countdown. Hit them before they vanish -- swept collision lets fast cursor swipes register even at high speed. Combo tightens both the timer and the target radius. Color shifts from cyan to red as time runs out.
 
 <p align="center"><img src="assets/targetpractice.gif" alt="Target Practice" width="60%"></p>
 
@@ -114,19 +114,19 @@ Keep balls airborne with flick physics and gravity. Drop one and the combo reset
 
 ### 13. Orbital Defense
 
-Defend a hex base from asteroid waves. Launch interceptors with your cursor for chain-reaction explosions. Escalating difficulty with lives system.
+Defend a hex base from asteroid waves across 3 tiers (large, medium, small). Launch interceptors with your cursor -- detonations trigger chain-reaction explosions that cascade through overlapping blast radii. Asteroids split on destruction, and difficulty escalates each wave.
 
 <p align="center"><img src="assets/orbitaldefense.gif" alt="Orbital Defense" width="60%"></p>
 
 ### 14. Shield Guardian
 
-Rotate a shield arc to deflect projectiles and protect your core. Swept quadratic collision prediction for accurate deflections. Waves escalate in speed and density.
+Rotate a 180-degree shield arc to deflect incoming projectiles and protect your core. Three projectile types (fast/normal/heavy) with swept quadratic line-circle collision for frame-perfect deflections. Deflected projectiles can chain-hit other incoming shots. Waves escalate in speed and density.
 
 <p align="center"><img src="assets/shieldguardian.gif" alt="Shield Guardian" width="60%"></p>
 
 ### 15. Rail Shooter
 
-Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types (grunt, heavy, interceptor, boss) approach from a vanishing point. Breathing crosshair with auto-fire DPS system.
+Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types -- fighters, cruisers, interceptors, and dreadnought bosses -- approach from a vanishing point with wireframe shapes that scale with depth. Hand-crafted wave compositions through wave 5, then procedural generation. Breathing crosshair with auto-fire DPS system.
 
 <p align="center"><img src="assets/railshooter.gif" alt="Rail Shooter" width="60%"></p>
 
@@ -174,7 +174,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types (grunt, 
 
 ## High Scores
 
-Scores persist in `ScoreManager_scores.mat`, auto-created on first play.
+Scores persist in `ScoreManager_scores.mat` (auto-created on first play, not tracked in git). Each record stores high score, max combo, total plays, and cumulative session time.
 
 ```matlab
 services.ScoreManager.get("Pong")          % view a game's record

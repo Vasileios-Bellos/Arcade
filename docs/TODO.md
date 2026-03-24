@@ -38,8 +38,11 @@ Working checklist extracted from CLAUDE.md. The master reference remains CLAUDE.
 
 ## Documentation
 
-- [ ] Move screen-space scaling documentation from CLAUDE.md to DEVELOPER.md
-- [ ] Repurpose DEVELOPER.md into a proper technical details document with per-game breakdowns
+- [x] Move screen-space scaling documentation from CLAUDE.md to DEVELOPER.md
+- [x] Repurpose DEVELOPER.md into a proper technical details document with per-game breakdowns
+- [x] README overhaul with per-game descriptions, technical highlights, distribution section
+- [x] Icon redesign (neon "A" with polybuffer rhombus), preview/splash generation
+- [x] Packaging scripts updated (exe + installer with custom branding, toolbox with web port)
 
 ---
 

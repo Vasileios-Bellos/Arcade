@@ -516,10 +516,10 @@ MATLAB graphics object creation involves handle registration, renderer sync, and
 | OrbitalDefense | 10 interceptors + 12 explosions + 50 asteroids |
 | FruitNinja | 8 fruits + 16 halves + 6 slash effects |
 | Firefly Chase | 4 fireflies (dot + aura + trail + trailGlow each) |
-| Snake | 60 body segments + 2 food handles |
+| Snake | 100 body segments + 2 food handles |
 | FlappyBird | 10 pipe pairs |
-| Breakout | 60 bricks + 5 power-ups + 3 extra ball sets |
-| Tetris | 200 cells + 12 next-preview cells + 10 ghost cells |
+| Breakout | 60 bricks (10x6) + dynamic power-ups + 3 extra ball sets |
+| Tetris | 220 cells (22x10) + 12 next-preview cells + 4 ghost cells |
 
 ---
 
@@ -583,142 +583,130 @@ Two-pass dispatch: modifier+key first (e.g., `"shift+2"`), plain key fallback. U
 
 ### Pong (783 lines)
 
-- AI opponent with adaptive difficulty (error decreases, speed increases with player score)
-- Paddle-angle physics: hit offset from paddle center determines reflection angle
-- Rally escalation: ball speed multiplied by `BallSpeedGain` (1.08x) per paddle hit
-- Parametric wall collision for exact contact point
-- Trail: 20-point DtScale accumulator with wall/paddle force-record
-- AI recalc cooldown scaled by DtScale; dead zone suppresses jitter
+- **AI difficulty**: Adapts based on total score. Error = `AIErrorPx * max(0, 1 - score/(WinScore*0.8))`, speed = `AIBaseSpeed * (1 + score/WinScore * 0.5)`. Prediction uses 10-iteration bounce simulation. Recalc cooldown decrements by `DtScale` per frame. Dead zone suppresses jitter when paddle is near target and ball is moving away
+- **Paddle-angle physics**: Hit offset from paddle center mapped to return angle within +-60 degrees. Both paddles use the same formula
+- **Rally escalation**: `BallSpeedGain = 1.08x` per paddle hit, `wallSpeedGain = 1 + (BallSpeedGain - 1) * 0.5` per wall bounce
+- **Scoring**: Paddle hit = `round(10 * Combo)`, goal = `100 + RallyHits * 10`
+- **Parametric wall collision**: Exact contact time `tHit = (wallY - prePos) / stepVel` for precise reflection at any speed
+- **Trail**: 20-point circular buffer, DtScale accumulator records every 2.0 units. Force-record on wall bounces and paddle hits. Not cleared on reflections, only on serve
+- **Serve**: 120-frame countdown at center, ball launches at random angle within +-60 degrees toward player
 
 ### Breakout (1,605 lines)
 
-- 5 levels with escalating brick layouts and row counts
-- Power-ups: Fireball (destroy any brick), Wide Paddle, Slow Ball, Multi-Ball, Extra Life
-- Two-pass swept brick collision (see above)
-- Multi-ball: up to 3 balls with identical appearance, independent trail buffers, seamless promotion
-- Trail: 20-point DtScale accumulator with wall/paddle/brick force-record
-- Serve countdown: 120-frame timer with pulsing font animation
-- Paddle-angle physics with configurable restitution
-- Speed gate: `BallSpeed * SpeedGain` (1.04x) per brick hit, 1.008x per collision
-- Level announce: centered text for 2 seconds between levels (no transition delay)
-- Life display: center-screen flash, green on gain, red on loss
+- **Level layouts**: 5 levels with escalating brick HP. Level 1: 4 rows HP1. Level 3: sandwich (HP3/HP2/HP1/HP1/HP2/HP3). Levels 4-5: indestructible shield rows (HP=-1, silver, 0.5 alpha). 10 columns, 6 row colors (red, orange, gold, green, cyan, magenta)
+- **Power-ups**: 30% spawn chance per brick destroyed. 5 types: Fireball (red), Multi-ball (cyan), Slow (blue), Wide Paddle (green), Extra Life (magenta). Capsule = 24-point circle at `5*Sc` radius
+- **Two-pass swept collision**: Pass 1 finds brick with smallest parametric `tMin` (slab intersection on AABB expanded by ball radius). Pass 2 processes only that brick. Fireball mode recurses for remaining path
+- **Multi-ball**: Up to `MaxBalls = 3`. Each extra ball has independent trail buffer (20-point), DtScale accumulator, and bounce force-record. Promotion deletes old handles and adopts extra ball's handles wholesale
+- **Speed**: `SpeedGain = 1.04x` per paddle hit, `1.008x` per brick collision. Ball offset from paddle top: -5 data units
+- **Trail**: 20-point DtScale accumulator (threshold 2.0). Force-record on wall, paddle, and brick bounces. Speed-dependent width/alpha for comet effect
+- **Level transition**: 60-frame announce, then play. Life display: green flash on gain, red on loss
 
 ### Snake (543 lines)
 
-- Grid-based movement with wrap-around walls
-- Arrow keys for direction; mouse-guided mode as alternative
-- Speed increases with body length
-- Pre-allocated body segment pool (60 segments)
+- **Grid**: `GridCols = max(10, round(25 * areaW / max(areaW, areaH)))`, same for rows. Wrap-around via `mod(newHead - 1, GridDim) + 1`
+- **Body pool**: 100 pre-allocated line handles with gradient colormap (256-row cyan-to-green LUT)
+- **Direction**: `QueuedDir` buffer prevents 180-degree reversal and missed turns. Arrow keys or mouse-guided
+- **Speed**: `StepInterval = max(1.5, 4 - (bodyLen - 5) * 0.05)` -- decreases as snake grows
+- **Self-collision**: Ignores first 3 neck segments to prevent false hits
+- **Food spawn**: Random empty cell (200 attempts, fallback full scan). Score: `round(100 * comboMultiplier())`
 
 ### Tetris (1,338 lines)
 
-- Full SRS (Super Rotation System) with wall kicks
-- Ghost piece preview showing landing position
-- 3-piece next preview
-- Hard drop (Space/Click), soft drop (Down), instant placement
-- Level progression: gravity increases every 10 lines
-- `isprop` guard for `GraphicsPlaceholder` handles (avoids invalid `XData` access on cleared axes children)
+- **SRS rotation**: 7 pieces (I/O/T/S/Z/J/L) with 4 rotation states each. I-piece uses 4x4 bounding box, others use 3x3. Wall kick tables with 5-test offsets per rotation. 7-bag randomizer ensures all pieces per cycle
+- **Gravity**: Tetris Guideline formula `(0.8 - (level-1)*0.007)^(level-1)` seconds per row. Soft drop = 20x multiplier. Hard drop = instant placement + `2 * dropDistance` points
+- **Lock delay**: 30 frames (0.5s at 60 FPS). Move/rotate resets the timer. DAS: 10 DtScale initial delay, 2 DtScale repeat period
+- **Scoring**: 1 line=100, 2=300, 3=500, 4 (Tetris)=800 with 1.5x back-to-back bonus. Combo: `50 * ComboCount * Level`. Level = `floor(TotalLines / 10) + 1`
+- **Board**: 22 rows x 10 cols (rows 1-2 hidden buffer). 220 pre-allocated cell patches + 12 next-preview + 4 ghost cells
+- **Ghost piece**: Preview of landing position. `isprop(h, "XData")` guard for `GraphicsPlaceholder` handles
 
 ### Asteroids (507 lines)
 
-- Wireframe polygon rendering (line-based, no fill)
-- Asteroids split into smaller pieces on hit
-- Auto-fire crosshair tracks cursor position
-- Wave-based difficulty: asteroid count and speed increase
-- Ship glow: scatter marker (always round)
-- Core fully opaque, no shadowBlur (matches MATLAB line rendering)
+- **Asteroid tiers**: Large (15px), Medium (10px), Small (5px). Wireframe = 8-12 random vertices per asteroid. Angular velocity (spin) = `(rand - 0.5) * 0.0208` rad/frame
+- **Split mechanics**: Large -> 2 Medium, Medium -> 2 Small. Children speed `*= 1.2 + rand*0.5`
+- **Autofire**: Cooldown 24 DtScale units. Bullet speed = `max(2.5, minDim*0.025)`. Swept collision: closest point on bullet segment to rock center
+- **Scoring**: `round(300 / radius * 10)` per hit (smaller = more). Wave clear: `500 * Wave`. Wave progression: `nAsteroid = 3 + waveNum`, speed `*= 1 + 0.15 * (wave - 1)`
+- **Lives**: 3 initial. Invulnerability = 144 frames with blinking. Ship glow: scatter marker (always round), core fully opaque
 
 ### Space Invaders (938 lines)
 
-- 3 alien types (top, middle, bottom) with different point values
-- 5 wave formations with varying row/column layouts
-- Destructible shields (pixel-based damage)
-- Power-up drops: laser (rapid fire), shield (temporary invincibility)
-- Alien fire rate: `rand < 0.0083 * (1 + wave * 0.3) * ds` (FPS-scaled)
-- Step-based movement: aliens move in grid steps, accelerating as count decreases
-- Life display: green flash on gain, red on loss
+- **5 wave formations**: Wave 1 "Scouts" 8x2, Wave 2 "Battalion" 9x3 (HP 3/2/1), Wave 3 "Armada" 10x3 (HP2 all), Wave 4 "Elites" 8x4, Wave 5 "Onslaught" 10x4 (HP3 all). Speed multipliers 1.0x-1.6x
+- **Bullet pools**: 10 player (cyan/red), 15 enemy (red). Player fire rate: 29 frames (12 with laser = 2x faster). Alien fire: `rand < 0.0083 * (1 + wave * 0.3) * ds` (FPS-scaled)
+- **Power-ups**: 4-slot pool. 8% spawn chance per kill. Laser (8s, doubles fire rate), Shield (10s, radius = `ShipW*0.8`, 32-point cyan circle at alpha 0.08), Life
+- **Scoring**: `50 * alienType` per kill (Green=1, Magenta=2, Red=3). Wave clear: `500 * Wave`. Victory at wave 5
+- **Step movement**: Aliens advance in grid steps, accelerating as count decreases. Direction reversal and drop on wall contact
 
 ### Flappy Bird (482 lines)
 
-- Gravity and flap impulse scaled to display size
-- Pipe gaps tighten with consecutive passes (combo)
-- Scroll speed ramps with combo multiplier
-- Bird: scatter-based glow ring (always round)
-- Collision radius: computed from SizeData, not display height fraction
-- No green burst or shadowBlur effects
+- **Pipe generation**: 6-slot ring buffer. Gap = `max(35, round(areaH * 0.35))` shrinks with combo: `*= max(0.25, 1 - 0.05 * Combo)`. Pipe width = `max(12, round(areaW * 0.08))`. Spacing = `max(40, round(areaW * 0.35))`
+- **Physics**: Gravity = `areaH * 0.0008` px/frame^2. Flap impulse = `-areaH * 0.013` px/frame (upward). Bird fixed at X = 25% of display width
+- **Speed ramp**: Base = `max(0.333, areaW * 0.0033)`. Target = `1 + 0.06 * Combo` (6% per pipe). Decay rate: `0.0021 * PipeSpeed * ds` per frame
+- **Collision**: Radius computed from scatter SizeData via `sqrt(SizeData/pi) * DPI/72 / pxPerUnit` (~3.0 data units). Using display height fraction (~18-27 units) would be 3x too large
+- **Invulnerability**: 96 frames on hit, blinking red. Speed and gap revert to base on collision
 
 ### Fruit Ninja (959 lines)
 
-- 8-fruit pool with gravity-based arcs
-- Centrality scoring: cuts through center score higher (0.5x edge to 1.5x center)
-- Multi-cut system with extending golden slash line (see above)
-- 16-half pool: sliced fruit pieces with spin and momentum inheritance
-- 6-slash pool: line effects with fade animation (29 DtScale units)
-- Slash threshold: 1.5 data units (lowered from higher values for responsiveness)
-- Cluster spawning: 2-3 fruits near same X position for multi-cut opportunities
-- ComboAutoFade = false: combo persists between fruit spawns
+- **Fruit pool**: 8 slots, 24-point polygon each. Gravity = `max(0.025, areaH * 0.000333)`. Launch velocity: `sqrt(2 * g * areaH * [0.55, 0.90])` (clears 55-90% height). Wall bounce coefficient 0.8
+- **Slash detection**: Entry when `dist < radius + 3 && speed > threshold`. Exit when `dist > radius + 3`. Centrality = `1 - cos(smallerArc / 2)` (0=edge, 1=center)
+- **Scoring**: `round(100 * (0.5 + centrality) * comboMult * multiCut)`. Multi-cut multiplier = number of fruits in same swipe
+- **Multi-cut system**: First slash renders white. On 2nd+ fruit, first slash's `idxEnd` extended (age-compensated for buffer shift), fade timer reset, lines turn golden. `SwipeGenSliced` resets when first slash fades
+- **Half physics**: 16-slot pool. Split velocity = fruit vel + perpendicular push + swipe momentum. Spin = +-0.025 rad/frame. Alpha decay = `0.0167 * ds`
+- **Slash effects**: 6-slot pool. 29-frame fade with `sqrt(progress)` easing. Core (white 0.9 alpha) + glow (cyan 0.5 alpha). `ComboAutoFade = false`
 
 ### Target Practice (485 lines)
 
-- Glowing targets appear and shrink on countdown timer
-- Hit targets before they vanish for points
-- Combo tightens the timer (faster targets)
-- Color shifts cyan -> red as time runs out (per-target)
+- **Difficulty progression**: Target radius shrinks `baseRadius - combo * 0.5` (min 3px). Timeout tightens `baseTimeout - combo * 0.06` (min 0.1s). 50 random spawn attempts with minimum separation from finger and previous target
+- **Swept collision**: Segment (PrevPos -> Pos) vs target circle using parametric line-to-point distance. Allows fast cursor swipes to register
+- **Color urgency**: Cyan -> red gradient at 60% of timeout. Trail alpha scales inversely with urgency
+- **Animation**: Breathing ring `1 + 0.12 * sin(PulsePhase)`. Time bar: patch pair (background + foreground)
 
 ### Firefly Chase (773 lines)
 
-- 5 tiers: cyan, green, magenta, purple, gold
-- Orbital paths with tier-dependent speed multipliers (1x-5x)
-- "Golden Snitch" firefly traces Lissajous curves and actively evades cursor
-- Snitch trail: 10-point DtScale accumulator
-- Combo multiplier rewards rapid sequential catches
-- Combo font size: 8 * FontScale
+- **5 tiers**: Cyan (35% spawn, 100 pts, 1.5x speed), Green (30%, 200 pts, 2.7x), Magenta (20%, 300 pts, 3.75x), Purple (10%, 400 pts, 4.8x), Gold/Snitch (5%, 500 pts, 3x + evasion)
+- **Path generation**: Tier-dependent types. Tier 1: curves/S-curves. Tier 2: waves/oscillations/arcs. Tier 3: closed loops/figure-8s/spirals. PCHIP resampling to ~1px spacing. Random rotation and 50% direction flip
+- **Snitch evasion**: Lissajous base trajectory with frequency pairs [3,2]/[5,4]/[3,4]/[5,2]/[7,4]/[5,6]. Quadratic push falloff over 100*Sc radius, strength 8*Sc, damping `0.9664^ds`
+- **Graphics pool**: 4 slots, each with dot + aura + trail + trailGlow handles. Snitch trail: 10-point circular buffer, DtScale accumulator
+- **Spawn**: Up to 3 simultaneous. Cooldown = `max(19, 72 - elapsed * 0.3)` frames
 
 ### Flick It! (631 lines)
 
-- Physics orb with flick-based velocity input
-- Wall collision with parametric contact time
-- Speed-to-color gradient via `flickSpeedColor` (cyan -> red)
-- 3-layer ball rendering: opaque aura, alpha glow, white core
-- Trail: 20-point DtScale accumulator with wall force-record
-- Re-flick a moving ball for combo bonus
-- Combo font size: 8 * FontScale
+- **Flick detection**: 5-frame velocity ring buffer. Minimum threshold: `3 / SpeedScale`. Lock prevents double-flick. Velocity boost: 1.3x on flick
+- **Physics**: Friction = `0.9958^ds` per frame. Restitution = 0.80 on wall bounce. Stop threshold: `norm(vel) < 0.3 / SpeedScale`. Parametric wall collision for exact contact time
+- **Speed-to-color**: `flickSpeedColor(speed * SpeedScale)` via `GameBase` -- cyan at rest, red at max speed. Affects core, glow, and trail rendering
+- **Scoring**: Flick = `round(speed * SpeedScale * 5 * max(1, Combo * 0.5))`. Bounce = `round((5 + speed * SpeedScale * 2) * max(1, Combo * 0.5))`. Combo increments on re-flick of moving ball
+- **Trail**: 30-point circular buffer with DtScale accumulator. 3-layer rendering: aura (opaque), glow (alpha 0.4), core (white)
 
 ### Juggler (754 lines)
 
-- Keep balls airborne with flick physics
-- Gravity pulls balls down; flick upward to keep aloft
-- Drop a ball: combo resets
-- Extra balls spawn at score milestones
-- All balls share identical 3-layer rendering
-- Trail: per-ball 20-point DtScale accumulator with wall force-record
-- "Bounces" terminology in results; "Best Streak" for max combo
+- **Gravity**: `max(0.021, areaH * 0.000417)` per frame. No bottom wall -- ball drops out
+- **Flick vs natural bounce**: Active flick (finger velocity >= threshold): `vel = fingerVel * 1.3`. Natural bounce (fall onto stationary hand): `vy = -|vy| * 0.75`, clamped to min bounce. Lock: 0.15s after contact
+- **Multi-ball**: Extra ball spawned every 10 combo. Promotion on main ball drop: adopt position, velocity, trail buffers, lock state, flick count from first extra ball
+- **Stats**: `Bounces` (per-ball), `BestStreak` (longest chain), `Drops` (total), `MaxSpeed` (peak)
+- **Danger zone**: Red line near bottom, alpha increases with proximity + pulse `0.08 * sin(phase * 3)`
 
 ### Orbital Defense (651 lines)
 
-- Hex base at center with surrounding shields
-- Asteroid waves approach from edges
-- Launch interceptors at cursor position
-- Chain-reaction explosions when interceptors detonate near asteroids
-- Escalating difficulty with wave-based asteroid count and speed
+- **Base**: Hexagonal shape at display center. Radius = `max(8, round(minDim * 0.035))`
+- **3 asteroid tiers**: Large (15*Sc, 1.0x speed), Medium (10*Sc, 1.5x), Small (5*Sc, 2.2x). 8-12 random wireframe vertices. Split on destroy: 2 children at `speed *= 1.2 + rand*0.5`
+- **Pools**: 10 interceptors + 12 explosions + 50 asteroids. Fire cooldown: 36 frames
+- **Chain explosions**: Expanding explosion circles destroy asteroids within `ExpRadius + AstRadius`. Contraction follows expansion (visual fade). Chain cascades when explosions overlap
+- **Wave scaling**: `nLarge = 2 + wave`, `nMedium = 1 + floor(wave*0.8)`, `nSmall = floor(wave*0.6)`. Speed = `baseSpeed * (1 + wave * 0.08)`. Clear bonus: `200 * wave`
 
 ### Shield Guardian (625 lines)
 
-- Rotate a shield arc to deflect incoming projectiles
-- Swept quadratic collision prediction for accurate deflection angles
-- Protect the central core from damage
-- Waves escalate in speed, density, and projectile patterns
-- Lives system with center-screen flash on damage
+- **Shield**: 180-degree arc at `ShieldRadius = max(7, minDim * 0.08)` from center. Follows cursor angle. Core hitbox = `CoreRadius * 0.9`
+- **3 projectile types**: Fast (red, 1.5x speed, small), Normal (magenta, 1.0x, medium), Heavy (orange, 0.6x, large). 20-slot pool
+- **Swept quadratic collision**: Line segment vs shield arc circle. Quadratic `a*t^2 + b*t + c = 0` for intersection, then angle check within shield span. Deflection: `vel - 2*dot(vel,normal)*normal`, boosted 1.5x with outward push
+- **Chain deflection**: Deflected projectiles can hit incoming ones (50 pts per chain hit)
+- **Wave scaling**: Spawn interval = `max(19, 72 - Wave * 5)` frames. Speed = `baseSpeed * (1 + Wave * 0.1)`
 
 ### Rail Shooter (1,194 lines)
 
-- Pseudo-3D on-rails perspective with depth scaling
-- 4 enemy types: grunt, heavy, interceptor, boss
-- Enemies approach from a vanishing point with depth-based size scaling
-- Breathing crosshair animation: `frameCount += ds` (FPS-scaled)
-- Auto-fire DPS system with crosshair targeting
-- Hit flash: decrement counter per frame for fade-out
-- Single defeat burst (large red explosion, no secondary side explosions)
+- **Perspective**: Vanishing point at display center. Depth scale = `0.15 + (1 - depth) * 0.85`. Screen projection: `screenPos = vpPos + (spawnPos - vpPos) * scale`
+- **4 enemy types**: Fighter (HP 3, speed 0.003, 14 vertices), Cruiser (HP 8, speed 0.0018, 28 vertices, 1.5x size), Interceptor (HP 2, speed 0.0038, 18 vertices, 0.7x), Dreadnought (HP 25, speed 0.0012, 35 vertices, 2.2x boss). HP scales `+floor(Wave/3)` per wave
+- **Wave structure**: Waves 1-5 hand-crafted compositions. Wave 6+: procedural mix of `4+floor(N/2)` grunts, `1+floor(N/3)` cruisers, `1+floor(N/2)` interceptors, `floor(N/5)` bosses
+- **Defeat animation**: 4-phase color transition (white -> yellow-red -> dark orange) with expansion `1 + progress^0.7 * 2.5`, jitter, and `(1-progress)^0.6` alpha decay
+- **Combat**: Auto-fire cooldown = 7 frames. Breathing crosshair: `frameCount += ds`. Damage flash: 19-frame fade. Screen shake on hit. HP bars: green (>50%) -> gold (>25%) -> red
+- **Boss weak point**: Pulsing scatter at center with `0.2 + 0.08 * sin(phase*3)` modulation
 
 ---
 
