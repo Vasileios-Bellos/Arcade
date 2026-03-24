@@ -827,7 +827,7 @@ classdef SpaceInvaders < engine.GameBase
             else
                 waveName = "Wave " + wave;
             end
-            obj.WaveTextH.String = sprintf("Wave %d — %s", wave, waveName);
+            obj.WaveTextH.String = sprintf("Wave %d - %s", wave, waveName);
             obj.WaveTextH.Color = obj.ColorGold;
             obj.WaveTextH.Visible = "on";
             obj.WaveFlashTic = tic;
