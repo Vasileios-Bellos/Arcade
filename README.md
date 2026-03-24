@@ -15,7 +15,7 @@ A neon-styled launcher with an animated starfield menu, persistent high scores, 
 
 > Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) - AI-assisted development from architecture to pixel-level polish.
 
-Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games.
+Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games. [Read more about it here](technical.html).
 
 ---
 
@@ -296,7 +296,7 @@ No MATLAB license required. [`ArcadeInstaller.exe`](packaging/installer/ArcadeIn
 
 ### Browser
 
-Open [`index.html`](index.html) in any modern browser. All 15 games in a single self-contained HTML5 Canvas file - no installation, no server, no dependencies. See also the [technical documentation](technical.html) for implementation details of the HTML port.
+Open [`index.html`](index.html) in any modern browser - no installation, no server, no dependencies.
 
 ### From Source
 
