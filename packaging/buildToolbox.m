@@ -98,8 +98,6 @@ for k = 1:numel(packages)
     end
 end
 
-% Toolbox is MATLAB-only: no web/, dev/, or misc/ folders
-
 % Convert to string array for ToolboxOptions.
 includeFiles = string(includeFiles);
 
