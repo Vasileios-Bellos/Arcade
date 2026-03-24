@@ -1,7 +1,7 @@
 %generateIcon  Generate icon and splash screen for Arcade.
 %   Creates:
 %       packaging/icon.png    — 256x256 app icon (neon "A" on dark background)
-%       packaging/splash.png  — 640x480 splash screen ("MATLAB ARCADE" title)
+%       packaging/splash.png  — 640x480 splash screen ("ARCADE" title)
 %
 %   The .png icon works directly with compiler.build.standaloneApplication.
 %   For a .ico file (Windows shortcut icon), convert icon.png using:

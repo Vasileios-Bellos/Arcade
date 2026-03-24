@@ -279,33 +279,30 @@ MATLAB graphics creation costs 0.2-1ms per object (handle registration, renderer
 
 ---
 
-## Distribution
+## Download
 
-### MATLAB Toolbox
+| | |
+|---|---|
+| **Source** | Clone or download from [GitHub](https://github.com/) |
+| **Toolbox** | `Arcade.mltbx` in [`packaging/`](packaging/) - double-click to install in MATLAB Add-On Manager |
+| **Windows Installer** | `ArcadeInstaller.exe` in [`packaging/installer/`](packaging/installer/) - downloads MATLAB Runtime automatically |
+| **Browser** | Open [`web/arcade.html`](web/arcade.html) directly - no installation needed |
 
-Install via the Add-On Manager or from the [File Exchange listing](https://mathworks.com/matlabcentral/fileexchange/):
+Pre-built toolbox and installer are also available from [GitHub Releases](https://github.com/).
 
-```matlab
-% Or build from source:
-cd packaging
-buildToolbox
-```
-
-### Standalone Executable (Windows)
-
-A compiled `.exe` with a bundled installer that downloads the [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) automatically:
+<details>
+<summary>Build from source</summary>
 
 ```matlab
 cd packaging
-buildExecutable    % builds Arcade.exe + ArcadeInstaller.exe
+buildToolbox       % creates Arcade.mltbx
+buildExecutable    % creates Arcade.exe + ArcadeInstaller.exe
+generateIcon       % creates icon.png, splash.png, preview.png
 ```
 
-### Icon, Splash, and Preview
+Requires MATLAB Compiler for the executable. No additional toolboxes needed for the toolbox.
 
-```matlab
-cd packaging
-generateIcon    % creates icon.png (256x256), splash.png, and preview.png (800x600)
-```
+</details>
 
 ---
 
@@ -317,4 +314,4 @@ This project was developed entirely through AI-assisted pair programming using [
 
 ## License
 
-MIT
+MIT - see [LICENSE](LICENSE)
