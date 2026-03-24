@@ -2620,18 +2620,17 @@ class BreakoutGame {
                 }
             }
             if (tx.length > 1) {
-                const ebTrailAlpha = Math.min(0.5, 0.15 + ebMapped * 0.03);
-                const ebTrailWidth = Math.min(3.5, 1.5 + ebMapped * 0.1);
+                // MATLAB: trail 0.8*ps alpha 0.3, glow 2.7*ps alpha 0.08
                 // Trail glow
-                ctx.strokeStyle = rgb(ebColor, ebTrailAlpha * 0.25);
-                ctx.lineWidth = ebTrailWidth * 3;
+                ctx.strokeStyle = rgb(ebColor, 0.08);
+                ctx.lineWidth = 2.7;
                 ctx.beginPath();
                 ctx.moveTo(tx[0], ty[0]);
                 for (let i = 1; i < tx.length; i++) ctx.lineTo(tx[i], ty[i]);
                 ctx.stroke();
                 // Trail line
-                ctx.strokeStyle = rgb(ebColor, ebTrailAlpha);
-                ctx.lineWidth = ebTrailWidth;
+                ctx.strokeStyle = rgb(ebColor, 0.3);
+                ctx.lineWidth = 0.8;
                 ctx.beginPath();
                 ctx.moveTo(tx[0], ty[0]);
                 for (let i = 1; i < tx.length; i++) ctx.lineTo(tx[i], ty[i]);
