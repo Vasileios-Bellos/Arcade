@@ -517,7 +517,7 @@ MATLAB graphics object creation involves handle registration, renderer sync, and
 | FruitNinja | 8 fruits + 16 halves + 6 slash effects |
 | Firefly Chase | 4 fireflies (dot + aura + trail + trailGlow each) |
 | Snake | 100 body segments + 2 food handles |
-| FlappyBird | 10 pipe pairs |
+| FlappyBird | 6 pipe pairs (top + bottom each) |
 | Breakout | 60 bricks (10x6) + dynamic power-ups + 3 extra ball sets |
 | Tetris | 220 cells (22x10) + 12 next-preview cells + 4 ghost cells |
 

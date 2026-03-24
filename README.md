@@ -293,18 +293,18 @@ buildToolbox
 
 ### Standalone Executable (Windows)
 
-A compiled `.exe` requires the [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) (free, ~800 MB download):
+A compiled `.exe` with a bundled installer that downloads the [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) automatically:
 
 ```matlab
 cd packaging
-buildExecutable
+buildExecutable    % builds MATLABarcade.exe + MATLABarcadeInstaller.exe
 ```
 
-### Icon and Splash Screen
+### Icon, Splash, and Preview
 
 ```matlab
 cd packaging
-generateIcon    % creates icon.png (256x256) and splash.png (640x480)
+generateIcon    % creates icon.png (256x256), splash.png, and preview.png (800x600)
 ```
 
 ---
