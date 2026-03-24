@@ -1,10 +1,10 @@
-# Arcade &nbsp; <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" height="30"></a>&nbsp;<a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" height="30"></a>&nbsp;<a href="web/arcade.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" height="30"></a>
+# Arcade &nbsp; <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" height="30"></a>&nbsp;<a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" height="30"></a>&nbsp;<a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" height="30"></a>
 
 15 arcade games built entirely in MATLAB - eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
 A neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling ties everything together. Pick up and play with mouse, keyboard, or both.
 
-Also available as a [browser port](web/arcade.html) - a single self-contained HTML5 Canvas file with all 15 games.
+Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games.
 
 <p align="center">
   <img src="assets/menu_scroll_4.gif" alt="Arcade - Main Menu" width="75%">
@@ -167,7 +167,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighte
 | **Combo System** | Shared scoring with multipliers and animated fade-outs across all games |
 | **Neon Visual Style** | Three-layer ball rendering (aura + glow + core), comet trails, particle bursts |
 | **Standalone Mode** | Every game runs independently: `games.Pong().play()` |
-| **HTML5 Port** | All 15 games in a single `arcade.html` - verified identical physics, scoring, and visuals across both platforms |
+| **HTML5 Port** | All 15 games in a single file - verified identical physics, scoring, and visuals across both platforms |
 | **Subclassable** | Override `buildRegistry` and `getMenuTitles` for custom game sets |
 | **Extensible** | Add your own games by subclassing `engine.GameBase` |
 
@@ -204,9 +204,8 @@ Arcade.m                 entry point
 +services/
     ScoreManager.m       persistent high-score storage
 +games/                  15 game classes
-web/
-    arcade.html          HTML5 Canvas port (all 15 games, single file)
-    technical.html       technical documentation page
+index.html               HTML5 Canvas port (all 15 games, single file)
+technical.html           technical documentation page
 dev/
     README.md            architecture and technical details
     TODO.md              development roadmap
