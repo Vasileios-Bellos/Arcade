@@ -824,6 +824,52 @@ F5, F12, and Ctrl+key combinations are not intercepted by the game's `keydown` h
 
 ---
 
+## Orphan Cleanup
+
+Every game tags its graphics with a prefix like `"GT_pong"`, `"GT_breakout"`, etc. Hit effects use `"GT_fx"`. The host's HUD uses `"GT_arc"`.
+
+On game exit, `enterMenu()` and `enterResults()` call:
+
+```matlab
+orphans = findall(obj.Ax, "-regexp", "Tag", "^GT_(?!arc)");
+delete(orphans);
+```
+
+The regex `^GT_(?!arc)` matches all `GT_`-prefixed tags except `GT_arc*` (the arcade HUD), ensuring game graphics are cleaned up without destroying the launcher's own text handles. Each game's `onCleanup()` also deletes its own handles explicitly, but the orphan guard catches anything missed (e.g., hit effects still animating).
+
+---
+
+## ScoreManager
+
+`services.ScoreManager` is a static utility class. All methods are static -- no instance needed.
+
+### Storage
+
+Scores persist in `ScoreManager_scores.mat` (auto-created in the project root on first play, excluded from git). The MAT-file contains a single `scores` struct where each field is a game ID (e.g., `Pong`, `Breakout`) mapping to a record struct:
+
+```matlab
+record.highScore    % highest score achieved
+record.maxCombo     % highest combo achieved
+record.plays        % total number of plays
+record.totalTime    % cumulative session time (seconds)
+```
+
+### Game ID
+
+`ScoreManager.classToId(game)` converts a game class name to an ID string. For package-qualified names like `games.Pong`, it extracts `"Pong"`. This ID is used as the struct field name in the scores file.
+
+### Submission
+
+`ScoreManager.submit(gameId, score, maxCombo, elapsed)` updates the record:
+- `highScore = max(existing, score)`
+- `maxCombo = max(existing, maxCombo)`
+- `plays = plays + 1`
+- `totalTime = totalTime + elapsed`
+
+Returns `[isNewHigh, record]` where `isNewHigh` is true if the submitted score exceeds the previous high.
+
+---
+
 ## Adding a New Game
 
 1. Create `+games/MyGame.m` extending `engine.GameBase`
