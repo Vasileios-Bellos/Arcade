@@ -2357,9 +2357,12 @@ class BreakoutGame {
                 this.ballVel = [newSpeed * Math.sin(returnAngle), -newSpeed * Math.cos(returnAngle)];
                 this.ballPos[1] = py - this.ballRadius - 5;    // line 447
 
-                this.trailBufX.fill(NaN);
-                this.trailBufY.fill(NaN);
-                this.trailIdx = 0;
+                // Force-record paddle contact into trail (keep trail)
+                const tidxP = this.trailIdx % this.trailLen;
+                this.trailBufX[tidxP] = this.ballPos[0];
+                this.trailBufY[tidxP] = this.ballPos[1];
+                this.trailIdx = tidxP + 1;
+                this.trailAccum = 0;
             }
         }
 

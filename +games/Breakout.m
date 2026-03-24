@@ -263,7 +263,7 @@ classdef Breakout < engine.GameBase
 
             % --- Level transition phase ---
             if obj.LevelPhase == "transition"
-                obj.LevelTransFrames = obj.LevelTransFrames - ds;
+                obj.LevelTransFrames = obj.LevelTransFrames - obj.DtScale;
                 tProgress = 1 - obj.LevelTransFrames / 96;
 
                 % Fade out old bricks
@@ -303,7 +303,7 @@ classdef Breakout < engine.GameBase
 
             % --- Level announce phase ---
             if obj.LevelPhase == "announce"
-                obj.LevelTransFrames = obj.LevelTransFrames - ds;
+                obj.LevelTransFrames = obj.LevelTransFrames - obj.DtScale;
                 if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
                     tProg = 1 - max(0, obj.LevelTransFrames) / 60;
                     if tProg > 0.7
@@ -350,7 +350,7 @@ classdef Breakout < engine.GameBase
             if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
                 set(obj.PaddleGlowH, "XData", xv, "YData", yv);
                 % Breathing glow
-                obj.BallPhase = obj.BallPhase + 0.0333 * ds;
+                obj.BallPhase = obj.BallPhase + 0.0333 * obj.DtScale;
                 glowAlpha = 0.08 + 0.04 * sin(obj.BallPhase);
                 obj.PaddleGlowH.FaceAlpha = glowAlpha;
             end
@@ -358,7 +358,7 @@ classdef Breakout < engine.GameBase
             % --- Serve mode ---
             if obj.Serving
                 obj.BallPos = [obj.PaddleX, py - obj.BallRadius - 5];
-                obj.ServeCountdown = obj.ServeCountdown - ds;
+                obj.ServeCountdown = obj.ServeCountdown - obj.DtScale;
                 if obj.ServeCountdown <= 0
                     obj.launchBall();
                     if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
@@ -371,7 +371,7 @@ classdef Breakout < engine.GameBase
 
             % --- Ball physics ---
             prePos = obj.BallPos;
-            stepVel = obj.BallVel * ds;
+            stepVel = obj.BallVel * obj.DtScale;
             obj.BallPos = prePos + stepVel;
 
             % Wall collisions (parametric — same as FlickIt)
@@ -435,8 +435,8 @@ classdef Breakout < engine.GameBase
             if crossedPaddle || atPaddle
                 % Interpolate X at paddle Y crossing
                 if crossedPaddle && obj.BallVel(2) > 0
-                    tHit = (pyHit - prePos(2)) / (obj.BallVel(2) * ds);
-                    hitX = prePos(1) + tHit * obj.BallVel(1) * ds;
+                    tHit = (pyHit - prePos(2)) / (obj.BallVel(2) * obj.DtScale);
+                    hitX = prePos(1) + tHit * obj.BallVel(1) * obj.DtScale;
                 else
                     hitX = obj.BallPos(1);
                 end
