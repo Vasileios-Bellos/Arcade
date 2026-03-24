@@ -245,6 +245,8 @@ classdef Breakout < engine.GameBase
             % Place ball on paddle and announce LEVEL 1
             obj.PaddleX = cx;
             obj.BallPos = [cx, obj.PaddleY - obj.BallRadius - 5];
+            obj.Serving = true;
+            obj.ServeCountdown = 60;
             obj.LevelPhase = "announce";
             obj.LevelTransFrames = 60;
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
@@ -262,6 +264,16 @@ classdef Breakout < engine.GameBase
             % --- Level announce phase ---
             if obj.LevelPhase == "announce"
                 obj.LevelTransFrames = obj.LevelTransFrames - obj.DtScale;
+                % Serve countdown runs concurrently with announce
+                if obj.Serving
+                    obj.ServeCountdown = obj.ServeCountdown - obj.DtScale;
+                    if obj.ServeCountdown <= 0
+                        obj.launchBall();
+                        if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
+                            obj.LevelTextH.Visible = "off";
+                        end
+                    end
+                end
                 if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
                     tProg = 1 - max(0, obj.LevelTransFrames) / 60;
                     if tProg > 0.7
@@ -271,7 +283,9 @@ classdef Breakout < engine.GameBase
                 % Paddle + ball follow mouse during announce
                 if ~any(isnan(pos))
                     obj.PaddleX = max(dx(1) + obj.PaddleW/2, min(dx(2) - obj.PaddleW/2, pos(1)));
-                    obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
+                    if obj.Serving
+                        obj.BallPos = [obj.PaddleX, obj.PaddleY - obj.BallRadius - 5];
+                    end
                     px = obj.PaddleX; pw = obj.PaddleW; ph = obj.PaddleHt; py = obj.PaddleY;
                     xv = [px-pw/2, px+pw/2, px+pw/2, px-pw/2];
                     if ~isempty(obj.PaddleGlowH) && isvalid(obj.PaddleGlowH)
@@ -284,7 +298,6 @@ classdef Breakout < engine.GameBase
                 obj.updateBallGraphics();
                 if obj.LevelTransFrames <= 0
                     obj.LevelPhase = "play";
-                    obj.serveBall();
                 end
                 return;
             end
@@ -1000,11 +1013,7 @@ classdef Breakout < engine.GameBase
 
             % Build new grid and announce
             obj.buildBrickGrid(obj.Level);
-            obj.TrailBufX(:) = NaN;
-            obj.TrailBufY(:) = NaN;
-            obj.TrailIdx = 0;
-            obj.TrailAccum = 0;
-            obj.BallVel = [0, 0];
+            obj.serveBall();  % countdown runs concurrently with announce
             obj.LevelPhase = "announce";
             obj.LevelTransFrames = 60;
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)

@@ -1795,7 +1795,9 @@ class BreakoutGame {
         this.powerUps = [];
         this.activePowers = { wide: [], slow: [], fireball: null };
 
-        // Level phase
+        // Level phase - serveBall starts countdown concurrent with announce
+        this.serving = true;
+        this.serveCountdown = 60;
         this.levelPhase = 'announce';
         this.levelTransFrames = 60;   // line 246
 
@@ -2189,11 +2191,7 @@ class BreakoutGame {
         }
 
         this.buildBrickGrid(this.level);
-        this.trailBufX.fill(NaN);
-        this.trailBufY.fill(NaN);
-        this.trailIdx = 0;
-        this.trailAccum = 0;
-        this.ballVel = [0, 0];
+        this.serveBall();  // countdown runs concurrently with announce
         this.levelPhase = 'announce';
         this.levelTransFrames = 60;  // line 1003
 
@@ -2241,15 +2239,23 @@ class BreakoutGame {
         // --- Level announce phase (lines 302-329) ---
         if (this.levelPhase === 'announce') {
             this.levelTransFrames -= ds;
+            // Serve countdown runs concurrently with announce
+            if (this.serving) {
+                this.serveCountdown -= ds;
+                if (this.serveCountdown <= 0) {
+                    this.launchBall();
+                }
+            }
             // Paddle + ball follow mouse during announce (lines 311-313)
             if (mousePos && !isNaN(mousePos[0])) {
                 this.paddleX = Math.max(dx[0] + this.paddleW / 2,
                     Math.min(dx[1] - this.paddleW / 2, mousePos[0]));
-                this.ballPos = [this.paddleX, this.paddleY - this.ballRadius - 5];
+                if (this.serving) {
+                    this.ballPos = [this.paddleX, this.paddleY - this.ballRadius - 5];
+                }
             }
             if (this.levelTransFrames <= 0) {
                 this.levelPhase = 'play';
-                this.serveBall();
             }
             this.render(ds);
             this.hitEffects.update(this.ctx, ds);
