@@ -3087,8 +3087,6 @@ class SnakeGame {
             const foodXY = this.gridToData(this.foodPos);
             this.hitEffects.spawnBounceEffect(foodXY, [0, -1], totalPoints, 5);  // line 275
 
-            this.spawnFood();
-
             // Speed up (line 279)
             const bodyLen = nBody + 1;
             this.stepInterval = Math.max(1.5, 4 - (bodyLen - 5) * 0.05);
@@ -3100,9 +3098,10 @@ class SnakeGame {
             this.lastFoodTime = null;
         }
 
-        // --- Advance body (lines 283-287) ---
+        // --- Advance body before spawning food (so newHead is in body) ---
         if (ate) {
             this.body.unshift(newHead);
+            this.spawnFood();
         } else {
             this.body.pop();
             this.body.unshift(newHead);

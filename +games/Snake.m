@@ -273,15 +273,15 @@ classdef Snake < engine.GameBase
                 obj.addScore(totalPoints);
                 foodXY = obj.gridToData(obj.FoodPos);
                 obj.spawnBounceEffect(foodXY, [0, -1], totalPoints, 5);
-                obj.spawnFood();
                 % Speed up: reduce step interval as snake grows
                 bodyLen = nBody + 1;
                 obj.StepInterval = max(1.5, 4 - (bodyLen - 5) * 0.05);
             end
 
-            % Advance body
+            % Advance body before spawning food (so newHead is in Body)
             if ate
                 obj.Body = [newHead; obj.Body];
+                obj.spawnFood();
             else
                 obj.Body = [newHead; obj.Body(1:end-1, :)];
             end
