@@ -71,6 +71,7 @@ Full comparison completed across all 15 games. All physics constants, scoring fo
 - [x] Checkcode - zero warnings across all 19 source files
 - [x] Snake food spawn - moved spawnFood after body update so newHead is included in occupied cell check (MATLAB + HTML)
 - [x] Ball reflection contact - all ball games (Pong, Breakout, FlickIt, Juggler) now use parametric contact point for wall and paddle collisions. Force-record captures exact reflection position into trail buffer (MATLAB + HTML)
+- [x] FlickIt/Juggler trail reset on hit - trail was cleared on every flick/bounce, restarting the comet tail. Now force-records contact point and keeps existing trail, matching Pong/Breakout behavior (MATLAB + HTML, main + extra balls)
 - [x] Breakout extra ball paddle pass-through - extra balls used post-move position check only, missing the paddle at high speed. Now uses swept parametric detection matching main ball (MATLAB + HTML)
 - [x] Asteroids bullet-rock sweep - swept collision segment used unscaled velocity instead of DtScale-scaled step, causing misses on small asteroids at non-60fps (MATLAB + HTML)
 - [x] SpaceInvaders wave/lives text z-order - text rendered behind aliens in MATLAB. Added uistack to bring text to front on show (HTML already correct - drawn last in render)

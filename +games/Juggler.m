@@ -365,10 +365,12 @@ classdef Juggler < engine.GameBase
             end
             hitSpeed = norm(obj.BallVel);
 
-            % Clear trail on hit
-            obj.TrailBufX(:) = NaN;
-            obj.TrailBufY(:) = NaN;
-            obj.TrailIdx = 0;
+            % Force-record flick contact into trail (keep existing trail)
+            tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+            obj.TrailBufX(tidx) = obj.BallPos(1);
+            obj.TrailBufY(tidx) = obj.BallPos(2);
+            obj.TrailIdx = tidx;
+            obj.TrailAccum = 0;
 
             obj.BallFlicks = obj.BallFlicks + 1;
             obj.scoreFlick(obj.BallPos, hitSpeed);
@@ -579,10 +581,12 @@ classdef Juggler < engine.GameBase
                             extraSpeed = norm(obj.ExtraBallVel(bi, :));
                             obj.ExtraBallFlicks(bi) = obj.ExtraBallFlicks(bi) + 1;
                             obj.scoreFlick(obj.ExtraBallPos(bi, :), extraSpeed);
-                            % Clear trail on hit
-                            obj.ExtraBallTrailBufX{bi}(:) = NaN;
-                            obj.ExtraBallTrailBufY{bi}(:) = NaN;
-                            obj.ExtraBallTrailIdx(bi) = 0;
+                            % Force-record flick contact (keep trail)
+                            etidx = mod(obj.ExtraBallTrailIdx(bi), obj.TrailLen) + 1;
+                            obj.ExtraBallTrailBufX{bi}(etidx) = obj.ExtraBallPos(bi, 1);
+                            obj.ExtraBallTrailBufY{bi}(etidx) = obj.ExtraBallPos(bi, 2);
+                            obj.ExtraBallTrailIdx(bi) = etidx;
+                            obj.ExtraBallTrailAccum(bi) = 0;
                             obj.ExtraBallLocked(bi) = true;
                         end
                     else

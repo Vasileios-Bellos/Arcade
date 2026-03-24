@@ -8762,10 +8762,12 @@ class JugglerGame {
         }
         const hitSpeed = hypot(this.ballVel[0], this.ballVel[1]);
 
-        // Clear trail
-        this.trailBufX.fill(NaN);
-        this.trailBufY.fill(NaN);
-        this.trailIdx = 0;
+        // Force-record flick contact into trail (keep existing trail)
+        const tidx = this.trailIdx % this.trailLen;
+        this.trailBufX[tidx] = this.ballPos[0];
+        this.trailBufY[tidx] = this.ballPos[1];
+        this.trailIdx = tidx + 1;
+        this.trailAccum = 0;
 
         this.ballFlicks++;
         this.scoreFlick(this.ballPos[0], this.ballPos[1], hitSpeed);
@@ -8839,9 +8841,12 @@ class JugglerGame {
                         const extraSpeed = hypot(eb.vel[0], eb.vel[1]);
                         eb.flicks++;
                         this.scoreFlick(eb.pos[0], eb.pos[1], extraSpeed);
-                        eb.trailBufX.fill(NaN);
-                        eb.trailBufY.fill(NaN);
-                        eb.trailIdx = 0;
+                        // Force-record flick contact (keep trail)
+                        const etidx = eb.trailIdx % this.trailLen;
+                        eb.trailBufX[etidx] = eb.pos[0];
+                        eb.trailBufY[etidx] = eb.pos[1];
+                        eb.trailIdx = etidx + 1;
+                        eb.trailAccum = 0;
                         eb.locked = true;
                     }
                 } else {
