@@ -814,6 +814,7 @@ classdef SpaceInvaders < engine.GameBase
             end
             obj.LivesTextH.Color = clr;
             obj.LivesTextH.Visible = "on";
+            try uistack(obj.LivesTextH, "top"); catch; end
             obj.LivesFlashTic = tic;
         end
 
@@ -830,6 +831,7 @@ classdef SpaceInvaders < engine.GameBase
             obj.WaveTextH.String = sprintf("Wave %d - %s", wave, waveName);
             obj.WaveTextH.Color = obj.ColorGold;
             obj.WaveTextH.Visible = "on";
+            try uistack(obj.WaveTextH, "top"); catch; end
             obj.WaveFlashTic = tic;
         end
 
