@@ -62,12 +62,14 @@ classdef Breakout < engine.GameBase
         TrailBufX       (1,:) double
         TrailBufY       (1,:) double
         TrailIdx        (1,1) double = 0
+        TrailAccum      (1,1) double = 0
 
         % Multi-ball
         ExtraBalls      struct = struct("pos", {}, "vel", {}, ...
                                         "coreH", {}, "glowH", {}, "auraH", {}, ...
                                         "trailH", {}, "trailGlowH", {}, ...
-                                        "trailBufX", {}, "trailBufY", {}, "trailIdx", {})
+                                        "trailBufX", {}, "trailBufY", {}, "trailIdx", {}, ...
+                                        "trailAccum", {})
 
         % Power-ups
         PowerUps        struct = struct("type", {}, "x", {}, "y", {}, ...
@@ -163,7 +165,7 @@ classdef Breakout < engine.GameBase
             obj.BallPhase = 0;
             obj.ExtraBalls = struct("pos", {}, "vel", {}, ...
                 "coreH", {}, "glowH", {}, "auraH", {}, "trailH", {}, "trailGlowH", {}, ...
-                "trailBufX", {}, "trailBufY", {}, "trailIdx", {});
+                "trailBufX", {}, "trailBufY", {}, "trailIdx", {}, "trailAccum", {});
             obj.PowerUps = struct("type", {}, "x", {}, "y", {}, ...
                 "speed", {}, "patchH", {}, "glowH", {}, "textH", {});
             obj.ActivePowers = struct("wide", {{}}, "slow", {{}}, "fireball", NaN);
@@ -174,6 +176,7 @@ classdef Breakout < engine.GameBase
             obj.TrailBufX = NaN(1, obj.TrailLen);
             obj.TrailBufY = NaN(1, obj.TrailLen);
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
 
             % --- Build brick grid ---
             obj.buildBrickGrid(1);
@@ -408,6 +411,13 @@ classdef Breakout < engine.GameBase
             end
 
             if bounced
+                % Force-record bounce contact into trail
+                tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(tidx) = obj.BallPos(1);
+                obj.TrailBufY(tidx) = obj.BallPos(2);
+                obj.TrailIdx = tidx;
+                obj.TrailAccum = 0;
+
                 % Slight speed gain per wall bounce
                 obj.BallVel = obj.BallVel * 1.005;
                 spd = norm(obj.BallVel);
@@ -446,24 +456,27 @@ classdef Breakout < engine.GameBase
                     obj.BallVel = newSpeed * [sin(returnAngle), -cos(returnAngle)];
                     obj.BallPos(2) = py - obj.BallRadius - 5;
 
-                    % Clear trail on paddle hit
-                    obj.TrailBufX(:) = NaN;
-                    obj.TrailBufY(:) = NaN;
-                    obj.TrailIdx = 0;
+                    % Force-record paddle contact into trail
+                    tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                    obj.TrailBufX(tidx) = obj.BallPos(1);
+                    obj.TrailBufY(tidx) = obj.BallPos(2);
+                    obj.TrailIdx = tidx;
+                    obj.TrailAccum = 0;
                 end
             end
 
             % --- Bottom edge: lose life ---
             if obj.BallPos(2) > dy(2) + obj.BallRadius * 2
                 if ~isempty(obj.ExtraBalls)
-                    % Promote first extra ball to primary
+                    % Promote first extra ball — keep trail
                     eb = obj.ExtraBalls(1);
                     obj.BallPos = eb.pos;
                     obj.BallVel = eb.vel;
                     obj.BallSpeed = norm(eb.vel);
-                    obj.TrailBufX(:) = NaN;
-                    obj.TrailBufY(:) = NaN;
-                    obj.TrailIdx = 0;
+                    obj.TrailBufX = eb.trailBufX;
+                    obj.TrailBufY = eb.trailBufY;
+                    obj.TrailIdx = eb.trailIdx;
+                    obj.TrailAccum = eb.trailAccum;
                     % Delete promoted ball graphics
                     obj.deleteExtraBallGraphics(eb);
                     obj.ExtraBalls(1) = [];
@@ -475,9 +488,18 @@ classdef Breakout < engine.GameBase
 
             % --- Brick collisions ---
             if ~any(isnan(obj.BallPos))
+                oldPos = obj.BallPos;
                 [obj.BallPos, obj.BallVel] = obj.brickCollision( ...
                     prePos, obj.BallPos, obj.BallVel);
                 obj.BallSpeed = norm(obj.BallVel);
+                % Force-record if position changed (brick bounce)
+                if any(obj.BallPos ~= oldPos)
+                    tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                    obj.TrailBufX(tidx) = obj.BallPos(1);
+                    obj.TrailBufY(tidx) = obj.BallPos(2);
+                    obj.TrailIdx = tidx;
+                    obj.TrailAccum = 0;
+                end
             end
 
             % --- Extra balls ---
@@ -780,6 +802,7 @@ classdef Breakout < engine.GameBase
             obj.TrailBufX(:) = NaN;
             obj.TrailBufY(:) = NaN;
             obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
         end
 
         function launchBall(obj)
@@ -1251,7 +1274,8 @@ classdef Breakout < engine.GameBase
                     eb = struct("pos", bpos, "vel", bvel, ...
                         "coreH", cH, "glowH", gH, "auraH", aH, ...
                         "trailH", tH, "trailGlowH", tgH, ...
-                        "trailBufX", NaN(1, 15), "trailBufY", NaN(1, 15), "trailIdx", 0);
+                        "trailBufX", NaN(1, obj.TrailLen), "trailBufY", NaN(1, obj.TrailLen), ...
+                        "trailIdx", 0, "trailAccum", 0);
                     obj.ExtraBalls(end + 1) = eb;
                 end
             end
@@ -1282,17 +1306,21 @@ classdef Breakout < engine.GameBase
                 eb.pos = eb.pos + eb.vel * obj.DtScale;
 
                 % Wall bounces
+                ebBounced = false;
                 if eb.pos(2) < dy(1)
                     eb.pos(2) = dy(1);
                     eb.vel(2) = -eb.vel(2);
+                    ebBounced = true;
                 end
                 if eb.pos(1) < dx(1)
                     eb.pos(1) = dx(1);
                     eb.vel(1) = -eb.vel(1);
+                    ebBounced = true;
                 end
                 if eb.pos(1) > dx(2)
                     eb.pos(1) = dx(2);
                     eb.vel(1) = -eb.vel(1);
+                    ebBounced = true;
                 end
 
                 % Paddle collision
@@ -1304,7 +1332,17 @@ classdef Breakout < engine.GameBase
                         ebSpeed = norm(eb.vel);
                         eb.vel = ebSpeed * [sin(returnAngle), -cos(returnAngle)];
                         eb.pos(2) = py - obj.BallRadius - 1;
+                        ebBounced = true;
                     end
+                end
+
+                % Force-record bounce contact into trail
+                if ebBounced
+                    tidx = mod(eb.trailIdx, obj.TrailLen) + 1;
+                    eb.trailBufX(tidx) = eb.pos(1);
+                    eb.trailBufY(tidx) = eb.pos(2);
+                    eb.trailIdx = tidx;
+                    eb.trailAccum = 0;
                 end
 
                 % Bottom exit
@@ -1315,12 +1353,25 @@ classdef Breakout < engine.GameBase
                 end
 
                 % Brick collision for extra ball
+                oldEbPos = eb.pos;
                 [eb.pos, eb.vel] = obj.brickCollision(ebPrePos, eb.pos, eb.vel);
+                if any(eb.pos ~= oldEbPos)
+                    tidx = mod(eb.trailIdx, obj.TrailLen) + 1;
+                    eb.trailBufX(tidx) = eb.pos(1);
+                    eb.trailBufY(tidx) = eb.pos(2);
+                    eb.trailIdx = tidx;
+                    eb.trailAccum = 0;
+                end
 
-                % Trail
-                eb.trailIdx = mod(eb.trailIdx, 15) + 1;
-                eb.trailBufX(eb.trailIdx) = eb.pos(1);
-                eb.trailBufY(eb.trailIdx) = eb.pos(2);
+                % Trail (DtScale accumulator)
+                eb.trailAccum = eb.trailAccum + obj.DtScale;
+                if eb.trailAccum >= 2.0
+                    eb.trailAccum = eb.trailAccum - 2.0;
+                    tidx = mod(eb.trailIdx, obj.TrailLen) + 1;
+                    eb.trailBufX(tidx) = eb.pos(1);
+                    eb.trailBufY(tidx) = eb.pos(2);
+                    eb.trailIdx = tidx;
+                end
 
                 % Speed-based color
                 ebSpeed = norm(eb.vel);
@@ -1357,7 +1408,7 @@ classdef Breakout < engine.GameBase
                 end
 
                 % Trail rendering
-                trailN = 15;
+                trailN = obj.TrailLen;
                 trailOrder = mod((eb.trailIdx:eb.trailIdx + trailN - 1), trailN) + 1;
                 tx = eb.trailBufX(trailOrder);
                 ty = eb.trailBufY(trailOrder);
@@ -1399,7 +1450,7 @@ classdef Breakout < engine.GameBase
             end
             obj.ExtraBalls = struct("pos", {}, "vel", {}, ...
                 "coreH", {}, "glowH", {}, "auraH", {}, "trailH", {}, "trailGlowH", {}, ...
-                "trailBufX", {}, "trailBufY", {}, "trailIdx", {});
+                "trailBufX", {}, "trailBufY", {}, "trailIdx", {}, "trailAccum", {});
         end
     end
 
@@ -1468,11 +1519,15 @@ classdef Breakout < engine.GameBase
                     "MarkerSize", auraSize);
             end
 
-            % Trail buffer
+            % Trail buffer (DtScale accumulator, fps-independent)
             if spd > 0.3
-                obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
-                obj.TrailBufX(obj.TrailIdx) = obj.BallPos(1);
-                obj.TrailBufY(obj.TrailIdx) = obj.BallPos(2);
+                obj.TrailAccum = obj.TrailAccum + ds;
+                if obj.TrailAccum >= 2.0
+                    obj.TrailAccum = obj.TrailAccum - 2.0;
+                    obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                    obj.TrailBufX(obj.TrailIdx) = obj.BallPos(1);
+                    obj.TrailBufY(obj.TrailIdx) = obj.BallPos(2);
+                end
             end
 
             % Trail rendering
