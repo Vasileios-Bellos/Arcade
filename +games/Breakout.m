@@ -1318,15 +1318,25 @@ classdef Breakout < engine.GameBase
                     ebBounced = true;
                 end
 
-                % Paddle collision
-                if eb.pos(2) >= py && eb.pos(2) <= py + ph && eb.vel(2) > 0
-                    if eb.pos(1) >= px - pw/2 && eb.pos(1) <= px + pw/2
-                        hitOffset = eb.pos(1) - px;
+                % Paddle collision (swept, matching main ball)
+                ebPyHit = py - obj.BallRadius - 5;
+                ebCrossed = ebPrePos(2) < ebPyHit && eb.pos(2) >= ebPyHit && eb.vel(2) > 0;
+                ebAtPaddle = eb.pos(2) >= ebPyHit && eb.pos(2) <= py + ph && eb.vel(2) > 0;
+                if ebCrossed || ebAtPaddle
+                    if ebCrossed && eb.vel(2) > 0
+                        ebT = (ebPyHit - ebPrePos(2)) / (eb.vel(2) * obj.DtScale);
+                        ebHitX = ebPrePos(1) + ebT * eb.vel(1) * obj.DtScale;
+                    else
+                        ebHitX = eb.pos(1);
+                    end
+                    if ebHitX >= px - pw/2 && ebHitX <= px + pw/2
+                        hitOffset = ebHitX - px;
                         normalizedOffset = max(-1, min(1, hitOffset / (pw/2)));
                         returnAngle = normalizedOffset * pi/3;
                         ebSpeed = norm(eb.vel);
                         eb.vel = ebSpeed * [sin(returnAngle), -cos(returnAngle)];
-                        eb.pos(2) = py - obj.BallRadius - 1;
+                        eb.pos(1) = ebHitX;
+                        eb.pos(2) = py - obj.BallRadius - 5;
                         ebBounced = true;
                     end
                 end

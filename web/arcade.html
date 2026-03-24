@@ -2475,15 +2475,26 @@ class BreakoutGame {
             if (eb.pos[0] < dx[0]) { eb.pos[0] = dx[0]; eb.vel[0] = -eb.vel[0]; ebBounced = true; }
             if (eb.pos[0] > dx[1]) { eb.pos[0] = dx[1]; eb.vel[0] = -eb.vel[0]; ebBounced = true; }
 
-            // Paddle collision (lines 1299-1308)
-            if (eb.pos[1] >= py && eb.pos[1] <= py + ph && eb.vel[1] > 0) {
-                if (eb.pos[0] >= px - pw / 2 && eb.pos[0] <= px + pw / 2) {
-                    const hitOffset = eb.pos[0] - px;
+            // Paddle collision (swept, matching main ball)
+            const ebPyHit = py - this.ballRadius - 5;
+            const ebCrossed = ebPrePos[1] < ebPyHit && eb.pos[1] >= ebPyHit && eb.vel[1] > 0;
+            const ebAtPaddle = eb.pos[1] >= ebPyHit && eb.pos[1] <= py + ph && eb.vel[1] > 0;
+            if (ebCrossed || ebAtPaddle) {
+                let ebHitX;
+                if (ebCrossed && eb.vel[1] > 0) {
+                    const ebT = (ebPyHit - ebPrePos[1]) / (eb.vel[1] * ds);
+                    ebHitX = ebPrePos[0] + ebT * eb.vel[0] * ds;
+                } else {
+                    ebHitX = eb.pos[0];
+                }
+                if (ebHitX >= px - pw / 2 && ebHitX <= px + pw / 2) {
+                    const hitOffset = ebHitX - px;
                     const normalizedOffset = Math.max(-1, Math.min(1, hitOffset / (pw / 2)));
                     const returnAngle = normalizedOffset * Math.PI / 3;
                     const ebSpeed = Math.hypot(eb.vel[0], eb.vel[1]);
                     eb.vel = [ebSpeed * Math.sin(returnAngle), -ebSpeed * Math.cos(returnAngle)];
-                    eb.pos[1] = py - this.ballRadius - 1;
+                    eb.pos[0] = ebHitX;
+                    eb.pos[1] = py - this.ballRadius - 5;
                     ebBounced = true;
                 }
             }
