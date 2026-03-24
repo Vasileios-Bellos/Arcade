@@ -94,7 +94,17 @@ for k = 1:numel(packages)
     end
 end
 
-% 4d. docs/ folder — include everything EXCEPT TODO.md
+% 4d. web/ folder — HTML5 port
+webDir = fullfile(projectRoot, "web");
+if isfolder(webDir)
+    webFiles = dir(fullfile(webDir, "**", "*.*"));
+    for j = 1:numel(webFiles)
+        if webFiles(j).isdir; continue; end
+        includeFiles{end+1, 1} = fullfile(webFiles(j).folder, webFiles(j).name); %#ok<SAGROW>
+    end
+end
+
+% 4e. docs/ folder — include everything EXCEPT TODO.md
 docsDir = fullfile(projectRoot, "docs");
 if isfolder(docsDir)
     docsFiles = dir(fullfile(docsDir, "**", "*.*"));

@@ -1,28 +1,33 @@
-%buildExecutable  Build standalone MATLAB Arcade executable.
-%   Uses compiler.build.standaloneApplication to package the Arcade
-%   launcher and all game/engine/UI/services packages into a single
-%   distributable executable.
+%buildExecutable  Build standalone MATLAB Arcade executable and installer.
+%   Builds a Windows standalone application with custom icon and splash,
+%   then packages it as an installer with web-delivered MATLAB Runtime.
 %
 %   Prerequisites:
 %       - MATLAB Compiler toolbox (verify with: ver("compiler"))
 %       - All game classes in +games/, +engine/, +ui/, +services/
+%       - Run generateIcon.m first to create icon.png, splash.png, icon.ico
 %
 %   Usage:
 %       cd packaging
 %       buildExecutable
 %
-%   Output: packaging/build/MATLABarcade/ containing the executable
+%   Output:
+%       packaging/build/MATLABarcade/  — standalone executable
+%       packaging/installer/           — installer with web runtime download
 %
-%   See also compiler.build.standaloneApplication, Arcade
+%   See also compiler.build.standaloneWindowsApplication,
+%            compiler.package.installer, generateIcon, buildToolbox
 
 %% Resolve paths
 scriptDir = fileparts(mfilename("fullpath"));
 projectDir = fileparts(scriptDir);
 buildDir = fullfile(scriptDir, "build");
+installerDir = fullfile(scriptDir, "installer");
 
 fprintf("=== MATLAB Arcade — Standalone Build ===\n\n");
-fprintf("Project root : %s\n", projectDir);
-fprintf("Output folder: %s\n\n", buildDir);
+fprintf("Project root  : %s\n", projectDir);
+fprintf("Build output  : %s\n", buildDir);
+fprintf("Installer out : %s\n\n", installerDir);
 
 %% Check MATLAB Compiler is available
 if isempty(ver("compiler"))
@@ -42,8 +47,6 @@ if ~isfile(entryPoint)
 end
 
 %% Collect package folders as additional files
-%  compiler.build needs entire +package directories so that all classes
-%  and their namespaced references resolve at runtime.
 packageNames = ["+engine", "+games", "+services", "+ui"];
 additionalFiles = {};
 for k = 1:numel(packageNames)
@@ -56,29 +59,48 @@ for k = 1:numel(packageNames)
             "Expected package folder not found: %s", pkgDir);
     end
 end
+fprintf("\n");
 
-% Note: data/ folder NOT included — ScoreManager creates it on first play.
-% Including it would bundle dev scores into the exe.
+%% Resolve icon and splash assets
+% Icon — .png for executable build (compiler converts to .ico internally),
+%         .ico for installer branding (Add/Remove Programs, shortcut)
+icoFile = fullfile(scriptDir, "icon.ico");
+pngFile = fullfile(scriptDir, "icon.png");
+
+% Executable build only accepts PNG/BMP/JPG/GIF
+if isfile(pngFile)
+    exeIcon = pngFile;
+    fprintf("  Executable icon : %s\n", pngFile);
+else
+    exeIcon = "";
+    fprintf("  Executable icon : none — run generateIcon.m first\n");
+end
+
+% Installer also requires PNG (compiler converts internally)
+installerIcon = exeIcon;  % same .png
+
+% Splash screen — shown while the executable loads
+splashFile = fullfile(scriptDir, "splash.png");
+if isfile(splashFile)
+    exeSplash = splashFile;
+    fprintf("  Splash screen   : %s\n", splashFile);
+else
+    exeSplash = "";
+    fprintf("  Splash screen   : none — run generateIcon.m first\n");
+end
+
+% Preview/logo — used for installer branding
+previewFile = fullfile(scriptDir, "preview.png");
+if isfile(previewFile)
+    installerLogo = previewFile;
+    fprintf("  Installer logo  : %s\n", previewFile);
+else
+    installerLogo = "";
+end
 
 fprintf("\n");
 
-%% Icon (optional)
-iconFile = fullfile(scriptDir, "icon.png");
-useIcon = isfile(iconFile);
-if useIcon
-    fprintf("  Icon: %s\n\n", iconFile);
-else
-    iconFile = fullfile(scriptDir, "icon.ico");
-    if isfile(iconFile)
-        useIcon = true;
-        fprintf("  Icon: %s\n\n", iconFile);
-    else
-        fprintf("  Icon: none found (build will use default MATLAB icon)\n");
-        fprintf("  Run generateIcon.m first to create icon.png, then convert to .ico\n\n");
-    end
-end
-
-%% Build
+%% Build standalone Windows application
 try
     fprintf("Building standalone application...\n");
     fprintf("This may take several minutes on the first build.\n\n");
@@ -90,21 +112,25 @@ try
     opts = [opts, {"AdditionalFiles", string(additionalFiles)}];
     opts = [opts, {"OutputDir", buildDir}];
     opts = [opts, {"ExecutableName", "MATLABarcade"}];
+    opts = [opts, {"ExecutableVersion", "1.0.0.0"}];
     opts = [opts, {"Verbose", "on"}];
     opts = [opts, {"AutoDetectDataFiles", "on"}];
 
-    if useIcon
-        opts = [opts, {"ExecutableIcon", iconFile}];
+    if strlength(exeIcon) > 0
+        opts = [opts, {"ExecutableIcon", exeIcon}];
+    end
+    if strlength(exeSplash) > 0
+        opts = [opts, {"ExecutableSplashScreen", exeSplash}];
     end
 
-    result = compiler.build.standaloneWindowsApplication(opts{:});
+    buildResult = compiler.build.standaloneWindowsApplication(opts{:});
 
     elapsed = toc(buildTic);
     fprintf("\n=== BUILD SUCCEEDED (%.1f seconds) ===\n\n", elapsed);
-    fprintf("Output directory:\n  %s\n\n", result.Options.OutputDir);
+    fprintf("Output directory:\n  %s\n\n", buildResult.Options.OutputDir);
 
     % List output files
-    outFiles = dir(fullfile(result.Options.OutputDir, "**/*"));
+    outFiles = dir(fullfile(buildResult.Options.OutputDir, "**/*"));
     outFiles = outFiles(~[outFiles.isdir]);
     if ~isempty(outFiles)
         fprintf("Output files:\n");
@@ -113,10 +139,6 @@ try
                 outFiles(k).name, outFiles(k).bytes / 1e6);
         end
     end
-
-    fprintf("\nTo run the executable, the target machine needs MATLAB Runtime R%s.\n", ...
-        version("-release"));
-    fprintf("Download: https://www.mathworks.com/products/compiler/matlab-runtime.html\n");
 
 catch ME
     fprintf(2, "\n=== BUILD FAILED ===\n\n");
@@ -129,7 +151,79 @@ catch ME
     fprintf(2, "\nTroubleshooting:\n");
     fprintf(2, "  1. Verify MATLAB Compiler: ver('compiler')\n");
     fprintf(2, "  2. Check all +package folders exist in project root\n");
-    fprintf(2, "  3. Run depfun('Arcade') to find missing dependencies\n");
-    fprintf(2, "  4. Ensure no syntax errors: checkcode('%s')\n", entryPoint);
+    fprintf(2, "  3. Ensure no syntax errors: checkcode('%s')\n", entryPoint);
     rethrow(ME);
 end
+
+%% Package installer with web-delivered MATLAB Runtime
+try
+    fprintf("\n=== Packaging Installer ===\n\n");
+    installerTic = tic;
+
+    instOpts = {};
+    instOpts = [instOpts, {"ApplicationName", "MATLAB Arcade"}];
+    instOpts = [instOpts, {"AuthorName", "Vasileios Bellos"}];
+    instOpts = [instOpts, {"Version", "1.0.0"}];
+    instOpts = [instOpts, {"Summary", "15 neon-styled arcade games in pure MATLAB"}];
+    instOpts = [instOpts, {"Description", ...
+        "A collection of 15 arcade games (8 classics + 7 originals) with a " + ...
+        "neon-styled launcher, persistent high scores, frame-rate independence, " + ...
+        "and automatic display scaling. No toolboxes required."}];
+    instOpts = [instOpts, {"InstallerName", "MATLABarcadeInstaller"}];
+    instOpts = [instOpts, {"OutputDir", installerDir}];
+    instOpts = [instOpts, {"RuntimeDelivery", "web"}];
+    instOpts = [instOpts, {"DefaultInstallationDir", ...
+        fullfile("C:", "Program Files", "MATLAB Arcade")}];
+    instOpts = [instOpts, {"Verbose", "on"}];
+
+    % Installer icon — for Add/Remove Programs and installer exe thumbnail
+    if strlength(installerIcon) > 0
+        instOpts = [instOpts, {"InstallerIcon", installerIcon}];
+        instOpts = [instOpts, {"AddRemoveProgramsIcon", installerIcon}];
+        fprintf("  Installer icon         : %s\n", installerIcon);
+    end
+
+    % Installer splash — shown while installer initializes
+    if strlength(exeSplash) > 0
+        instOpts = [instOpts, {"InstallerSplash", exeSplash}];
+        fprintf("  Installer splash       : %s\n", exeSplash);
+    end
+
+    % Installer logo — displayed during installation wizard pages
+    if strlength(installerLogo) > 0
+        instOpts = [instOpts, {"InstallerLogo", installerLogo}];
+        fprintf("  Installer logo         : %s\n", installerLogo);
+    end
+
+    fprintf("  Runtime delivery       : web (download during install)\n\n");
+
+    compiler.package.installer(buildResult, instOpts{:});
+
+    elapsed = toc(installerTic);
+    fprintf("\n=== INSTALLER PACKAGED (%.1f seconds) ===\n\n", elapsed);
+
+    % List installer files
+    instFiles = dir(fullfile(installerDir, "*"));
+    instFiles = instFiles(~[instFiles.isdir]);
+    if ~isempty(instFiles)
+        fprintf("Installer files:\n");
+        for k = 1:numel(instFiles)
+            fprintf("  %s  (%.1f MB)\n", ...
+                instFiles(k).name, instFiles(k).bytes / 1e6);
+        end
+    end
+
+    fprintf("\nThe installer will download MATLAB Runtime R%s during installation.\n", ...
+        version("-release"));
+    fprintf("End users do NOT need MATLAB installed.\n");
+
+catch ME
+    fprintf(2, "\n=== INSTALLER PACKAGING FAILED ===\n\n");
+    fprintf(2, "Error: %s\n", ME.message);
+    fprintf(2, "\nThe standalone .exe was built successfully.\n");
+    fprintf(2, "To run it, the target machine needs MATLAB Runtime R%s.\n", ...
+        version("-release"));
+    fprintf(2, "Download: https://www.mathworks.com/products/compiler/matlab-runtime.html\n");
+end
+
+fprintf("\n=== All done ===\n");
