@@ -878,18 +878,18 @@ Three scripts in `packaging/` produce distributable artifacts:
 
 ### generateIcon.m
 
-Generates `icon.png` (256x256 via `getframe` + `imresize`), `icon.ico` (multi-resolution 16/32/48/256 via custom PNG-based ICO writer), `splash.png` and `preview.png` (800x600 4:3 at 300 DPI via `exportgraphics`). The preview features the neon "A" ship with inner polybuffer rhombus, menu-style title with shadow, 4 symmetric comet trails, and starfield.
+Generates `icon.png` (256x256 via `getframe` + `imresize`), `icon.ico` (multi-resolution 16/32/48/256 via custom PNG-based ICO writer), and `splash.png` (800x600 4:3 at 300 DPI via `exportgraphics`). The splash features the neon "A" ship with inner polybuffer rhombus, menu-style title with shadow, 4 symmetric comet trails, and starfield. Used for exe splash, installer branding, and File Exchange preview.
 
 ### buildToolbox.m
 
-Creates `Arcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023b+). Includes `Arcade.m`, all 4 packages (`+engine`, `+games`, `+services`, `+ui`), `web/` folder (HTML port), `README.md`, and `dev/README.md`. Excludes `recording/`, `assets/`, `data/`, `docs/TODO.md`, and `packaging/`. Uses `icon.png` as `ToolboxImageFile`.
+Creates `Arcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023a+). Includes `Arcade.m`, all 4 packages (`+engine`, `+games`, `+services`, `+ui`), `README.md`, and `LICENSE`. Uses `icon.png` as `ToolboxImageFile`.
 
 ### buildExecutable.m
 
 Two-phase build:
 
 1. **Standalone exe**: `compiler.build.standaloneWindowsApplication` with `ExecutableIcon` (icon.png, converted to .ico internally by MATLAB Compiler) and `ExecutableSplashScreen` (splash.png). Includes all 4 package folders as `AdditionalFiles`.
-2. **Installer**: `compiler.package.installer` with `InstallerIcon`, `InstallerSplash`, `InstallerLogo` (preview.png), `RuntimeDelivery = "web"` (downloads MATLAB Runtime during installation), and full metadata (name, author, version, description, default install path).
+2. **Installer**: `compiler.package.installer` with `InstallerIcon`, `InstallerSplash`, `InstallerLogo` (splash.png), `RuntimeDelivery = "web"` (downloads MATLAB Runtime during installation), and full metadata (name, author, version, description, default install path).
 
 Output: `build/Arcade.exe` (~1.5 MB) + `installer/ArcadeInstaller.exe` (~2.8 MB).
 
@@ -917,13 +917,10 @@ gh release upload v1.0 packaging/Arcade.mltbx packaging/installer/ArcadeInstalle
 
 ## Recording
 
-Scripts in `recording/` capture gameplay and menu animations for documentation GIFs:
+Recording scripts in `+services/` capture gameplay and menu animations for documentation GIFs:
 
-- **`recordGame.m`**: Records a game session to GIF + MP4. Creates a figure, runs the game via `play()`-like loop, captures frames via `getframe`, builds GIF with global colormap via `rgb2ind`
-- **`recordPlay.m`**: Live recording with real input. Optional frame limit. Save prompt offers custom FPS (`f`), target duration (`s`), or discard (`n`)
-- **`recordMenu*.m`**: 4 variants of menu scroll recording with different navigation speeds
-- **`recordAll.m`**: Batch orchestrator for all recordings
-- **`createHeroGif.m`**: Generates hero GIF from captured frames
+- **`recordGame.m`**: Automated recording with simulated input. Runs the game for a fixed duration, captures frames, outputs GIF + MP4
+- **`recordMenu.m`**: Menu scroll recording with arrow-key navigation through all 15 games
 
 All GIFs use `rgb2ind` with a shared global colormap built from sampled frames for consistent palette. MP4s use `VideoWriter` with MPEG-4 at 95% quality.
 
