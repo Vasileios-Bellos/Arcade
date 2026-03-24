@@ -1409,8 +1409,8 @@ class PongGame {
             }
             this.updateAIPaddle(ds);
             this.ballPhase += 0.0333 * ds;   // line 265
-            this.hitEffects.update(ds);
             this.render(ds);
+            this.hitEffects.update(this.ctx, ds);
             return;
         }
 
@@ -1484,14 +1484,14 @@ class PongGame {
         // --- Goal detection (lines 329-339) ---
         if (this.ballPos[0] > dx[1] + this.ballRadius * 2) {
             this.onGoal('opponent');
-            this.hitEffects.update(ds);
             this.render(ds);
+            this.hitEffects.update(this.ctx, ds);
             return;
         }
         if (this.ballPos[0] < dx[0] - this.ballRadius * 2) {
             this.onGoal('player');
-            this.hitEffects.update(ds);
             this.render(ds);
+            this.hitEffects.update(this.ctx, ds);
             return;
         }
 
@@ -2236,8 +2236,8 @@ class BreakoutGame {
                 this.levelPhase = 'play';
                 this.serveBall();
             }
-            this.hitEffects.update(ds);
             this.render(ds);
+            this.hitEffects.update(this.ctx, ds);
             return;
         }
 
@@ -2257,8 +2257,8 @@ class BreakoutGame {
             if (this.serveCountdown <= 0) {
                 this.launchBall();
             }
-            this.hitEffects.update(ds);
             this.render(ds);
+            this.hitEffects.update(this.ctx, ds);
             return;
         }
 
@@ -2380,8 +2380,8 @@ class BreakoutGame {
                 this.trailAccum = eb.trailAccum || 0;
             } else {
                 this.loseLife();
-                this.hitEffects.update(ds);
                 this.render(ds);
+                this.hitEffects.update(this.ctx, ds);
                 return;
             }
         }
@@ -2408,8 +2408,8 @@ class BreakoutGame {
         // --- Level clear check (lines 493-496) ---
         if (this.bricksRemaining <= 0) {
             this.nextLevel();
-            this.hitEffects.update(ds);
             this.render(ds);
+            this.hitEffects.update(this.ctx, ds);
             return;
         }
 
