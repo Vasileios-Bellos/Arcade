@@ -2419,7 +2419,7 @@ class BreakoutGame {
         // Trail buffer (record at ~30fps to match MATLAB trail visual length)
         const spd = Math.hypot(this.ballVel[0], this.ballVel[1]);
         this.trailAccum = (this.trailAccum || 0) + ds;
-        if (spd > 0.3 && this.trailAccum >= 2.0) {
+        if (this.trailAccum >= 2.0) {
             this.trailAccum -= 2.0;
             const tidx = this.trailIdx % this.trailLen;
             this.trailBufX[tidx] = this.ballPos[0];
