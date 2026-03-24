@@ -8050,6 +8050,7 @@ class FlickItGame {
         this.trailBufX = new Array(this.trailLen).fill(NaN);
         this.trailBufY = new Array(this.trailLen).fill(NaN);
         this.trailIdx = 0;
+        this.trailAccum = 0;
     }
 
     update(mousePos, dt, dtScale) {
@@ -8277,6 +8278,7 @@ class FlickItGame {
             this.trailBufX.fill(NaN);
             this.trailBufY.fill(NaN);
             this.trailIdx = 0;
+            this.trailAccum = 0;
         }
     }
 
@@ -8573,6 +8575,7 @@ class JugglerGame {
         this.trailBufX = new Array(this.trailLen).fill(NaN);
         this.trailBufY = new Array(this.trailLen).fill(NaN);
         this.trailIdx = 0;
+        this.trailAccum = 0;
 
         this.extraBalls = [];
     }
@@ -8713,6 +8716,7 @@ class JugglerGame {
                 this.trailBufX.fill(NaN);
                 this.trailBufY.fill(NaN);
                 this.trailIdx = 0;
+                this.trailAccum = 0;
                 this.flickLocked = false;
                 this.ballFlicks = 0;
             }
@@ -8810,6 +8814,7 @@ class JugglerGame {
             trailBufX: new Array(this.trailLen).fill(NaN),
             trailBufY: new Array(this.trailLen).fill(NaN),
             trailIdx: 0,
+            trailAccum: 0,
         });
     }
 

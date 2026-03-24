@@ -388,6 +388,13 @@ classdef FlickIt < engine.GameBase
                 obj.Bounces = obj.Bounces + 1;
                 obj.TotalBounces = obj.TotalBounces + 1;
 
+                % Force-record bounce contact into trail
+                tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(tidx) = obj.BallPos(1);
+                obj.TrailBufY(tidx) = obj.BallPos(2);
+                obj.TrailIdx = tidx;
+                obj.TrailAccum = 0;
+
                 % Score per bounce: base + speed bonus, scaled by combo
                 spd = norm(obj.BallVel);
                 bouncePoints = round((5 + spd * obj.SpeedScale * 2) * max(1, obj.Combo * 0.5));
