@@ -301,10 +301,12 @@ classdef FlickIt < engine.GameBase
             launchPoints = round(spd * obj.SpeedScale * 5 * max(1, obj.Combo * 0.5));
             obj.addScore(launchPoints);
 
-            % Reset trail for clean start
-            obj.TrailBufX(:) = NaN;
-            obj.TrailBufY(:) = NaN;
-            obj.TrailIdx = 0;
+            % Force-record flick contact into trail (keep existing trail)
+            tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+            obj.TrailBufX(tidx) = obj.BallPos(1);
+            obj.TrailBufY(tidx) = obj.BallPos(2);
+            obj.TrailIdx = tidx;
+            obj.TrailAccum = 0;
 
             % Visual effects
             clr = obj.flickSpeedColor(spd * obj.SpeedScale);

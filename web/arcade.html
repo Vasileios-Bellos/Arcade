@@ -8151,10 +8151,12 @@ class FlickItGame {
         const launchPoints = Math.round(spd * this.speedScale * 5 * Math.max(1, this.combo * 0.5));
         this.score += launchPoints;
 
-        // Reset trail
-        this.trailBufX.fill(NaN);
-        this.trailBufY.fill(NaN);
-        this.trailIdx = 0;
+        // Force-record flick contact into trail (keep existing trail)
+        const tidx = this.trailIdx % this.trailLen;
+        this.trailBufX[tidx] = this.ballPos[0];
+        this.trailBufY[tidx] = this.ballPos[1];
+        this.trailIdx = tidx + 1;
+        this.trailAccum = 0;
 
         // Visual effects
         const clr = flickSpeedColor(spd * this.speedScale);
