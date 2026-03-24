@@ -2123,8 +2123,8 @@ class BreakoutGame {
                 this.extraBalls.push({
                     pos: [...src.pos],
                     vel: [spd * Math.cos(angle), spd * Math.sin(angle)],
-                    trailBufX: new Float64Array(15).fill(NaN),
-                    trailBufY: new Float64Array(15).fill(NaN),
+                    trailBufX: new Float64Array(this.trailLen).fill(NaN),
+                    trailBufY: new Float64Array(this.trailLen).fill(NaN),
                     trailIdx: 0,
                     trailAccum: 0,
                 });
@@ -2367,14 +2367,15 @@ class BreakoutGame {
         // --- Bottom edge: lose life (lines 457-474) ---
         if (this.ballPos[1] > dy[1] + this.ballRadius * 2) {
             if (this.extraBalls.length > 0) {
-                // Promote first extra ball (lines 460-469)
+                // Promote first extra ball — assign references, keep trail
                 const eb = this.extraBalls.shift();
                 this.ballPos = eb.pos;
                 this.ballVel = eb.vel;
                 this.ballSpeed = Math.hypot(eb.vel[0], eb.vel[1]);
-                this.trailBufX.fill(NaN);
-                this.trailBufY.fill(NaN);
-                this.trailIdx = 0;
+                this.trailBufX = eb.trailBufX;
+                this.trailBufY = eb.trailBufY;
+                this.trailIdx = eb.trailIdx;
+                this.trailAccum = eb.trailAccum || 0;
             } else {
                 this.loseLife();
                 this.hitEffects.update(ds);
@@ -2457,7 +2458,7 @@ class BreakoutGame {
 
             // Force-record bounce contact into trail
             if (ebBounced) {
-                const tidxEB = eb.trailIdx % 15;
+                const tidxEB = eb.trailIdx % this.trailLen;
                 eb.trailBufX[tidxEB] = eb.pos[0];
                 eb.trailBufY[tidxEB] = eb.pos[1];
                 eb.trailIdx = tidxEB + 1;
@@ -2473,7 +2474,7 @@ class BreakoutGame {
             // Brick collision (line 1318)
             const result = this.brickCollision(ebPrePos, eb.pos, eb.vel);
             if (result.pos[0] !== eb.pos[0] || result.pos[1] !== eb.pos[1]) {
-                const tidxBR = eb.trailIdx % 15;
+                const tidxBR = eb.trailIdx % this.trailLen;
                 eb.trailBufX[tidxBR] = result.pos[0];
                 eb.trailBufY[tidxBR] = result.pos[1];
                 eb.trailIdx = tidxBR + 1;
@@ -2486,7 +2487,7 @@ class BreakoutGame {
             eb.trailAccum = (eb.trailAccum || 0) + ds;
             if (eb.trailAccum >= 2.0) {
                 eb.trailAccum -= 2.0;
-                const tidxT = eb.trailIdx % 15;
+                const tidxT = eb.trailIdx % this.trailLen;
                 eb.trailBufX[tidxT] = eb.pos[0];
                 eb.trailBufY[tidxT] = eb.pos[1];
                 eb.trailIdx = tidxT + 1;
@@ -2638,8 +2639,8 @@ class BreakoutGame {
             const ebColor = isFireball ? Colors.Red : flickSpeedColor(ebMapped);
 
             const tx = [], ty = [];
-            for (let i = 0; i < 15; i++) {
-                const idx = (eb.trailIdx + i) % 15;
+            for (let i = 0; i < this.trailLen; i++) {
+                const idx = (eb.trailIdx + i) % this.trailLen;
                 if (!isNaN(eb.trailBufX[idx])) {
                     tx.push(eb.trailBufX[idx]);
                     ty.push(eb.trailBufY[idx]);
