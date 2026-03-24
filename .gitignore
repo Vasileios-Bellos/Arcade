@@ -4,10 +4,8 @@
 # User data (auto-generated on first play)
 data/
 
-# Packaging build artifacts
+# Packaging build intermediates
 packaging/build/
-packaging/installer/
-packaging/*.mltbx
 packaging/icon_*.png
 
 # Asset videos (GIFs tracked, MP4s too large)
