@@ -1,4 +1,4 @@
-# MATLAB Arcade — Packaging Guide
+# Arcade - Packaging Guide
 
 Build and distribute the MATLAB Arcade as a standalone Windows executable or MATLAB Toolbox.
 
@@ -65,23 +65,23 @@ generateIcon
 ```
 
 This creates:
-- `packaging/icon.png` — 256x256 app icon (neon ship wireframe)
-- `packaging/splash.png` — 640x480 splash screen
+- `packaging/icon.png` - 256x256 app icon (neon ship wireframe)
+- `packaging/splash.png` - 640x480 splash screen
 
 #### Converting to .ico (optional, recommended for Windows)
 
 The `.png` icon works with `compiler.build.standaloneApplication`. For a proper Windows `.ico` with multiple resolutions:
 
-**Option A — ImageMagick (command line):**
+**Option A - ImageMagick (command line):**
 ```bash
 magick convert icon.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico
 ```
 
-**Option B — Online converter:**
+**Option B - Online converter:**
 - https://convertio.co/png-ico/
 - https://icoconvert.com/
 
-**Option C — MATLAB File Exchange:**
+**Option C - MATLAB File Exchange:**
 Search for "png2ico" or "img2ico" on File Exchange.
 
 ### Step 2: Build the Executable
@@ -114,8 +114,8 @@ packaging/build/
 
 #### What to ship
 
-1. **`MATLABarcade.exe`** — the compiled executable
-2. **MATLAB Runtime installer** — required on machines without MATLAB
+1. **`MATLABarcade.exe`** - the compiled executable
+2. **MATLAB Runtime installer** - required on machines without MATLAB
 
 #### MATLAB Runtime
 
@@ -132,10 +132,10 @@ The runtime is approximately 3 GB installed. Users only need to install it once.
 
 #### Distribution options
 
-**Option A — Ship exe + link to Runtime:**
+**Option A - Ship exe + link to Runtime:**
 Provide the `.exe` and tell users to install MATLAB Runtime from the link above.
 
-**Option B — Include Runtime installer:**
+**Option B - Include Runtime installer:**
 ```matlab
 compiler.build.standaloneApplication("Arcade.m", ...
     "AdditionalFiles", {"+engine", "+games", "+services", "+ui", "data"}, ...

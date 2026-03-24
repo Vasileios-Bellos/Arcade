@@ -976,12 +976,12 @@ end
 
 ### Checklist
 
-- [ ] All physics multiplied by `obj.DtScale` (velocity, gravity, phase)
-- [ ] All random events scaled by `obj.DtScale` (spawn rates, fire rates)
-- [ ] All font sizes use `base * obj.FontScale`
-- [ ] No `getpixelposition` or `get(0, "ScreenPixelsPerInch")` in per-frame code
-- [ ] No graphics creation/deletion in `onUpdate`
-- [ ] Trail buffers use DtScale accumulator (if applicable)
-- [ ] `getResults()` returns game-specific stats (host adds score/combo/time)
-- [ ] `onCleanup()` deletes all handles + orphan guard
-- [ ] `ComboAutoFade = false` if combo should persist between events (e.g., Breakout, FruitNinja)
+- [x] All physics multiplied by `obj.DtScale` (velocity, gravity, phase)
+- [x] All random events scaled by `obj.DtScale` (spawn rates, fire rates)
+- [x] All font sizes use `base * obj.FontScale`
+- [x] No `getpixelposition` or `get(0, "ScreenPixelsPerInch")` in per-frame code
+- [x] No graphics creation/deletion in `onUpdate`
+- [x] Trail buffers use DtScale accumulator (if applicable)
+- [x] `getResults()` returns game-specific stats (host adds score/combo/time)
+- [x] `onCleanup()` deletes all handles + orphan guard
+- [x] `ComboAutoFade = false` if combo should persist between events (e.g., Breakout, FruitNinja)
