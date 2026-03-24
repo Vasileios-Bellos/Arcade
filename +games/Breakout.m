@@ -949,7 +949,6 @@ classdef Breakout < engine.GameBase
                 remaining = ballPos;  % fireball continues straight
                 [newPos, newVel] = obj.brickCollision(hitPt, remaining, newVel);
             end
-            end
         end
 
         function destroyBrick(obj, brickIdx)
