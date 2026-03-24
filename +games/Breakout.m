@@ -256,8 +256,6 @@ classdef Breakout < engine.GameBase
 
         function onUpdate(obj, pos)
             %onUpdate  Per-frame breakout game logic.
-            ds = obj.DtScale;
-
             dx = obj.DisplayRange.X;
             dy = obj.DisplayRange.Y;
 
@@ -1545,11 +1543,11 @@ classdef Breakout < engine.GameBase
             % Trail buffer (DtScale accumulator, fps-independent)
             obj.TrailAccum = obj.TrailAccum + obj.DtScale;
             if obj.TrailAccum >= 2.0
-                    obj.TrailAccum = obj.TrailAccum - 2.0;
-                    obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
-                    obj.TrailBufX(obj.TrailIdx) = obj.BallPos(1);
-                    obj.TrailBufY(obj.TrailIdx) = obj.BallPos(2);
-                end
+                obj.TrailAccum = obj.TrailAccum - 2.0;
+                obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                obj.TrailBufX(obj.TrailIdx) = obj.BallPos(1);
+                obj.TrailBufY(obj.TrailIdx) = obj.BallPos(2);
+            end
 
             % Trail rendering
             if spd > 0.5 && obj.TrailIdx > 0

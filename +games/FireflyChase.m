@@ -213,7 +213,7 @@ classdef FireflyChase < engine.GameBase
                         tStart = pidx - trailSpan;
                         step = max(1, floor(trailSpan / 40));
                         idx = tStart:step:pidx;
-                        if idx(end) ~= pidx; idx(end+1) = pidx; end
+                        if idx(end) ~= pidx; idx(end+1) = pidx; end %#ok<AGROW>
                         tx = ff.pathX(idx);
                         ty = ff.pathY(idx);
                     else
@@ -226,7 +226,7 @@ classdef FireflyChase < engine.GameBase
                         end
                         step = max(1, floor(numel(txFull) / 40));
                         idx = 1:step:numel(txFull);
-                        if idx(end) ~= numel(txFull); idx(end+1) = numel(txFull); end
+                        if idx(end) ~= numel(txFull); idx(end+1) = numel(txFull); end %#ok<AGROW>
                         tx = txFull(idx);
                         ty = tyFull(idx);
                     end
