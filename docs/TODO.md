@@ -16,7 +16,6 @@ Roadmap and issue tracker. See [DEVELOPER.md](DEVELOPER.md) for architecture det
 
 - [ ] Tetris: rapidly rotating a piece on low speed can stall it indefinitely on the landing row - instant lock doesn't prevent rotation-based stalling
 - [ ] Breakout: corner-hit edge case - ball approaching at shallow angle can sometimes reflect off wrong face at brick corners
-- [ ] Snake: food not collected on pass - hard to reproduce. Food check uses exact integer grid match (`isequal`); may relate to direction change timing or queued input consuming the step that would land on the food cell
 
 ---
 
@@ -70,6 +69,7 @@ Full comparison completed across all 15 games. All physics constants, scoring fo
 - [x] TargetPractice timeout - wall-clock is correct
 - [x] Tetris NextCell - isprop guard for GraphicsPlaceholder
 - [x] Checkcode - zero warnings across all 19 source files
+- [x] Snake food spawn - moved spawnFood after body update so newHead is included in occupied cell check (MATLAB + HTML)
 
 ### Documentation & Packaging
 - [x] DEVELOPER.md - comprehensive architecture, per-game technical notes, all systems documented
