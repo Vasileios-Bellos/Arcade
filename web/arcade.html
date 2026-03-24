@@ -2189,7 +2189,6 @@ class BreakoutGame {
         }
 
         this.buildBrickGrid(this.level);
-        this.serveBall();
         this.levelPhase = 'announce';
         this.levelTransFrames = 60;  // line 1003
 
@@ -2245,6 +2244,7 @@ class BreakoutGame {
             }
             if (this.levelTransFrames <= 0) {
                 this.levelPhase = 'play';
+                this.serveBall();
             }
             this.render(ds);
             this.hitEffects.update(this.ctx, ds);
