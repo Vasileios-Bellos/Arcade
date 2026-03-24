@@ -33,7 +33,7 @@ Arcade.m (handle class)
 
 **`GameBase.init()`** - Concrete public method called by all hosts before `onInit`. Sets `Ax`, `DisplayRange`, and `FontScale`. When the launcher calls `init()`, it sets `game.FontScale = obj.FontScale` first, so `init()` keeps that value. In standalone mode (`play()`), `init()` computes `FontScale` from the axes via `getPixelScale()` since it starts at the default value of 1.
 
-**`GameMenu.m`** - Sealed handle class. Neon-styled scrollable menu with twinkling starfield (20 pulsing stars at 0.56 Hz + ~90 static dots), 2-slot patch-based comet trails (40 vertices each, `EdgeAlpha = "interp"`, 1.2-2.0s flight time), pill-shaped item slots (rounded rectangles with 64-vertex corners) with key badges and high-score display. Two selection modes: `"click"` (mouse) and `"dwell"` (3s hover auto-select with cyan-to-green color ramp). Up to 5 visible slots with wrap-around scrolling and proportional scroll thumb. `scaleFonts()` provides deterministic font sizing: Title 29\*ps, Subtitle 13\*ps, Names 12\*ps, Keys/Scores 10\*ps. Keyboard mode suppresses mouse hover highlighting - exited on >15 data unit mouse movement.
+**`GameMenu.m`** - Sealed handle class. Neon-styled scrollable menu with twinkling starfield (20 pulsing stars at 0.56 Hz + ~90 static dots), 2-slot patch-based comet trails (40 vertices each, `EdgeAlpha = "interp"`, 1.2-2.0s flight time), pill-shaped item slots (rounded rectangles with 64-vertex corners) with key badges and high-score display. 2 selection modes: `"click"` (mouse) and `"dwell"` (3s hover auto-select with cyan-to-green color ramp). Up to 5 visible slots with wrap-around scrolling and proportional scroll thumb. `scaleFonts()` provides deterministic font sizing: Title 29\*ps, Subtitle 13\*ps, Names 12\*ps, Keys/Scores 10\*ps. Keyboard mode suppresses mouse hover highlighting - exited on >15 data unit mouse movement.
 
 **`ScoreManager.m`** - Static utility class for persistent high scores. Storage in `data/scores.mat` (auto-created on first play, not tracked in git). Stores high score, max combo, total plays, and cumulative session time per game.
 
@@ -248,7 +248,7 @@ Both the bright core trail and dim glow trail use these same formulas. Extra bal
 
 At high ball speeds, the ball can travel through multiple bricks in a single frame. A naive approach (testing each brick and processing the first hit found) can process the wrong brick if iteration order doesn't match the ball's path.
 
-The solution is a two-pass swept collision:
+The solution is a 2-pass swept collision:
 
 **Pass 1 - Find earliest collision**: Test the ball's path segment (prePos -> ballPos) against every brick's AABB expanded by `BallRadius`. For each brick, compute the parametric entry time `tMin` using slab intersection. Track the brick with the smallest `tMin` (earliest contact along the path).
 
@@ -886,7 +886,7 @@ Creates `Arcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023a+). Inc
 
 ### buildExecutable.m
 
-Two-phase build:
+2-phase build:
 
 1. **Standalone exe**: `compiler.build.standaloneWindowsApplication` with `ExecutableIcon` (icon.png, converted to .ico internally by MATLAB Compiler) and `ExecutableSplashScreen` (splash.png). Includes all 4 package folders as `AdditionalFiles`.
 2. **Installer**: `compiler.package.installer` with `InstallerIcon`, `InstallerSplash`, `InstallerLogo` (splash.png), `RuntimeDelivery = "web"` (downloads MATLAB Runtime during installation), and full metadata (name, author, version, description, default install path).

@@ -34,7 +34,7 @@ Full comparison completed across all 15 games. All physics constants, scoring fo
 - [x] RailShooter crosshair breathing - frameCount += ds, ring static
 
 ### Breakout
-- [x] Brick collision - two-pass earliest-tMin swept detection (MATLAB + HTML)
+- [x] Brick collision - 2-pass earliest-tMin swept detection (MATLAB + HTML)
 - [x] Multiball - identical appearance/trails, seamless handle adoption on promotion
 - [x] Hit effects - render after game graphics, fixed NaN corruption in HTML
 - [x] Serve timing - countdown runs concurrently with level announce, ball launches when text disappears

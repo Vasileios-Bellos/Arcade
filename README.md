@@ -5,7 +5,7 @@
   <a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" height="70"></a>
 </p>
 
-15 arcade games built entirely in MATLAB - eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
+15 arcade games built entirely in MATLAB - 8 timeless classics and 7 originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
 A neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling ties everything together. Pick up and play with mouse, keyboard, or both.
 
@@ -37,7 +37,7 @@ games.Asteroids().play();
 
 ## The Classics
 
-Eight legendary arcade games, recreated from scratch in pure MATLAB.
+8 legendary arcade games, recreated from scratch in pure MATLAB.
 
 ### 1. Pong
 
@@ -92,7 +92,7 @@ Slash fruit as they fly across the screen. Cut multiple fruits in quick successi
 
 ## The Originals
 
-Seven original games - physics toys, speed challenges, and shooters designed to push your reflexes.
+7 original games - physics toys, speed challenges, and shooters designed to push your reflexes.
 
 ### 9. Target Practice
 
@@ -108,7 +108,7 @@ Glowing targets appear and shrink on a real-time countdown. Hit them before they
 
 ### 11. Flick It!
 
-Flick a physics orb off walls with your mouse. The ball shifts from cyan to red with speed. Three-layer neon rendering (aura, glow, core) with a comet trail that reflects off every surface. Re-flick a moving ball for combo.
+Flick a physics orb off walls with your mouse. The ball shifts from cyan to red with speed. 3-layer neon rendering (aura, glow, core) with a comet trail that reflects off every surface. Re-flick a moving ball for combo.
 
 <p align="center"><img src="assets/flickit.gif" alt="Flick It!" width="60%"></p>
 
@@ -126,7 +126,7 @@ Defend a hex base from asteroid waves across 3 tiers (large, medium, small). Lau
 
 ### 14. Shield Guardian
 
-Rotate a shield arc to deflect incoming projectiles and protect your core. Three projectile types (fast, normal, heavy). Deflected projectiles can chain-hit other incoming shots. Waves escalate in speed and density.
+Rotate a shield arc to deflect incoming projectiles and protect your core. 3 projectile types (fast, normal, heavy). Deflected projectiles can chain-hit other incoming shots. Waves escalate in speed and density.
 
 <p align="center"><img src="assets/shieldguardian.gif" alt="Shield Guardian" width="60%"></p>
 
@@ -170,7 +170,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighte
 | **Frame-Rate Independence** | Physics runs at consistent speed from 20 to 240+ FPS |
 | **Auto-Scaling Display** | All text, markers, and line widths resize automatically on window resize |
 | **Combo System** | Shared scoring with multipliers and animated fade-outs across all games |
-| **Neon Visual Style** | Three-layer ball rendering (aura + glow + core), comet trails, particle bursts |
+| **Neon Visual Style** | 3-layer ball rendering (aura + glow + core), comet trails, particle bursts |
 | **Standalone Mode** | Every game runs independently: `games.Pong().play();` |
 | **HTML5 Port** | All 15 games in a single file - verified identical physics, scoring, and visuals across both platforms |
 | **Subclassable** | Override `buildRegistry` and `getMenuTitles` for custom game sets |
@@ -247,7 +247,7 @@ Ball trails use a DtScale accumulator that records every 2.0 units, ensuring con
 <details>
 <summary>Swept collision detection</summary>
 
-Breakout uses a two-pass swept collision algorithm:
+Breakout uses a 2-pass swept collision algorithm:
 
 1. **Pass 1**: Test the ball's path against every brick AABB (expanded by ball radius). Find the brick with the smallest parametric `tMin` - the earliest collision along the path.
 2. **Pass 2**: Process only that brick - reflect velocity, apply damage, spawn effects.

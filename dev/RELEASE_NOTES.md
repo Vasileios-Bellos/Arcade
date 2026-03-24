@@ -1,6 +1,6 @@
 # v1.0.0 - Arcade
 
-15 arcade games built entirely in MATLAB - eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
+15 arcade games built entirely in MATLAB - 8 timeless classics and 7 originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
 ## Games
 

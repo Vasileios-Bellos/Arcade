@@ -42,7 +42,7 @@ for i = 1:size(gameEntries, 1)
     entry.name = gameEntries{i, 3};
     entry.key = gameEntries{i, 1};
     registry(gameEntries{i, 1}) = entry;
-    registryOrder(end + 1) = gameEntries{i, 1}; %#<
+    registryOrder(end + 1) = gameEntries{i, 1}; %#ok<AGROW>
 end
 
 menu = ui.GameMenu(ax, range, registry, registryOrder, ...
