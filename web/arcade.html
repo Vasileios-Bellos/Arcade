@@ -2189,7 +2189,11 @@ class BreakoutGame {
         }
 
         this.buildBrickGrid(this.level);
-        this.serveBall();
+        this.trailBufX.fill(NaN);
+        this.trailBufY.fill(NaN);
+        this.trailIdx = 0;
+        this.trailAccum = 0;
+        this.ballVel = [0, 0];
         this.levelPhase = 'announce';
         this.levelTransFrames = 60;  // line 1003
 

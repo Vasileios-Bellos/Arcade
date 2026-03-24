@@ -1000,7 +1000,11 @@ classdef Breakout < engine.GameBase
 
             % Build new grid and announce
             obj.buildBrickGrid(obj.Level);
-            obj.serveBall();
+            obj.TrailBufX(:) = NaN;
+            obj.TrailBufY(:) = NaN;
+            obj.TrailIdx = 0;
+            obj.TrailAccum = 0;
+            obj.BallVel = [0, 0];
             obj.LevelPhase = "announce";
             obj.LevelTransFrames = 60;
             if ~isempty(obj.LevelTextH) && isvalid(obj.LevelTextH)
@@ -1501,12 +1505,15 @@ classdef Breakout < engine.GameBase
             end
 
             % Trail buffer (DtScale accumulator, fps-independent)
-            obj.TrailAccum = obj.TrailAccum + obj.DtScale;
-            if obj.TrailAccum >= 2.0
-                obj.TrailAccum = obj.TrailAccum - 2.0;
-                obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
-                obj.TrailBufX(obj.TrailIdx) = obj.BallPos(1);
-                obj.TrailBufY(obj.TrailIdx) = obj.BallPos(2);
+            % Skip recording while serving — ball is on paddle, not in flight
+            if ~obj.Serving
+                obj.TrailAccum = obj.TrailAccum + obj.DtScale;
+                if obj.TrailAccum >= 2.0
+                    obj.TrailAccum = obj.TrailAccum - 2.0;
+                    obj.TrailIdx = mod(obj.TrailIdx, obj.TrailLen) + 1;
+                    obj.TrailBufX(obj.TrailIdx) = obj.BallPos(1);
+                    obj.TrailBufY(obj.TrailIdx) = obj.BallPos(2);
+                end
             end
 
             % Trail rendering
