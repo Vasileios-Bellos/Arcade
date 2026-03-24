@@ -468,17 +468,31 @@ classdef Breakout < engine.GameBase
             % --- Bottom edge: lose life ---
             if obj.BallPos(2) > dy(2) + obj.BallRadius * 2
                 if ~isempty(obj.ExtraBalls)
-                    % Promote first extra ball — keep trail
+                    % Promote: delete old main handles, adopt extra ball's
                     eb = obj.ExtraBalls(1);
+
+                    % Delete old main ball graphics
+                    oldHandles = {obj.BallCoreH, obj.BallGlowH, obj.BallAuraH, ...
+                                  obj.BallTrailH, obj.BallTrailGlowH};
+                    for h = oldHandles
+                        if ~isempty(h{1}) && isvalid(h{1}); delete(h{1}); end
+                    end
+
+                    % Adopt extra ball's handles and state
                     obj.BallPos = eb.pos;
                     obj.BallVel = eb.vel;
                     obj.BallSpeed = norm(eb.vel);
+                    obj.BallCoreH = eb.coreH;
+                    obj.BallGlowH = eb.glowH;
+                    obj.BallAuraH = eb.auraH;
+                    obj.BallTrailH = eb.trailH;
+                    obj.BallTrailGlowH = eb.trailGlowH;
                     obj.TrailBufX = eb.trailBufX;
                     obj.TrailBufY = eb.trailBufY;
                     obj.TrailIdx = eb.trailIdx;
                     obj.TrailAccum = eb.trailAccum;
-                    % Delete promoted ball graphics
-                    obj.deleteExtraBallGraphics(eb);
+
+                    % Remove from array (don't delete graphics — they're main now)
                     obj.ExtraBalls(1) = [];
                 else
                     obj.loseLife();
