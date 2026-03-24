@@ -15,7 +15,7 @@ A neon-styled launcher with an animated starfield menu, persistent high scores, 
 
 > Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) - AI-assisted development from architecture to pixel-level polish.
 
-Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games. [Read more about it here](technical.html).
+Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games. Read more about it [here](technical.html).
 
 ---
 
