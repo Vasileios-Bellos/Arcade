@@ -316,12 +316,15 @@ classdef Pong < engine.GameBase
                     norm(obj.BallVel) * obj.SpeedScale);
             end
 
-            % --- Paddle collision (front-face only) ---
+            % --- Paddle collision (front-face only, parametric Y) ---
             % Player paddle (right side)
             plX = dx(2) - obj.PaddleMargin;
             if prePos(1) + obj.BallRadius < plX && ...
                     obj.BallPos(1) + obj.BallRadius >= plX && obj.BallVel(1) > 0
-                if abs(obj.BallPos(2) - obj.PlayerPaddleY) <= obj.PaddleHalfH
+                tP = (plX - obj.BallRadius - prePos(1)) / stepVel(1);
+                contactY = prePos(2) + tP * stepVel(2);
+                if abs(contactY - obj.PlayerPaddleY) <= obj.PaddleHalfH
+                    obj.BallPos(2) = contactY;
                     obj.paddleHit("player", obj.PlayerPaddleY, plX);
                 end
             end
@@ -329,7 +332,10 @@ classdef Pong < engine.GameBase
             aiX = dx(1) + obj.PaddleMargin;
             if prePos(1) - obj.BallRadius > aiX && ...
                     obj.BallPos(1) - obj.BallRadius <= aiX && obj.BallVel(1) < 0
-                if abs(obj.BallPos(2) - obj.AIPaddleY) <= obj.PaddleHalfH
+                tP = (aiX + obj.BallRadius - prePos(1)) / stepVel(1);
+                contactY = prePos(2) + tP * stepVel(2);
+                if abs(contactY - obj.AIPaddleY) <= obj.PaddleHalfH
+                    obj.BallPos(2) = contactY;
                     obj.paddleHit("ai", obj.AIPaddleY, aiX);
                 end
             end

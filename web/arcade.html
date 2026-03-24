@@ -1463,20 +1463,26 @@ class PongGame {
             this.hitEffects.spawnBounceEffect(bouncePos, bounceNormal, 0, spd * this.speedScale);
         }
 
-        // --- Paddle collision (front-face only, lines 311-327) ---
+        // --- Paddle collision (front-face only, parametric Y) ---
         const plX = dx[1] - this.paddleMargin;
-        // Player paddle (right side, lines 313-318)
+        // Player paddle (right side)
         if (prePos[0] + this.ballRadius < plX &&
             this.ballPos[0] + this.ballRadius >= plX && this.ballVel[0] > 0) {
-            if (Math.abs(this.ballPos[1] - this.playerPaddleY) <= this.paddleHalfH) {
+            const tP = (plX - this.ballRadius - prePos[0]) / stepVel[0];
+            const contactY = prePos[1] + tP * stepVel[1];
+            if (Math.abs(contactY - this.playerPaddleY) <= this.paddleHalfH) {
+                this.ballPos[1] = contactY;
                 this.paddleHit('player', this.playerPaddleY, plX, ds);
             }
         }
-        // AI paddle (left side, lines 320-326)
+        // AI paddle (left side)
         const aiX = dx[0] + this.paddleMargin;
         if (prePos[0] - this.ballRadius > aiX &&
             this.ballPos[0] - this.ballRadius <= aiX && this.ballVel[0] < 0) {
-            if (Math.abs(this.ballPos[1] - this.aiPaddleY) <= this.paddleHalfH) {
+            const tP = (aiX + this.ballRadius - prePos[0]) / stepVel[0];
+            const contactY = prePos[1] + tP * stepVel[1];
+            if (Math.abs(contactY - this.aiPaddleY) <= this.paddleHalfH) {
+                this.ballPos[1] = contactY;
                 this.paddleHit('ai', this.aiPaddleY, aiX, ds);
             }
         }
@@ -2364,6 +2370,10 @@ class BreakoutGame {
             }
 
             if (hitX >= px - pw / 2 && hitX <= px + pw / 2) {
+                // Snap ball to exact contact position
+                this.ballPos[0] = hitX;
+                this.ballPos[1] = py - this.ballRadius - 5;
+
                 // Reflect with angle (lines 435-447)
                 const hitOffset = hitX - px;
                 const normalizedOffset = Math.max(-1, Math.min(1, hitOffset / (pw / 2)));
@@ -2376,7 +2386,6 @@ class BreakoutGame {
 
                 // sin/cos for upward reflection (line 446)
                 this.ballVel = [newSpeed * Math.sin(returnAngle), -newSpeed * Math.cos(returnAngle)];
-                this.ballPos[1] = py - this.ballRadius - 5;    // line 447
 
                 // Force-record paddle contact into trail (keep trail)
                 const tidxP = this.trailIdx % this.trailLen;

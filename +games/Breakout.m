@@ -412,6 +412,10 @@ classdef Breakout < engine.GameBase
                     hitX = obj.BallPos(1);
                 end
                 if hitX >= px - pw/2 && hitX <= px + pw/2
+                    % Snap ball to exact contact position
+                    obj.BallPos(1) = hitX;
+                    obj.BallPos(2) = py - obj.BallRadius - 5;
+
                     % Reflect with angle based on hit position
                     hitOffset = hitX - px;
                     normalizedOffset = max(-1, min(1, hitOffset / (pw / 2)));
@@ -425,7 +429,6 @@ classdef Breakout < engine.GameBase
                     obj.BallSpeed = newSpeed;
 
                     obj.BallVel = newSpeed * [sin(returnAngle), -cos(returnAngle)];
-                    obj.BallPos(2) = py - obj.BallRadius - 5;
 
                     % Force-record paddle contact into trail
                     tidx = mod(obj.TrailIdx, obj.TrailLen) + 1;
