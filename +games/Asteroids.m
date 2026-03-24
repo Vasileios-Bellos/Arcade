@@ -353,13 +353,15 @@ classdef Asteroids < engine.GameBase
 
                 % Bullet-asteroid collision (sweep test along bullet path)
                 hitDetected = false;
+                stepX = bul.vx * ds;
+                stepY = bul.vy * ds;
                 for a = numel(obj.Rocks):-1:1
                     rock = obj.Rocks(a);
                     % Closest point on bullet segment [prev, current] to rock center
-                    px = bul.x - bul.vx;  % previous position
-                    py = bul.y - bul.vy;
-                    segX = bul.vx;
-                    segY = bul.vy;
+                    px = bul.x - stepX;  % previous position
+                    py = bul.y - stepY;
+                    segX = stepX;
+                    segY = stepY;
                     segLen2 = segX^2 + segY^2;
                     if segLen2 > 0
                         t = max(0, min(1, ((rock.x - px) * segX + (rock.y - py) * segY) / segLen2));

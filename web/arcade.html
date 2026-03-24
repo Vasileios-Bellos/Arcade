@@ -4509,13 +4509,15 @@ class AsteroidsGame {
 
             // Bullet-asteroid collision (sweep test) — Asteroids.m lines 355-395
             let hitDetected = false;
+            const stepX = bul.vx * ds;
+            const stepY = bul.vy * ds;
             for (let a = this.rocks.length - 1; a >= 0; a--) {
                 const rock = this.rocks[a];
                 // Closest point on bullet segment — Asteroids.m lines 359-371
-                const px = bul.x - bul.vx;
-                const py = bul.y - bul.vy;
-                const segX = bul.vx;
-                const segY = bul.vy;
+                const px = bul.x - stepX;
+                const py = bul.y - stepY;
+                const segX = stepX;
+                const segY = stepY;
                 const segLen2 = segX * segX + segY * segY;
                 let t = 0;
                 if (segLen2 > 0) {
