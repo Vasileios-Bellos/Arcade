@@ -1,8 +1,8 @@
 <h1 align="center">Arcade</h1>
 <p align="center">
-  <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" height="30"></a>&nbsp;
-  <a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" height="30"></a>&nbsp;
-  <a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" height="30"></a>
+  <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" height="40"></a>&nbsp;
+  <a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" height="40"></a>&nbsp;
+  <a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" height="40"></a>
 </p>
 
 15 arcade games built entirely in MATLAB - eight timeless classics and seven originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
@@ -12,7 +12,7 @@ A neon-styled launcher with an animated starfield menu, persistent high scores, 
 Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games.
 
 <p align="center">
-  <img src="assets/menu_scroll_4.gif" alt="Arcade - Main Menu" width="75%">
+  <img src="assets/main_menu.gif" alt="Arcade - Main Menu" width="75%">
 </p>
 
 > Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) - AI-assisted development from architecture to pixel-level polish.
