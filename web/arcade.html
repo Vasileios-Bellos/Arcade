@@ -2028,9 +2028,6 @@ class BreakoutGame {
 
     // === destroyBrick — Breakout.m lines 910-942 ===
     destroyBrick(brickIdx) {
-        // TEMP: spawn multiball on first brick break for testing
-        if (this.extraBalls.length === 0) this.spawnExtraBalls();
-
         const brk = this.bricks[brickIdx];
         const brickCenter = [brk.rawX + brk.rawW / 2, brk.rawY + brk.rawH / 2];
 
