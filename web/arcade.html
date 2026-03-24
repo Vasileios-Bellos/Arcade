@@ -2758,8 +2758,7 @@ class BreakoutGame {
             ctx.fillText(pu.type, pu.x, pu.y);
         }
 
-        // --- Hit effects ---
-        this.hitEffects.draw(ctx);
+        // Hit effects rendered after render() via update(ctx, ds)
 
         // --- HUD: Level / Lives (line 237-240) ---
         ctx.font = 'bold 12px sans-serif';
