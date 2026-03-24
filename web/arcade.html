@@ -2126,6 +2126,7 @@ class BreakoutGame {
                     trailBufX: new Float64Array(15).fill(NaN),
                     trailBufY: new Float64Array(15).fill(NaN),
                     trailIdx: 0,
+                    trailAccum: 0,
                 });
             }
         }
@@ -2436,9 +2437,10 @@ class BreakoutGame {
             eb.pos[1] += eb.vel[1] * ds;
 
             // Wall bounces (lines 1285-1296)
-            if (eb.pos[1] < dy[0]) { eb.pos[1] = dy[0]; eb.vel[1] = -eb.vel[1]; }
-            if (eb.pos[0] < dx[0]) { eb.pos[0] = dx[0]; eb.vel[0] = -eb.vel[0]; }
-            if (eb.pos[0] > dx[1]) { eb.pos[0] = dx[1]; eb.vel[0] = -eb.vel[0]; }
+            let ebBounced = false;
+            if (eb.pos[1] < dy[0]) { eb.pos[1] = dy[0]; eb.vel[1] = -eb.vel[1]; ebBounced = true; }
+            if (eb.pos[0] < dx[0]) { eb.pos[0] = dx[0]; eb.vel[0] = -eb.vel[0]; ebBounced = true; }
+            if (eb.pos[0] > dx[1]) { eb.pos[0] = dx[1]; eb.vel[0] = -eb.vel[0]; ebBounced = true; }
 
             // Paddle collision (lines 1299-1308)
             if (eb.pos[1] >= py && eb.pos[1] <= py + ph && eb.vel[1] > 0) {
@@ -2449,7 +2451,17 @@ class BreakoutGame {
                     const ebSpeed = Math.hypot(eb.vel[0], eb.vel[1]);
                     eb.vel = [ebSpeed * Math.sin(returnAngle), -ebSpeed * Math.cos(returnAngle)];
                     eb.pos[1] = py - this.ballRadius - 1;
+                    ebBounced = true;
                 }
+            }
+
+            // Force-record bounce contact into trail
+            if (ebBounced) {
+                const tidxEB = eb.trailIdx % 15;
+                eb.trailBufX[tidxEB] = eb.pos[0];
+                eb.trailBufY[tidxEB] = eb.pos[1];
+                eb.trailIdx = tidxEB + 1;
+                eb.trailAccum = 0;
             }
 
             // Bottom exit (lines 1311-1314)
@@ -2460,14 +2472,25 @@ class BreakoutGame {
 
             // Brick collision (line 1318)
             const result = this.brickCollision(ebPrePos, eb.pos, eb.vel);
+            if (result.pos[0] !== eb.pos[0] || result.pos[1] !== eb.pos[1]) {
+                const tidxBR = eb.trailIdx % 15;
+                eb.trailBufX[tidxBR] = result.pos[0];
+                eb.trailBufY[tidxBR] = result.pos[1];
+                eb.trailIdx = tidxBR + 1;
+                eb.trailAccum = 0;
+            }
             eb.pos = result.pos;
             eb.vel = result.vel;
 
-            // Trail (lines 1321-1323)
-            eb.trailIdx = eb.trailIdx % 15;
-            eb.trailBufX[eb.trailIdx] = eb.pos[0];
-            eb.trailBufY[eb.trailIdx] = eb.pos[1];
-            eb.trailIdx++;
+            // Trail (DtScale accumulator)
+            eb.trailAccum = (eb.trailAccum || 0) + ds;
+            if (eb.trailAccum >= 2.0) {
+                eb.trailAccum -= 2.0;
+                const tidxT = eb.trailIdx % 15;
+                eb.trailBufX[tidxT] = eb.pos[0];
+                eb.trailBufY[tidxT] = eb.pos[1];
+                eb.trailIdx = tidxT + 1;
+            }
         }
     }
 
