@@ -829,30 +829,32 @@ classdef Breakout < engine.GameBase
         function [newPos, newVel] = brickCollision(obj, prePos, ballPos, ballVel)
             %brickCollision  Swept ball-brick collision.
             %   Tests the ball path from prePos to ballPos against each
-            %   brick AABB expanded by BallRadius.
+            %   brick AABB expanded by BallRadius. Finds the EARLIEST
+            %   collision first, then processes it.
             ballR = obj.BallRadius;
             newPos = ballPos;
             newVel = ballVel;
             isFireball = ~isnan(obj.ActivePowers.fireball);
 
+            dx = ballPos(1) - prePos(1);
+            dy = ballPos(2) - prePos(2);
+
+            % Pass 1: find earliest collision
+            bestT = inf;
+            bestK = 0;
             for k = 1:numel(obj.Bricks)
                 brk = obj.Bricks(k);
                 if isempty(brk.patchH) || ~isvalid(brk.patchH)
                     continue;
                 end
 
-                % Expand brick AABB by ball radius (Minkowski sum)
                 bx1 = brk.x - ballR;
                 bx2 = brk.x + brk.w + ballR;
                 by1 = brk.y - ballR;
                 by2 = brk.y + brk.h + ballR;
 
-                % Swept point-vs-expanded-rect: find earliest t in (0,1]
-                dx = newPos(1) - prePos(1);
-                dy = newPos(2) - prePos(2);
                 tMin = 1e-6; tMax = 1;
 
-                % X slab
                 if abs(dx) < 1e-12
                     if prePos(1) < bx1 || prePos(1) > bx2; continue; end
                 else
@@ -864,7 +866,6 @@ classdef Breakout < engine.GameBase
                     if tMin > tMax; continue; end
                 end
 
-                % Y slab
                 if abs(dy) < 1e-12
                     if prePos(2) < by1 || prePos(2) > by2; continue; end
                 else
@@ -876,71 +877,78 @@ classdef Breakout < engine.GameBase
                     if tMin > tMax; continue; end
                 end
 
-                % Hit — determine which face was entered
-                hitPt = prePos + tMin * [dx, dy];
-                bcx = brk.x + brk.w / 2;
-                bcy = brk.y + brk.h / 2;
-                dcx = hitPt(1) - bcx;
-                dcy = hitPt(2) - bcy;
+                if tMin < bestT
+                    bestT = tMin;
+                    bestK = k;
+                end
+            end
 
-                if ~isFireball
+            if bestK == 0; return; end
+
+            % Pass 2: process the earliest hit
+            brk = obj.Bricks(bestK);
+            hitPt = prePos + bestT * [dx, dy];
+            bcx = brk.x + brk.w / 2;
+            bcy = brk.y + brk.h / 2;
+            dcx = hitPt(1) - bcx;
+            dcy = hitPt(2) - bcy;
+
+            if ~isFireball
+                if abs(dcx / brk.w) > abs(dcy / brk.h)
+                    newVel(1) = -newVel(1);
+                    newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
+                    newPos(2) = hitPt(2);
+                else
+                    newVel(2) = -newVel(2);
+                    newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
+                    newPos(1) = hitPt(1);
+                end
+                newVel = newVel * 1.008;
+            end
+
+            if brk.hp > 0
+                if isFireball
+                    obj.Bricks(bestK).hp = 0;
+                    obj.destroyBrick(bestK);
+                else
+                    obj.Bricks(bestK).hp = brk.hp - 1;
+                    if obj.Bricks(bestK).hp == 0
+                        obj.destroyBrick(bestK);
+                    else
+                        newAlpha = 0.2 + obj.Bricks(bestK).hp * 0.25;
+                        if isvalid(brk.patchH)
+                            brk.patchH.FaceAlpha = newAlpha;
+                        end
+                    end
+                end
+
+                basePoints = brk.hp * 100 + 100;
+                totalPoints = round(basePoints * obj.comboMultiplier());
+                obj.addScore(totalPoints);
+                obj.incrementCombo();
+            else
+                % Indestructible — bounce even in fireball mode
+                if isFireball
                     if abs(dcx / brk.w) > abs(dcy / brk.h)
                         newVel(1) = -newVel(1);
                         newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
-                        newPos(2) = hitPt(2);
                     else
                         newVel(2) = -newVel(2);
                         newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
-                        newPos(1) = hitPt(1);
                     end
-                    newVel = newVel * 1.008;
                 end
+                spd = norm(ballVel);
+                sRatio = spd / max(obj.BallBaseSpeed, 1);
+                mSpeed = 3 + (sRatio - 1) * 12;
+                obj.spawnBounceEffect([brk.x + brk.w/2, brk.y + brk.h/2], ...
+                    [0, 1], 0, mSpeed);
+            end
 
-                % Damage brick
-                if brk.hp > 0
-                    if isFireball
-                        % Fireball: instant destroy regardless of HP
-                        obj.Bricks(k).hp = 0;
-                        obj.destroyBrick(k);
-                    else
-                        obj.Bricks(k).hp = brk.hp - 1;
-                        if obj.Bricks(k).hp == 0
-                            obj.destroyBrick(k);
-                        else
-                            % Reduce alpha as brick takes damage
-                            newAlpha = 0.2 + obj.Bricks(k).hp * 0.25;
-                            if isvalid(brk.patchH)
-                                brk.patchH.FaceAlpha = newAlpha;
-                            end
-                        end
-                    end
-
-                    % Scoring
-                    basePoints = brk.hp * 100 + 100;
-                    totalPoints = round(basePoints * obj.comboMultiplier());
-                    obj.addScore(totalPoints);
-                    obj.incrementCombo();
-                else
-                    % Indestructible — bounce even in fireball mode
-                    if isFireball
-                        if abs(dcx / brk.w) > abs(dcy / brk.h)
-                            newVel(1) = -newVel(1);
-                            newPos(1) = bcx + sign(dcx) * (brk.w/2 + ballR);
-                        else
-                            newVel(2) = -newVel(2);
-                            newPos(2) = bcy + sign(dcy) * (brk.h/2 + ballR);
-                        end
-                    end
-                    spd = norm(ballVel);
-                    sRatio = spd / max(obj.BallBaseSpeed, 1);
-                    mSpeed = 3 + (sRatio - 1) * 12;
-                    obj.spawnBounceEffect([brk.x + brk.w/2, brk.y + brk.h/2], ...
-                        bounceNormal, 0, mSpeed);
-                end
-
-                if ~isFireball
-                    break;  % one collision per frame (fireball passes through)
-                end
+            % Fireball: continue checking remaining bricks
+            if isFireball && brk.hp <= 0
+                remaining = ballPos;  % fireball continues straight
+                [newPos, newVel] = obj.brickCollision(hitPt, remaining, newVel);
+            end
             end
         end
 
