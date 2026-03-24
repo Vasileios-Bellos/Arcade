@@ -4,5 +4,14 @@
 # User data (auto-generated on first play)
 data/
 
+# Packaging build artifacts
+packaging/build/
+packaging/installer/
+packaging/*.mltbx
+packaging/icon_*.png
+
+# Asset videos (GIFs tracked, MP4s too large)
+assets/*.mp4
+
 # Claude Code
 .claude/
