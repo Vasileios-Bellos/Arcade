@@ -55,7 +55,7 @@ AI opponent that adapts as you score - its error shrinks and speed climbs with e
 
 ### 3. Snake
 
-Grid-based with wrap-around walls. Arrow keys or mouse-guided movement. Speed increases as you grow.
+Grid-based with wrap-around walls. Arrow keys or mouse to change direction. Speed increases as you grow.
 
 <p align="center"><img src="assets/snake.gif" alt="Snake" width="60%"></p>
 
@@ -155,7 +155,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighte
 
 | Game | Controls |
 |------|----------|
-| **Snake** | Arrow keys for direction (or mouse-guided) |
+| **Snake** | Arrow keys or mouse to change direction |
 | **Tetris** | Left/Right = move, Up/Z = rotate CW, X = rotate CCW, Down = soft drop, Space/Click = hard drop, Scroll = rotate |
 | **Flappy Bird** | Space / Up / Click = flap |
 
