@@ -79,7 +79,7 @@ Wireframe polygons with random vertices that split on impact - large asteroids s
 
 ### 7. Flappy Bird
 
-Pipe gaps shrink as your combo grows, and scroll speed ramps with each pipe cleared. Space, Up, or click to flap.
+Pipe gaps shrink as your combo grows, and scroll speed ramps with each pipe cleared. Space, Up, or Click to flap.
 
 <p align="center"><img src="assets/flappybird.gif" alt="Flappy Bird" width="60%"></p>
 
