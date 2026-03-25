@@ -79,10 +79,6 @@ magick convert icon.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico
 
 **Option B - Online converter:**
 - https://convertio.co/png-ico/
-- https://icoconvert.com/
-
-**Option C - MATLAB File Exchange:**
-Search for "png2ico" or "img2ico" on File Exchange.
 
 ### Step 2: Build the Executable
 
