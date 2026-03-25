@@ -109,7 +109,7 @@ Glowing targets appear and shrink on a real-time countdown. Hit them before they
 
 ### 11. Flick It!
 
-Flick a physics orb off walls with your mouse. The ball shifts from cyan to red with speed. 3-layer neon rendering (aura, glow, core) with a comet trail that reflects off every surface. Re-flick a moving ball for combo.
+Flick a physics orb off walls with your mouse. The ball shifts from cyan to red with speed. 3-layer neon rendering (aura, glow, core) with a comet trail that reflects off every surface. Re-flick a moving ball to build a combo streak.
 
 <p align="center"><img src="assets/flickit.gif" alt="Flick It!" width="60%"></p>
 
