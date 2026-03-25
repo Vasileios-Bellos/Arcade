@@ -168,7 +168,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighte
 | | |
 |---|---|
 | **Persistent High Scores** | Scores, combos, play counts, and session times saved across sessions |
-| **Frame-Rate Independence** | Physics runs at consistent speed from 20 to 240+ FPS |
+| **Frame-Rate Independence** | Physics runs at consistent speed from 10 to 240+ FPS |
 | **Auto-Scaling Display** | All text, markers, and line widths resize automatically on window resize |
 | **Combo System** | Shared scoring with multipliers and animated fade-outs across all games |
 | **Neon Visual Style** | 3-layer ball rendering (aura + glow + core), comet trails, particle bursts |
