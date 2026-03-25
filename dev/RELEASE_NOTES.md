@@ -26,7 +26,7 @@
 
 ## Requirements
 
-- **MATLAB R2022b** or later (toolbox and source)
+- **MATLAB R2022b** or later
 - No additional toolboxes
 - Windows installer requires MATLAB Runtime R2025b (downloaded automatically)
 
