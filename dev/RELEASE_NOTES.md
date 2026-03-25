@@ -1,4 +1,27 @@
-# v1.0.0 - Arcade
+# v1.0.1 - Bug Fixes
+
+## Collision Fixes
+- Pong + Breakout: parametric contact point on paddle collisions (trail no longer kinks at paddle)
+- Breakout: swept paddle collision for extra balls (could pass through at high speed)
+- Asteroids: bullet-rock sweep uses DtScale-scaled step (was missing small asteroids)
+
+## Trail System
+- FlickIt + Juggler: DtScale trail accumulator added for fps-independent trail length
+- FlickIt + Juggler: trail no longer resets on flick/bounce (force-records contact point instead)
+- All 4 ball games now have identical trail behavior across MATLAB and HTML
+
+## Visual Fixes
+- SpaceInvaders: wave and lives text brought to front (was hidden behind aliens)
+- RailShooter: wave text lowered to avoid overlap with combo display
+
+## Other
+- Snake: food spawn moved after body update (prevents food appearing on head)
+- Breakout: serve countdown runs concurrently with level announce (ball launches when text disappears)
+- Legacy comment cleanup
+
+---
+
+# v1.0.0 - Initial Release
 
 15 arcade games built entirely in MATLAB - 8 timeless classics and 7 originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
@@ -17,23 +40,8 @@
 - Subclassable - override `buildRegistry` and `getMenuTitles` for custom game sets
 - Extensible - add your own games by subclassing `engine.GameBase`
 
-## Downloads
-
-| File | Description |
-|------|-------------|
-| `Arcade.mltbx` | MATLAB Toolbox - install via Add-On Manager |
-| `ArcadeInstaller.exe` | Windows installer - downloads MATLAB Runtime automatically |
-| Source code (zip) | Full repository with HTML port, docs, recording scripts |
-
 ## Requirements
 
 - **MATLAB R2022b** or later
 - No additional toolboxes
 - Windows installer requires MATLAB Runtime R2025b (downloaded automatically)
-
-## Quick Start
-
-```matlab
-Arcade();           % launch the menu
-games.Pong().play();  % or play any game directly
-```
