@@ -3,7 +3,7 @@
 <p align="center">
 <a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" width="144.5"></a>&nbsp;&nbsp;
 <a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" width="216"></a>&nbsp;&nbsp;
-<a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" width="260"></a>
+<a href="https://vasileios-bellos.github.io/Arcade/"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" width="260"></a>
 </p>
 
 15 arcade games built entirely in MATLAB - 8 timeless classics and 7 originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
@@ -16,7 +16,7 @@ Features a neon-styled launcher with an animated starfield menu, persistent high
 
 Built with [Claude](https://claude.ai) via the [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server).
 
-Also available as a [browser port](index.html) - a single self-contained HTML5 Canvas file with all 15 games. Read more about the porting process [here](technical.html).
+Also available as a [browser port](https://vasileios-bellos.github.io/Arcade/) - a single self-contained HTML5 Canvas file with all 15 games. Read more about the porting process [here](https://vasileios-bellos.github.io/Arcade/technical.html).
 
 ---
 
@@ -300,7 +300,7 @@ No MATLAB license required. [`ArcadeInstaller.exe`](packaging/ArcadeInstaller.ex
 
 ### Browser
 
-Open [`index.html`](index.html) in any modern browser - no installation, no server, no dependencies.
+Open [`index.html`](https://vasileios-bellos.github.io/Arcade/) in any modern browser - no installation, no server, no dependencies.
 
 ### From Source
 
