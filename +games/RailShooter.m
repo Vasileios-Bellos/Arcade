@@ -203,7 +203,7 @@ classdef RailShooter < engine.GameBase
                 "Tag", "GT_railshooter");
 
             % --- HUD: Wave (top-center, bold) ---
-            obj.WaveTextH = text(ax, mean(dx), dy(1) + 14, ...
+            obj.WaveTextH = text(ax, mean(dx), dy(1) + 28, ...
                 sprintf("WAVE %d", obj.Wave), ...
                 "Color", obj.ColorGold, "FontSize", 7.6 * obj.FontScale, "FontWeight", "bold", ...
                 "HorizontalAlignment", "center", "Tag", "GT_railshooter");
@@ -304,7 +304,7 @@ classdef RailShooter < engine.GameBase
                         obj.WaveTextH.String = sprintf("WAVE %d", obj.Wave);
                         obj.WaveTextH.FontSize = 7.6 * obj.FontScale;
                         % Restore to top-center HUD position
-                        obj.WaveTextH.Position(2) = dy(1) + 14;
+                        obj.WaveTextH.Position(2) = dy(1) + 28;
                     end
                     obj.WaveFlashTic = tic;
                 end

@@ -11,9 +11,9 @@
 ## Highlights
 
 - Neon-styled launcher with animated starfield menu, persistent high scores, and automatic display scaling
-- Frame-rate-independent physics (`DtScale = rawDt * RefFPS`) - consistent from 20 to 240+ FPS
-- Every game runs standalone: `games.Pong().play()`
-- HTML5 Canvas port (`index.html`) - all 15 games in a single self-contained file, verified identical physics and scoring
+- Frame-rate-independent physics (`DtScale = rawDt * RefFPS`) - consistent from 10 to 240+ FPS
+- Every game runs standalone: `games.Pong().play();`
+- HTML5 Canvas port - all 15 games in a single self-contained file, verified identical physics and scoring
 - Subclassable launcher - override `buildRegistry` for custom game sets
 
 ## Downloads
