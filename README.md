@@ -8,7 +8,7 @@
 
 15 arcade games built entirely in MATLAB - 8 timeless classics and 7 originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
-Features a neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling that ties everything together. Pick up and play with mouse or keyboard.
+Features a neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling that ties everything together. Pick up and play with your mouse or keyboard.
 
 <p align="center">
   <img src="assets/main_menu.gif" alt="Arcade - Main Menu" width="75%">
@@ -67,7 +67,7 @@ Full SRS rotation with wall kicks, ghost piece, 3-piece preview, 7-bag randomize
 
 ### 5. Asteroids
 
-Wireframe polygons with random vertices that split on impact - large asteroids become two medium, medium become two small, each faster than the last. Auto-fire crosshair tracks your cursor with swept segment collision. Wave-based with increasing asteroid count and speed.
+Wireframe polygons with random vertices that split on impact - large asteroids split into two medium, medium split into two small, each faster than the last. Auto-fire crosshair tracks your cursor with swept segment collision. Wave-based with increasing asteroid count and speed.
 
 <p align="center"><img src="assets/asteroids.gif" alt="Asteroids" width="60%"></p>
 
