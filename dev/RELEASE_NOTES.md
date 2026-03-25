@@ -1,22 +1,22 @@
 # v1.0.1 - Bug Fixes
 
 ## Collision Fixes
-- Pong + Breakout: parametric contact point on paddle collisions (trail no longer kinks at paddle)
-- Breakout: swept paddle collision for extra balls (could pass through at high speed)
-- Asteroids: bullet-rock sweep uses DtScale-scaled step (was missing small asteroids)
+- Pong + Breakout: parametric contact point on paddle collisions
+- Breakout: swept paddle collision for extra balls
+- Asteroids: bullet-rock sweep uses DtScale-scaled step
 
 ## Trail System
-- FlickIt + Juggler: DtScale trail accumulator added for fps-independent trail length
-- FlickIt + Juggler: trail no longer resets on flick/bounce (force-records contact point instead)
+- FlickIt + Juggler: DtScale trail accumulator for fps-independent trail length
+- FlickIt + Juggler: trail no longer resets on flick/bounce
 - All 4 ball games now have identical trail behavior across MATLAB and HTML
 
 ## Visual Fixes
-- SpaceInvaders: wave and lives text brought to front (was hidden behind aliens)
+- SpaceInvaders: wave and lives text brought to front
 - RailShooter: wave text lowered to avoid overlap with combo display
 
 ## Other
-- Snake: food spawn moved after body update (prevents food appearing on head)
-- Breakout: serve countdown runs concurrently with level announce (ball launches when text disappears)
+- Snake: food spawn moved after body update
+- Breakout: serve countdown runs concurrently with level announce
 - Legacy comment cleanup
 
 ---
