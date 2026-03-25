@@ -5,9 +5,8 @@
 %
 %   The .png icon works directly with compiler.build.standaloneApplication.
 %   For a .ico file (Windows shortcut icon), convert icon.png using:
-%       - Online: https://convertio.co/png-ico/ or https://icoconvert.com/
+%       - Online: https://convertio.co/png-ico/
 %       - ImageMagick: magick convert icon.png -define icon:auto-resize icon.ico
-%       - MATLAB File Exchange: "png2ico" or "img2ico"
 %
 %   Usage:
 %       cd packaging
@@ -240,4 +239,3 @@ fprintf("=== Icon and splash generation complete ===\n");
 fprintf("\nTo convert icon.png to icon.ico for Windows:\n");
 fprintf("  Option 1: https://convertio.co/png-ico/\n");
 fprintf("  Option 2: magick convert icon.png -define icon:auto-resize icon.ico\n");
-fprintf("  Option 3: MATLAB File Exchange 'png2ico'\n");

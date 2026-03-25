@@ -1,7 +1,7 @@
 <h1 align="center">Arcade</h1>
 
 <p align="center">
-<a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" width="145"></a>&nbsp;&nbsp;
+<a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" width="144.5"></a>&nbsp;&nbsp;
 <a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" width="216"></a>&nbsp;&nbsp;
 <a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" width="260"></a>
 </p>
@@ -49,7 +49,7 @@ AI opponent that adapts as you score - its error shrinks and speed climbs with e
 
 ### 2. Breakout
 
-5 levels of escalating brick layouts - from single-hit rows to armored sandwiches with indestructible shield bricks. Power-ups drop on brick breaks: fireball (plows through everything), wide paddle, slow ball, multi-ball (up to 3 on screen), and extra life. Paddle angle controls the ricochet.
+5 levels of escalating brick layouts - from single-hit rows to armored sandwiches with indestructible shield bricks. Power-ups drop on brick breaks: fireball (plows through everything), wide paddle, slow ball, multi-ball, and extra life. Paddle angle controls the ricochet.
 
 <p align="center"><img src="assets/breakout.gif" alt="Breakout" width="60%"></p>
 
@@ -216,7 +216,7 @@ dev/
     README.md            architecture and technical details
     TODO.md              development roadmap
 packaging/               toolbox, executable, and icon generation
-assets/                  demo GIFs and screenshots
+assets/                  demo GIFs
 ```
 
 For architecture details, FPS scaling internals, and per-game technical breakdowns, see [dev/README.md](dev/README.md).
