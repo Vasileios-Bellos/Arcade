@@ -157,7 +157,7 @@ Pseudo-3D on-rails shooter with depth-scaled perspective. 4 enemy types - fighte
 |------|----------|
 | **Snake** | Arrow keys or mouse to change direction |
 | **Tetris** | Left/Right = move, Up/Z = rotate CW, X = rotate CCW, Down = soft drop, Space/Click = hard drop, Scroll = rotate |
-| **Flappy Bird** | Space / Up / Click = flap |
+| **Flappy Bird** | Space / Up / Click to flap |
 
 </details>
 
