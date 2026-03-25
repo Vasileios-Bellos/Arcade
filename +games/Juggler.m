@@ -22,7 +22,7 @@ classdef Juggler < engine.GameBase
         BallPhase       (1,1) double = 0
         Alive           (1,1) logical = false
 
-        % Finger tracking
+        % Input tracking
         PrevFingerPos   (1,2) double = [NaN, NaN]
         FingerVelBuf    (:,2) double = zeros(5, 2)
         FingerVelIdx    (1,1) double = 0

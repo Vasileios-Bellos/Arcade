@@ -114,9 +114,8 @@ classdef Pong < engine.GameBase
             obj.AIBaseSpeed = max(0.417, areaH * 0.00833);
             obj.AIErrorPx = max(5, areaH * 0.12);
 
-            % flickSpeedColor expects speeds in the ~3-12 range (calibrated
-            % for GestureMouse's ~240px ROI). Scale visual speed down so the
-            % full cyan→green→gold→red spectrum maps across the rally.
+            % flickSpeedColor expects speeds in the ~3-12 range. Scale visual
+            % speed so the full cyan->green->gold->red spectrum maps across the rally.
             obj.SpeedScale = 4.8 / max(obj.BallBaseSpeed, 1);
 
             % Reset state

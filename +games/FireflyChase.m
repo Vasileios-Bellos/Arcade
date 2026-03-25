@@ -17,7 +17,7 @@ classdef FireflyChase < engine.GameBase
         SpawnCooldown   (1,1) double = 0         % frames until next spawn
         CatchRadiusBonus (1,1) double = 0        % extra catch radius for mouse input
 
-        % Display scale factor (1.0 at ~180px GestureTrainer height)
+        % Display scale factor (1.0 at ~180px reference height)
         Sc              (1,1) double = 1
 
         % Timing
@@ -114,8 +114,7 @@ classdef FireflyChase < engine.GameBase
                     "MarkerEdgeColor", "none", "Visible", "off", "Tag", "GT_fireflies");
             end
 
-            % Mouse input needs larger catch radius - finger tracking has
-            % a natural ~30px "fat finger" zone from scatter marker + wobble
+            % Catch radius bonus (0 for mouse input)
             obj.CatchRadiusBonus = 0;
 
             % Spawn first firefly
@@ -566,7 +565,7 @@ classdef FireflyChase < engine.GameBase
     end
 
     % =================================================================
-    % STATIC UTILITIES - path generation (from GestureTrainer)
+    % STATIC UTILITIES - path generation
     % =================================================================
     methods (Static, Access = private)
 

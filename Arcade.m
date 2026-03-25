@@ -524,7 +524,7 @@ classdef Arcade < handle
     methods (Access = private)
 
         function onKeyPress(obj, evnt)
-            %onKeyPress  Route key events - exact GestureMouse pattern.
+            %onKeyPress  Route key events (modifier+key first, plain key fallback).
             %   1. Try modifier+key (shift+X, alt+X)
             %   2. If not handled, try plain key
             key = string(evnt.Key);

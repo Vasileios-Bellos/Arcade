@@ -314,7 +314,7 @@ classdef (Abstract) GameBase < handle
     end
 
     % =================================================================
-    % HIT EFFECTS - public animation/cleanup (called by GameHost)
+    % HIT EFFECTS - public animation/cleanup (called by host)
     % =================================================================
     methods
         function updateHitEffects(obj)

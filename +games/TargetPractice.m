@@ -26,7 +26,7 @@ classdef TargetPractice < engine.GameBase
         PathSinceSpawn  (1,1) double = 0
         PrevPos         (1,2) double = [NaN, NaN]
 
-        % Display scale factor (1.0 at ~180px GestureTrainer height)
+        % Display scale factor (1.0 at ~180px reference height)
         Sc              (1,1) double = 1
 
         % Stats

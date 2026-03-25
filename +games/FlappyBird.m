@@ -213,7 +213,7 @@ classdef FlappyBird < engine.GameBase
                     end
                 end
             else
-                % Direct position mode (webcam)
+                % Direct position mode
                 if any(isnan(pos)); return; end
                 bx = max(dx(1) + cr, min(dx(2) - cr, pos(1)));
                 by = max(dy(1) + cr, min(dy(2) - cr, pos(2)));
