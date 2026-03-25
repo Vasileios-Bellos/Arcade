@@ -292,7 +292,7 @@ Download [`Arcade.mltbx`](packaging/Arcade.mltbx) and install it via MATLAB's Ad
 
 ### Standalone Executable (Windows)
 
-No MATLAB license required. [`ArcadeInstaller.exe`](packaging/installer/ArcadeInstaller.exe) bundles a web installer that downloads the free [MATLAB Runtime](https://www.mathworks.com/products/compiler/matlab-runtime.html) (~800 MB, one-time). See the [packaging guide](packaging/) for details.
+No MATLAB license required. [`ArcadeInstaller.exe`](packaging/installer/ArcadeInstaller.exe) bundles a web installer that downloads the free [MATLAB Runtime R2025b](https://www.mathworks.com/products/compiler/matlab-runtime.html) automatically. See the [packaging guide](packaging/) for details.
 
 ### Browser
 
