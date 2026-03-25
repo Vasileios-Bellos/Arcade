@@ -13,7 +13,7 @@
 %       - No additional toolboxes
 %
 %   Usage:
-%       >> cd('<project>/packaging')
+%       >> cd('<project>/packaging/scripts')
 %       >> buildToolbox
 %
 %   See also matlab.addons.toolbox.ToolboxOptions,
@@ -23,12 +23,13 @@
 %  1. Resolve paths
 % =========================================================================
 
-% Project root is one level above this script's folder.
+% Project root is two levels above this script's folder.
 scriptDir  = fileparts(mfilename("fullpath"));
-projectRoot = fileparts(scriptDir);
+packagingDir = fileparts(scriptDir);
+projectRoot = fileparts(packagingDir);
 
 % Output .mltbx location.
-outputFile = fullfile(scriptDir, "Arcade.mltbx");
+outputFile = fullfile(packagingDir, "Arcade.mltbx");
 
 fprintf("Project root : %s\n", projectRoot);
 fprintf("Output file  : %s\n", outputFile);
@@ -124,7 +125,7 @@ opts.ToolboxMatlabPath = projectRoot;
 % =========================================================================
 %  5b. Set toolbox icon
 % =========================================================================
-iconFile = fullfile(scriptDir, "icon.png");
+iconFile = fullfile(packagingDir, "assets", "icon.png");
 if isfile(iconFile)
     opts.ToolboxImageFile = iconFile;
     fprintf("\nIcon: %s\n", iconFile);

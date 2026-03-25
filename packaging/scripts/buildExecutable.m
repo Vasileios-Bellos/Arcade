@@ -8,26 +8,27 @@
 %       - Run generateIcon.m first to create icon.png, splash.png, icon.ico
 %
 %   Usage:
-%       cd packaging
+%       cd packaging/scripts
 %       buildExecutable
 %
 %   Output:
-%       packaging/build/Arcade/  - standalone executable
-%       packaging/installer/           - installer with web runtime download
+%       packaging/build/         - standalone executable
+%       packaging/               - ArcadeInstaller.exe
 %
 %   See also compiler.build.standaloneWindowsApplication,
 %            compiler.package.installer, generateIcon, buildToolbox
 
 %% Resolve paths
 scriptDir = fileparts(mfilename("fullpath"));
-projectDir = fileparts(scriptDir);
-buildDir = fullfile(scriptDir, "build");
-installerDir = fullfile(scriptDir, "installer");
+packagingDir = fileparts(scriptDir);
+projectDir = fileparts(packagingDir);
+buildDir = fullfile(packagingDir, "build");
+assetsDir = fullfile(packagingDir, "assets");
 
 fprintf("=== Arcade - Standalone Build ===\n\n");
 fprintf("Project root  : %s\n", projectDir);
 fprintf("Build output  : %s\n", buildDir);
-fprintf("Installer out : %s\n\n", installerDir);
+fprintf("Installer out : %s\n\n", packagingDir);
 
 %% Check MATLAB Compiler is available
 if isempty(ver("compiler"))
@@ -64,8 +65,8 @@ fprintf("\n");
 %% Resolve icon and splash assets
 % Icon - .png for executable build (compiler converts to .ico internally),
 %         .ico for installer branding (Add/Remove Programs, shortcut)
-icoFile = fullfile(scriptDir, "icon.ico");
-pngFile = fullfile(scriptDir, "icon.png");
+icoFile = fullfile(assetsDir, "icon.ico");
+pngFile = fullfile(assetsDir, "icon.png");
 
 % Executable build only accepts PNG/BMP/JPG/GIF
 if isfile(pngFile)
@@ -80,7 +81,7 @@ end
 installerIcon = exeIcon;  % same .png
 
 % Splash screen - shown while the executable loads
-splashFile = fullfile(scriptDir, "splash.png");
+splashFile = fullfile(assetsDir, "splash.png");
 if isfile(splashFile)
     exeSplash = splashFile;
     fprintf("  Splash screen   : %s\n", splashFile);
@@ -164,7 +165,7 @@ try
         "neon-styled launcher, persistent high scores, frame-rate independence, " + ...
         "and automatic display scaling. No toolboxes required."}];
     instOpts = [instOpts, {"InstallerName", "ArcadeInstaller"}];
-    instOpts = [instOpts, {"OutputDir", installerDir}];
+    instOpts = [instOpts, {"OutputDir", packagingDir}];
     instOpts = [instOpts, {"RuntimeDelivery", "web"}];
     instOpts = [instOpts, {"DefaultInstallationDir", ...
         fullfile("C:", "Program Files", "Arcade")}];
@@ -197,7 +198,7 @@ try
     fprintf("\n=== INSTALLER PACKAGED (%.1f seconds) ===\n\n", elapsed);
 
     % List installer files
-    instFiles = dir(fullfile(installerDir, "*"));
+    instFiles = dir(fullfile(packagingDir, "*"));
     instFiles = instFiles(~[instFiles.isdir]);
     if ~isempty(instFiles)
         fprintf("Installer files:\n");

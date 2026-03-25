@@ -874,7 +874,7 @@ Returns `[isNewHigh, record]` where `isNewHigh` is true if the submitted score e
 
 ## Packaging
 
-Three scripts in `packaging/` produce distributable artifacts:
+Three scripts in `packaging/scripts/` produce distributable artifacts. Assets (icon, splash) are in `packaging/assets/`. Outputs go to `packaging/`.
 
 ### generateIcon.m
 
@@ -891,7 +891,7 @@ Creates `Arcade.mltbx` via `matlab.addons.toolbox.ToolboxOptions` (R2023a+). Inc
 1. **Standalone exe**: `compiler.build.standaloneWindowsApplication` with `ExecutableIcon` (icon.png, converted to .ico internally by MATLAB Compiler) and `ExecutableSplashScreen` (splash.png). Includes all 4 package folders as `AdditionalFiles`.
 2. **Installer**: `compiler.package.installer` with `InstallerIcon`, `InstallerSplash`, `InstallerLogo` (splash.png), `RuntimeDelivery = "web"` (downloads MATLAB Runtime during installation), and full metadata (name, author, version, description, default install path).
 
-Output: `build/Arcade.exe` (~1.5 MB) + `installer/ArcadeInstaller.exe` (~2.8 MB).
+Output: `packaging/build/Arcade.exe` (~1.5 MB) + `packaging/ArcadeInstaller.exe` (~2.8 MB).
 
 ### GitHub Releases
 
@@ -910,7 +910,7 @@ To create a release:
 git tag v1.0
 git push origin v1.0
 gh release create v1.0 --title "v1.0 - Arcade" --notes-file RELEASE_NOTES.md
-gh release upload v1.0 packaging/Arcade.mltbx packaging/installer/ArcadeInstaller.exe
+gh release upload v1.0 packaging/Arcade.mltbx packaging/ArcadeInstaller.exe
 ```
 
 ---

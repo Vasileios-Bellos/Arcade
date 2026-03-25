@@ -9,12 +9,13 @@
 %       - ImageMagick: magick convert icon.png -define icon:auto-resize icon.ico
 %
 %   Usage:
-%       cd packaging
+%       cd packaging/scripts
 %       generateIcon
 %
 %   See also buildExecutable
 
 scriptDir = fileparts(mfilename("fullpath"));
+assetsDir = fullfile(fileparts(scriptDir), "assets");
 
 %% Color palette (matching Arcade.m neon theme)
 bgColor = [0.015, 0.015, 0.03];
@@ -84,7 +85,7 @@ plot(ax, cbX, cbY, "-", ...
 
 hold(ax, "off");
 
-iconPath = fullfile(scriptDir, "icon.png");
+iconPath = fullfile(assetsDir, "icon.png");
 fr = getframe(fig);
 imwrite(imresize(fr.cdata, [256, 256]), iconPath);
 close(fig);
@@ -230,7 +231,7 @@ text(ax, pw/2, ph * 0.05, "Built Using MATLAB MCP Core Server", ...
 
 hold(ax, "off");
 
-splashPath = fullfile(scriptDir, "splash.png");
+splashPath = fullfile(assetsDir, "splash.png");
 exportgraphics(fig, splashPath, "Resolution", 300);
 close(fig);
 fprintf("  Saved: %s\n\n", splashPath);

@@ -47,10 +47,17 @@ Arcade/
 ├── data/
 │   └── scores.mat           % High scores (created at runtime)
 └── packaging/
-    ├── buildExecutable.m     % Standalone executable build script
-    ├── buildToolbox.m        % Toolbox (.mltbx) build script
-    ├── generateIcon.m        % Icon/splash generator
-    └── README_PACKAGING.md   % This file
+    ├── scripts/
+    │   ├── buildExecutable.m % Standalone executable build script
+    │   ├── buildToolbox.m    % Toolbox (.mltbx) build script
+    │   └── generateIcon.m    % Icon/splash generator
+    ├── assets/
+    │   ├── icon.png          % 256x256 app icon
+    │   ├── icon.ico          % Multi-resolution Windows icon
+    │   └── splash.png        % 800x600 splash screen
+    ├── Arcade.mltbx          % Pre-built toolbox
+    ├── ArcadeInstaller.exe   % Pre-built installer
+    └── README.md             % This file
 ```
 
 ---
@@ -60,13 +67,13 @@ Arcade/
 ### Step 1: Generate Icon and Splash
 
 ```matlab
-cd packaging
+cd packaging/scripts
 generateIcon
 ```
 
 This creates:
-- `packaging/icon.png` - 256x256 app icon (neon ship wireframe)
-- `packaging/splash.png` - 640x480 splash screen
+- `packaging/assets/icon.png` - 256x256 app icon (neon ship wireframe)
+- `packaging/assets/splash.png` - 800x600 splash screen
 
 #### Converting to .ico (optional, recommended for Windows)
 
@@ -74,7 +81,7 @@ The `.png` icon works with `compiler.build.standaloneApplication`. For a proper 
 
 **Option A - ImageMagick (command line):**
 ```bash
-magick convert icon.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico
+magick convert packaging/assets/icon.png -define icon:auto-resize=256,128,64,48,32,16 packaging/assets/icon.ico
 ```
 
 **Option B - Online converter:**
@@ -83,7 +90,7 @@ magick convert icon.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico
 ### Step 2: Build the Executable
 
 ```matlab
-cd packaging
+cd packaging/scripts
 buildExecutable
 ```
 
@@ -155,7 +162,7 @@ For users who have MATLAB installed, a toolbox is simpler to distribute than a s
 ### Build
 
 ```matlab
-cd packaging
+cd packaging/scripts
 buildToolbox
 ```
 
@@ -202,7 +209,7 @@ Upload the `.mltbx` file to any of:
 
 ### Version bumps
 
-Edit the `opts.ToolboxVersion` line in `buildToolbox.m` before rebuilding.
+Edit the `opts.ToolboxVersion` line in `scripts/buildToolbox.m` before rebuilding.
 
 ### Older MATLAB (pre-R2023a)
 
