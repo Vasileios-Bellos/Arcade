@@ -8,7 +8,7 @@
 
 15 arcade games built entirely in MATLAB - 8 timeless classics and 7 originals. No toolboxes, no external dependencies, no imported assets. Every pixel is drawn using native MATLAB graphics.
 
-Features a neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling that ties everything together. Pick up and play with mouse, keyboard, or both.
+Features a neon-styled launcher with an animated starfield menu, persistent high scores, frame-rate-independent physics, and automatic display scaling that ties everything together. Pick up and play with mouse or keyboard.
 
 <p align="center">
   <img src="assets/main_menu.gif" alt="Arcade - Main Menu" width="75%">
