@@ -15,6 +15,7 @@
 - Every game runs standalone: `games.Pong().play();`
 - HTML5 Canvas port - all 15 games in a single self-contained file, verified identical physics and scoring
 - Subclassable launcher - override `buildRegistry` for custom game sets
+- Extensible - add your own games by subclassing `engine.GameBase`
 
 ## Downloads
 
