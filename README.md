@@ -326,7 +326,7 @@ This project was developed entirely through AI-assisted pair programming using [
 
 ## Author
 
-**[Vasileios Bellos](https://www.linkedin.com/in/vasileios-bellos/)**
+**[Vasileios Bellos](https://www.mathworks.com/matlabcentral/profile/authors/13754969)**
 
 ## License
 
