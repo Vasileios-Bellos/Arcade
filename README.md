@@ -67,7 +67,7 @@ Full SRS rotation with wall kicks, ghost piece, 3-piece preview, 7-bag randomize
 
 ### 5. Asteroids
 
-Wireframe polygons with random vertices that split on impact - large asteroids split into two medium, medium split into two small, each faster than the last. Auto-fire crosshair tracks your cursor with swept segment collision. Wave-based with increasing asteroid count and speed.
+Wireframe polygons with random vertices that split on impact - large asteroids split into two medium, medium split into two small, each faster than the last. The ship follows your cursor and auto-fires at the nearest asteroid. Wave-based with increasing asteroid count and speed.
 
 <p align="center"><img src="assets/asteroids.gif" alt="Asteroids" width="60%"></p>
 
