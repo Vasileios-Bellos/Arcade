@@ -1,7 +1,7 @@
 <h1 align="center">Arcade</h1>
 
 <p align="center">
-<a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" width="150"></a>&nbsp;&nbsp;
+<a href="https://mathworks.com/matlabcentral/fileexchange/"><img src="https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg" width="145"></a>&nbsp;&nbsp;
 <a href="https://matlab.mathworks.com/"><img src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg" width="216"></a>&nbsp;&nbsp;
 <a href="index.html"><img src="https://img.shields.io/badge/Live_Demo-Play_in_Browser-008CA6?style=flat" width="260"></a>
 </p>
