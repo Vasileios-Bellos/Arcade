@@ -211,7 +211,7 @@ Upload the `.mltbx` file to any of:
 
 Edit the `opts.ToolboxVersion` line in `scripts/buildToolbox.m` before rebuilding.
 
-### Older MATLAB (pre-R2023a)
+### Older MATLAB versions
 
 `matlab.addons.toolbox.ToolboxOptions` was introduced in R2023a. On older releases you can package manually:
 
