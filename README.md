@@ -324,6 +324,10 @@ This project was developed entirely through AI-assisted pair programming using [
 
 ---
 
+## Author
+
+**[Vasileios Bellos](https://www.linkedin.com/in/vasileios-bellos/)**
+
 ## License
 
-MIT - see [LICENSE](LICENSE)
+[MIT](LICENSE)
