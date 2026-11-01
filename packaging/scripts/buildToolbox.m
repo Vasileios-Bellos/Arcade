@@ -45,26 +45,7 @@ if verLessThan("matlab", "23.1")  %#ok<VERLESSMATLAB> - R2023a = 23.1
 end
 
 % =========================================================================
-%  3. Create ToolboxOptions and set metadata
-% =========================================================================
-
-% The ToolboxOptions constructor takes the toolbox folder (the root that
-% will be added to the MATLAB path when the toolbox is installed).
-opts = matlab.addons.toolbox.ToolboxOptions(projectRoot, ...
-    "3f4a7b2c-e8d1-4a6f-9c0e-1b5d8f3a7e9d");  % fixed UUID for reproducibility
-
-opts.ToolboxName           = "Arcade";
-opts.ToolboxVersion        = "1.0.0";
-opts.AuthorName            = "Vasileios Bellos";
-opts.Summary               = "15 neon-styled arcade games in pure MATLAB";
-opts.Description           = ...
-    "A collection of 15 arcade games (8 classics + 7 originals) with a " + ...
-    "neon-styled launcher, persistent high scores, frame-rate independence, " + ...
-    "and automatic display scaling. No toolboxes required.";
-opts.MinimumMatlabRelease  = "R2022b";
-
-% =========================================================================
-%  4. Define file inclusions
+%  3. Define file inclusions
 % =========================================================================
 % By default ToolboxOptions includes the entire ToolboxFolder. We override
 % with an explicit list so that recording/, assets/, data/, docs/TODO.md,
@@ -72,11 +53,11 @@ opts.MinimumMatlabRelease  = "R2022b";
 
 % --- Collect all files to include ---
 
-% 4a. Root .m files (Arcade.m)
+% 3a. Root .m files (Arcade.m)
 rootFiles = dir(fullfile(projectRoot, "*.m"));
 includeFiles = fullfile(projectRoot, {rootFiles.name}');
 
-% 4b. README.md and LICENSE
+% 3b. README.md and LICENSE
 readmePath = fullfile(projectRoot, "README.md");
 if isfile(readmePath)
     includeFiles{end+1, 1} = readmePath;
@@ -86,7 +67,7 @@ if isfile(licensePath)
     includeFiles{end+1, 1} = licensePath;
 end
 
-% 4c. Package folders: +engine, +games, +services, +ui
+% 3c. Package folders: +engine, +games, +services, +ui
 %     Recursively collect all .m files from each package.
 packages = ["+engine", "+games", "+services", "+ui"];
 for k = 1:numel(packages)
@@ -97,6 +78,18 @@ for k = 1:numel(packages)
             includeFiles{end+1, 1} = fullfile(pkgFiles(j).folder, pkgFiles(j).name); %#ok<SAGROW>
         end
     end
+end
+
+% 3d. Demos
+demoFolder = fullfile(projectRoot, "demos");
+demoFiles = ["arcadeBallDemo.m", "arcadeEffectsDemo.m", "README.md"];
+for k = 1:numel(demoFiles)
+    demoPath = fullfile(demoFolder, demoFiles(k));
+    if ~isfile(demoPath)
+        error("buildToolbox:MissingDemoFile", ...
+            "Required demo file is missing: %s", demoPath);
+    end
+    includeFiles{end+1, 1} = demoPath; %#ok<SAGROW>
 end
 
 % Convert to string array for ToolboxOptions.
@@ -111,10 +104,27 @@ for k = 1:numel(includeFiles)
     fprintf("  %s\n", extractAfter(includeFiles(k), strlength(projectRoot)));
 end
 
-% Assign to options. ToolboxMatlabPath is the folder added to the MATLAB
-% path on install - the project root, so Arcade() and packages work.
-opts.ToolboxFiles      = includeFiles;
-opts.ToolboxMatlabPath = projectRoot;
+% =========================================================================
+%  4. Create ToolboxOptions and set metadata
+% =========================================================================
+
+% The ToolboxOptions constructor takes the toolbox folder (the root that
+% will be added to the MATLAB path when the toolbox is installed).
+% ToolboxMatlabPath specifies the folders added to the MATLAB path on installation.
+opts = matlab.addons.toolbox.ToolboxOptions(projectRoot, ...
+    "3f4a7b2c-e8d1-4a6f-9c0e-1b5d8f3a7e9d", ...  % fixed UUID for reproducibility
+    ToolboxFiles=includeFiles, ...
+    ToolboxMatlabPath=[string(projectRoot); string(demoFolder)]);
+
+opts.ToolboxName           = "Arcade";
+opts.ToolboxVersion        = "1.1.0";
+opts.AuthorName            = "Vasileios Bellos";
+opts.Summary               = "15 neon-styled arcade games in pure MATLAB";
+opts.Description           = ...
+    "A collection of 15 arcade games (8 classics + 7 originals) with a " + ...
+    "neon-styled launcher, persistent high scores, frame-rate independence, " + ...
+    "and automatic display scaling. No toolboxes required.";
+opts.MinimumMatlabRelease  = "R2022b";
 
 % =========================================================================
 %  5. Set the getting-started entry point
