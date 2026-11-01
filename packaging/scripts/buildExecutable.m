@@ -107,7 +107,7 @@ try
     opts = [opts, {"AdditionalFiles", string(additionalFiles)}];
     opts = [opts, {"OutputDir", buildDir}];
     opts = [opts, {"ExecutableName", "Arcade"}];
-    opts = [opts, {"ExecutableVersion", "1.0.0.0"}];
+    opts = [opts, {"ExecutableVersion", "1.1.0.0"}];
     opts = [opts, {"Verbose", "on"}];
     opts = [opts, {"AutoDetectDataFiles", "on"}];
 
@@ -158,7 +158,7 @@ try
     instOpts = {};
     instOpts = [instOpts, {"ApplicationName", "Arcade"}];
     instOpts = [instOpts, {"AuthorName", "Vasileios Bellos"}];
-    instOpts = [instOpts, {"Version", "1.0.0"}];
+    instOpts = [instOpts, {"Version", "1.1.0"}];
     instOpts = [instOpts, {"Summary", "15 neon-styled arcade games in pure MATLAB"}];
     instOpts = [instOpts, {"Description", ...
         "A collection of 15 arcade games (8 classics + 7 originals) with a " + ...
