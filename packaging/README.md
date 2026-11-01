@@ -43,7 +43,13 @@ Arcade/
 ├── +ui/
 │   └── GameMenu.m           % Scrollable neon menu
 ├── +services/
-│   └── ScoreManager.m       % Persistent high-score storage
+│   ├── ScoreManager.m       % Persistent high-score storage
+│   ├── recordGame.m         % Gameplay recording
+│   └── recordMenu.m         % Menu recording
+├── demos/
+│   ├── README.md            % Demo documentation
+│   ├── arcadeBallDemo.m     % Ball animation and display scaling
+│   └── arcadeEffectsDemo.m  % Mouse input and visual effects
 ├── data/
 │   └── scores.mat           % High scores (created at runtime)
 └── packaging/
@@ -130,6 +136,7 @@ https://www.mathworks.com/products/compiler/matlab-runtime.html
 |---|---|
 | R2024b | R2024b (24.2) |
 | R2025a | R2025a (25.1) |
+| R2026b | R2026b (26.2) |
 
 The runtime is approximately 3 GB installed. Users only need to install it once.
 
@@ -175,8 +182,9 @@ This produces `packaging/Arcade.mltbx`.
 | Entry point | `Arcade.m` |
 | Engine | `+engine/GameBase.m` |
 | UI | `+ui/GameMenu.m` |
-| Services | `+services/ScoreManager.m` |
+| Services | `+services/ScoreManager.m`, `+services/recordGame.m`, `+services/recordMenu.m` |
 | Games (15) | `+games/*.m` |
+| Demos | `demos/arcadeBallDemo.m`, `demos/arcadeEffectsDemo.m` |
 | Documentation | `README.md`, `LICENSE` |
 
 ### What is excluded
@@ -197,7 +205,7 @@ Double-click the `.mltbx` file, or:
 matlab.addons.toolbox.installToolbox("Arcade.mltbx")
 ```
 
-After installation, `Arcade()` and all `games.*` classes are on the path automatically.
+After installation, `Arcade()` and all `games.*` classes are added to the path automatically.
 
 ### Distribute
 
@@ -218,7 +226,7 @@ Edit the `opts.ToolboxVersion` line in `scripts/buildToolbox.m` before rebuildin
 1. Open **MATLAB > HOME > Add-Ons > Package Toolbox**
 2. Add the project root folder
 3. Fill in the metadata (name, version, author, description)
-4. Include only `Arcade.m`, `+engine/`, `+games/`, `+services/`, `+ui/`, `README.md`, `LICENSE`
+4. Include `Arcade.m`, `+engine/`, `+games/`, `+services/`, `+ui/`, `README.md`, `LICENSE`
 5. Click **Package**
 
 ---

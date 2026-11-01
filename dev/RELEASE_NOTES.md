@@ -1,3 +1,13 @@
+# v1.1.0 - Demos and Documentation
+
+- Patched minor bugs
+- Added standalone demos for ball animation and visual effects
+- Recompiled the Windows executable with MATLAB R2026b
+- Updated the MATLAB toolbox
+- Updated the documentation
+
+---
+
 # v1.0.1 - Bug Fixes
 
 ## Collision Fixes

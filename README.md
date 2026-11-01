@@ -209,13 +209,21 @@ Arcade.m                 entry point
     GameMenu.m           animated menu with starfield and comets
 +services/
     ScoreManager.m       persistent high-score storage
+    recordGame.m         gameplay recording
+    recordMenu.m         menu recording
 +games/                  15 game classes
 index.html               HTML5 Canvas port (all 15 games, single file)
 technical.html           technical documentation page
 dev/
     README.md            architecture and technical details
+    RELEASE_NOTES.md     release notes
     TODO.md              development roadmap
+    article/
+        README.md        article on making games in MATLAB
+        assets/          article figures
+demos/                   standalone MATLAB examples and usage guide
 packaging/
+    README.md            packaging guide
     scripts/             build scripts (toolbox, executable, icon)
     assets/              icon, splash screen
     Arcade.mltbx         pre-built toolbox
@@ -223,7 +231,7 @@ packaging/
 assets/                  demo GIFs
 ```
 
-For architecture details, FPS scaling internals, and per-game technical breakdowns, see [dev/README.md](dev/README.md).
+For architecture details, FPS scaling internals, and per-game technical breakdowns, see the [Developer Details](https://github.com/Vasileios-Bellos/Arcade/blob/master/dev/README.md). The [article on making games in MATLAB](https://github.com/Vasileios-Bellos/Arcade/blob/master/dev/article/README.md) also explains graphics, callback functions, and scaling through the [standalone demos](demos/).
 
 ---
 
@@ -296,7 +304,7 @@ Download [`Arcade.mltbx`](packaging/Arcade.mltbx) and install it via MATLAB's Ad
 
 ### Standalone Executable (Windows)
 
-No MATLAB license required. [`ArcadeInstaller.exe`](packaging/ArcadeInstaller.exe) bundles a web installer that downloads the free [MATLAB Runtime R2025b](https://www.mathworks.com/products/compiler/matlab-runtime.html) automatically. See the [packaging guide](packaging/) for details.
+No MATLAB license required. [`ArcadeInstaller.exe`](packaging/ArcadeInstaller.exe) bundles a web installer that downloads the free [MATLAB Runtime R2026b](https://www.mathworks.com/products/compiler/matlab-runtime.html) automatically. See the [packaging guide](packaging/) for details.
 
 ### Browser
 
@@ -316,7 +324,7 @@ buildExecutable    % creates packaging/ArcadeInstaller.exe
 generateIcon       % creates packaging/assets/icon.png, splash.png
 ```
 
-The toolbox requires MATLAB R2023a+ to build. The executable requires MATLAB Compiler. See [`packaging/`](packaging/) for full instructions.
+The toolbox requires MATLAB R2023a+ to build. The executable requires MATLAB Compiler. See the [packaging guide](packaging/) for full instructions.
 
 </details>
 
