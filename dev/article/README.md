@@ -217,11 +217,15 @@ For a 1200-by-480 window, the height limits the scale to 1. The fitted area rema
 
 MATLAB already scales graphics defined in data coordinates as the axes resize. For example, a paddle drawn with [`patch`](https://www.mathworks.com/help/matlab/ref/patch.html) grows with the axes. In the example, marker sizes, font sizes and line widths use points, while scatter sizes use points squared.
 
+<div align="center">
+
 | Quantity | Units | Resize rule |
 |---|---|---|
 | Positions and patch vertices | Game coordinates | Keep the coordinates; resize the axes |
 | [`MarkerSize`](https://www.mathworks.com/help/matlab/ref/matlab.graphics.primitive.line-properties.html), [`FontSize`](https://www.mathworks.com/help/matlab/ref/matlab.graphics.primitive.text-properties.html), [`LineWidth`](https://www.mathworks.com/help/matlab/ref/matlab.graphics.primitive.patch-properties.html) | Points | Reference value × `displayScale` |
 | Scatter [`SizeData`](https://www.mathworks.com/help/matlab/ref/matlab.graphics.chart.primitive.scatter-properties.html) | Points squared | Reference area × `displayScale^2` |
+
+</div>
 
 To make a circle twice as wide, we need four times its area. Doubling `SizeData` multiplies its width by only √2:
 
@@ -356,12 +360,16 @@ Each game subclasses [engine.GameBase](https://github.com/Vasileios-Bellos/Arcad
 
 `GameBase` declares four abstract methods that each game class must implement:
 
+<div align="center">
+
 | Method | Description |
 |---|---|
 | `onInit` | Create state and graphics for the supplied axes and world |
 | `onUpdate` | Advance state and graphics using input and elapsed time |
 | `onKeyPress` | Handle a key and report whether it was consumed |
 | `onCleanup` | Release the game's graphics and other resources |
+
+</div>
 
 The launcher calls `onUpdate` on its active game, and MATLAB dispatches that call to the selected subclass. Pong implements paddle and ball movement; Flappy Bird advances its bird and pipes. All games inherit methods for scoring, combo handling and visual effects from `GameBase`. Window management, menus, timing and common services stay with the launcher.
 
