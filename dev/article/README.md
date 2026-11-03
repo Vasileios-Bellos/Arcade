@@ -1,4 +1,4 @@
-# Making games in MATLAB: Tips and tricks for the upcoming One-Button Game Mini Hack contest
+# Making games in MATLAB: Tips and tricks for the One-Button Game Mini Hack contest
 
 The [MATLAB One-Button Game Mini Hack](https://www.mathworks.com/matlabcentral/contests/matlab-one-button-game-mini-hack.html) runs from November 2nd through November 29th, 2026! The challenge is to make a game that can be played with one button. I thought this would be a good opportunity to share some of the graphics and programming ideas behind [Arcade](https://www.mathworks.com/matlabcentral/fileexchange/183498-arcade), a collection of 15 games I developed in MATLAB using [Claude Code](https://code.claude.com/docs/en/overview) and the [MATLAB MCP Server](https://github.com/matlab/matlab-mcp-server).
 
@@ -26,7 +26,7 @@ In [Pong](https://github.com/Vasileios-Bellos/Arcade/blob/412f0f306e7fdc6727fb61
   <img src="assets/pongGameplay.gif" alt="Pong in Arcade, with a layered ball and its trail moving between two paddles." width="75%">
 </p>
 
-To experiment with the ball, download [arcadeBallDemo.m](../../demos/arcadeBallDemo.m), add its folder to the MATLAB path, and run:
+To experiment with the ball, download [arcadeBallDemo.m](https://github.com/Vasileios-Bellos/Arcade/releases/download/v1.1.0/arcadeBallDemo.m), add its folder to the MATLAB path, and run:
 
 ```matlab
 arcadeBallDemo();
@@ -143,7 +143,7 @@ The animation loop's [`drawnow`](https://www.mathworks.com/help/matlab/ref/drawn
 
 When the orb is launched in Flick It!, a call to `spawnHitEffect` creates a ring and rays that expand and fade. The launcher advances these [shared effects](https://github.com/Vasileios-Bellos/Arcade/blob/412f0f306e7fdc6727fb612f0de2d7e6eb25607d/%2Bengine/GameBase.m#L258) alongside the active game.
 
-In [arcadeEffectsDemo.m](../../demos/arcadeEffectsDemo.m), each click creates a burst at the mouse position, allowing several bursts to expand and fade together. To try it out, download the function, add its folder to the MATLAB path, and run:
+In [arcadeEffectsDemo.m](https://github.com/Vasileios-Bellos/Arcade/releases/download/v1.1.0/arcadeEffectsDemo.m), each click creates a burst at the mouse position, allowing several bursts to expand and fade together. To try it out, download the function, add its folder to the MATLAB path, and run:
 
 ```matlab
 arcadeEffectsDemo();
